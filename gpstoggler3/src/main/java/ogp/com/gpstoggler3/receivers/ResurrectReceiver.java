@@ -23,10 +23,9 @@ public class ResurrectReceiver extends BroadcastReceiver {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent myIntent = new Intent(appContext, TogglerService.class);
-                appContext.startService(myIntent);
+                TogglerService.startServiceForever(appContext);
 
-                Log.w(Constants.TAG, "ResurrectionService. 'startService' invoked.");
+                Log.w(Constants.TAG, "ResurrectionService. 'startServiceForever' invoked.");
             }
         }, DELAY_RESURRECT);
 

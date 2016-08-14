@@ -1,6 +1,5 @@
 package ogp.com.gpstoggler3;
 
-import android.*;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -50,14 +49,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.apps.AppAdapter;
 import ogp.com.gpstoggler3.apps.AppAdapterInterface;
-import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.status.GPSStatus;
 import ogp.com.gpstoggler3.su.RootCaller;
 import ogp.com.gpstoggler3.su.RunMonitor;
@@ -70,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private static final long WAIT_FOR_GPS_REACTION = 1000;
     private static final int MAX_LOG_LINES = 200;
     private static final int REQ_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int ENUMERATE_APPS_BIND_DELAY = 1000;
 
     private static AppAdapter adapter = null;
     private static long lastAppList = 0;
@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private TogglerServiceConnection serviceConnection = new TogglerServiceConnection();
     private ITogglerService togglerBinder = null;
     private Handler handler = new Handler();
-    private Boolean gpsState = null;
     private String packageName;
     private ProgressDialog progress;
     private WorkerThread activityThread = new WorkerThread(this);
@@ -98,7 +97,11 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         public void onReceive(Context context, Intent intent) {
             Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Entry...");
 
-            gpsStateChanged(gpsState);
+            try {
+                gpsStateChanged(togglerBinder.onGps().gpsOn);
+            } catch (RemoteException | NullPointerException e) {
+                Log.e(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exception in 'onGps'.");
+            }
 
             Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exit.");
         }
@@ -140,9 +143,14 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 addLogMessage(R.string.failed_connect_to_service);
             }
 
-            enumerateApps();
-            gpsStateChanged(gpsState);
+            try {
+                gpsStateChanged(togglerBinder.onGps().gpsOn);
+            } catch (RemoteException | NullPointerException e) {
+                Log.e(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exception in 'onGps'.");
+            }
+
             resurrectLog();
+            enumerateApps(ENUMERATE_APPS_BIND_DELAY);
 
             Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exit.");
         }
@@ -311,6 +319,32 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     }
 
 
+    private void enumerateApps(int delay) {
+        if (delay < 0) {
+            delay = 0;
+        }
+
+        activityThread.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.v(Constants.TAG, "MainActivity::enumerateApps::run. Entry...");
+
+                try {
+                    if (null != togglerBinder) {
+                        togglerBinder.enumerateApps();
+                    } else {
+                        Log.e(Constants.TAG, "MainActivity::enumerateApps::run. 'togglerBinder==null'.");
+                    }
+                } catch (RemoteException e) {
+                    Log.e(Constants.TAG, "MainActivity::enumerateApps::run. Exception: ", e);
+                }
+
+                Log.v(Constants.TAG, "MainActivity::enumerateApps::run. Exit.");
+            }
+        }, delay);
+    }
+
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -353,9 +387,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         unregisterReceiver(gpsStateChangedReceiver);
         unregisterReceiver(serviceReceiver);
-
+/*
         unbindService(serviceConnection);
-
+*/
         super.onDestroy();
         Log.v(Constants.TAG, "MainActivity::onDestroy. Exit.");
     }
@@ -425,8 +459,18 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
                 v.setEnabled(false);
 
-                final Boolean oldGpsState = gpsState;
-                Log.i(Constants.TAG, String.format("MainActivity::initializeScreen. Toggling GPS state from %s to %s.", gpsState2String(gpsState), gpsState2String(!gpsState)));
+
+                final Boolean oldGpsState;
+
+                try {
+                    oldGpsState = togglerBinder.onGps().gpsOn;
+                } catch (RemoteException | NullPointerException e) {
+                    Log.e(Constants.TAG, "MainActivity::initializeScreen. Exception in 'onGps'.");
+                    return false;
+                }
+
+
+                Log.i(Constants.TAG, String.format("MainActivity::initializeScreen. Toggling GPS state from %s to %s.", gpsState2String(oldGpsState), gpsState2String(!oldGpsState)));
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -512,19 +556,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         setControls();
 
         Log.v(Constants.TAG, "MainActivity::onClickMode. Exit.");
-    }
-
-
-    private void enumerateApps() {
-        Log.v(Constants.TAG, "MainActivity::enumerateApps. Entry...");
-
-        try {
-            togglerBinder.enumerateApps();
-        } catch (RemoteException e) {
-            Log.e(Constants.TAG, "MainActivity::enumerateApps. Exception: ", e);
-        }
-
-        Log.v(Constants.TAG, "MainActivity::enumerateApps. Exit.");
     }
 
 
@@ -652,6 +683,13 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private void expectGpsStateChanged(Boolean oldState) {
         Log.v(Constants.TAG, "MainActivity::expectGpsStateChanged. Entry...");
 
+        Boolean gpsState = null;
+        try {
+            gpsState = togglerBinder.onGps().gpsOn;
+        } catch (RemoteException | NullPointerException e) {
+            Log.e(Constants.TAG, "MainActivity::expectGpsStateChanged. Exception in 'onGps'.");
+        }
+
         if (null == gpsState || gpsState == oldState) {
             addLogMessage(R.string.error_set_gps_state);
             Log.e(Constants.TAG, "MainActivity::expectGpsStateChanged. Failed to set the new GPS state.");
@@ -666,19 +704,21 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         Log.v(Constants.TAG, "MainActivity::gpsStateChanged. Entry...");
 
         long timestamp;
+        Boolean gpsState;
 
         try {
-            GPSStatus status = togglerBinder.onGps();
-            gpsState = status.gpsOn;
-            timestamp = status.gpsStatusTimestamp;
+            if (null != togglerBinder) {
+                GPSStatus status = togglerBinder.onGps();
+                gpsState = status.gpsOn;
+                timestamp = status.gpsStatusTimestamp;
+            } else {
+                addLogMessage(R.string.error_obtain_gps_state);
+                Log.e(Constants.TAG, "MainActivity::gpsStateChanged. Failed to obtain the new state [2].");
+                return;
+            }
         } catch (RemoteException e) {
-            gpsState = null;
             addLogMessage(R.string.error_obtain_gps_state);
             Log.e(Constants.TAG, "MainActivity::gpsStateChanged. Failed to obtain the new state [1].");
-            return;
-        } catch (NullPointerException e) {
-            addLogMessage(R.string.error_obtain_gps_state);
-            Log.e(Constants.TAG, "MainActivity::gpsStateChanged. Failed to obtain the new state [2].");
             return;
         }
 
@@ -772,6 +812,17 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 Log.e(Constants.TAG, "MainActivity::setControls. Exception: ", e);
             }
         }
+
+
+        Boolean gpsState = null;
+        try {
+            if (null != togglerBinder) {
+                gpsState = togglerBinder.onGps().gpsOn;
+            }
+        } catch (RemoteException e) {
+            Log.e(Constants.TAG, "MainActivity::expectGpsStateChanged. Exception in 'onGps'.");
+        }
+
 
         gpsButton.setEnabled(!automation && null != gpsState);
         gpsButton.setChecked(null != gpsState && gpsState);

@@ -30,6 +30,11 @@ public class WorkerThread extends Thread {
     }
 
 
+    public void postDelayed(Runnable runnable, int delay) {
+        handler.postDelayed(runnable, delay);
+    }
+
+
     @Override
     public void run() {
         Log.v(Constants.TAG, "WorkerThread::run. Entry...");

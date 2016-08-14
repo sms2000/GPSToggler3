@@ -80,7 +80,6 @@
             android:label="@string/widget_icon">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE_OPTIONS" />
                 <action android:name="ogp.com.gpstoggler3.broadcasters.RETRIVE_WIDGETS" />
                 <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
             </intent-filter>
@@ -94,7 +93,6 @@
             android:label="@string/widget_full">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE_OPTIONS" />
                 <action android:name="ogp.com.gpstoggler3.broadcasters.RETRIVE_WIDGETS" />
                 <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
             </intent-filter>

@@ -249,12 +249,19 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         handler.post(new Runnable() {
             @Override
             public void run() {
+                RootCaller.setSecureSettings(TogglerService.this.getPackageName());
+            }
+        });
+
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
                 Log.i(Constants.TAG, "TogglerService::onCreate. Delayed inititalization invoked.");
 
                 bindIntent.setClassName("ogp.com.gpstoggler3monitor", "ogp.com.gpstoggler3monitor.MonitorService");
                 bind2Toggler();
 
-                enumerateApps();
                 locationProviderChanged();
                 updateWidgets();
             }
