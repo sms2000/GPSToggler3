@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="ogp.com.gpstoggler3monitor">
+
+    <permission android:name="ogp.com.gpstoggler3monitor.MONITORING" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="ogp.com.gpstoggler3monitor.MONITORING" />
+    <uses-permission android:name="ogp.com.gpstoggler3.GPS_ACCESS" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        tools:ignore="AllowBackup">
+        <activity
+            android:name=".TransparentActivity"
+            android:excludeFromRecents="true"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="github.com"
+                    android:pathPrefix="/sms2000/GPSToggler3"
+                    android:scheme="https" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".MonitorService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote"
+            android:stopWithTask="false"
+            android:permission="ogp.com.gpstoggler3monitor.MONITORING" />
+
+        <receiver
+            android:name=".EventReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="ogp.com.toggler3monitor.RESURRECT_ME" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

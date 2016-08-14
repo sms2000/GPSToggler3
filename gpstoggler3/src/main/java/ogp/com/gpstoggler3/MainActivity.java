@@ -1,0 +1,963 @@
+package ogp.com.gpstoggler3;
+
+import android.*;
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Point;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Process;
+import android.os.RemoteException;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.ToggleButton;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.apps.AppAdapter;
+import ogp.com.gpstoggler3.apps.AppAdapterInterface;
+import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.apps.AppStore;
+import ogp.com.gpstoggler3.apps.ListAppStore;
+import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.status.GPSStatus;
+import ogp.com.gpstoggler3.su.RootCaller;
+import ogp.com.gpstoggler3.su.RunMonitor;
+
+import static ogp.com.gpstoggler3.su.RootCaller.RootStatus.NO_ROOT;
+import static ogp.com.gpstoggler3.su.RootCaller.RootStatus.ROOT_GRANTED;
+
+
+public class MainActivity extends AppCompatActivity implements AppAdapterInterface {
+    private static final long WAIT_FOR_GPS_REACTION = 1000;
+    private static final int MAX_LOG_LINES = 200;
+    private static final int REQ_WRITE_EXTERNAL_STORAGE = 1;
+
+    private static AppAdapter adapter = null;
+    private static long lastAppList = 0;
+    private static String version;
+
+    private Boolean orientationLandscape;
+    private ListView listApps;
+    private TextView logView;
+    private ToggleButton modeButton;
+    private ToggleButton gpsButton;
+    private ScrollView logScroll;
+    private static List<String> log = new ArrayList<>();
+    private DateFormat timeFormat;
+    private TogglerServiceConnection serviceConnection = new TogglerServiceConnection();
+    private ITogglerService togglerBinder = null;
+    private Handler handler = new Handler();
+    private Boolean gpsState = null;
+    private String packageName;
+    private ProgressDialog progress;
+    private WorkerThread activityThread = new WorkerThread(this);
+    private GoogleApiClient client;
+
+
+    private BroadcastReceiver gpsStateChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Entry...");
+
+            gpsStateChanged(gpsState);
+
+            Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exit.");
+        }
+    };
+
+
+    private Action getIndexApiAction() {
+        Thing object = new Thing.Builder().setName(this.getResources().getString(R.string.main_page))
+                .setUrl(Uri.parse("https://github.com/sms2000"))
+                .build();
+
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+
+    private class TogglerServiceConnection implements ServiceConnection {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Entry...");
+
+            togglerBinder = ITogglerService.Stub.asInterface(binder);
+
+            int myPID = Process.myPid();
+            int serverPID = 0;
+            try {
+                serverPID = togglerBinder.getPid();
+            } catch (RemoteException e) {
+                Log.e(Constants.TAG, "MainActivity::onServiceConnected. Exception: ", e);
+            }
+
+            if (0 != serverPID) {
+                Log.d(Constants.TAG, String.format("MainActivity::onServiceConnected. App PID = %d, Server PID = %d.", myPID, serverPID));
+                addLogMessage(R.string.connected_to_service);
+            } else {
+                Log.e(Constants.TAG, String.format("MainActivity::onServiceConnected. Failed to connect the server. App PID = %d.", myPID));
+                addLogMessage(R.string.failed_connect_to_service);
+            }
+
+            enumerateApps();
+            gpsStateChanged(gpsState);
+            resurrectLog();
+
+            Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exit.");
+        }
+
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceDisconnected. Entry...");
+            togglerBinder = null;
+            Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceDisconnected. Exit.");
+        }
+    }
+
+
+    private BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.v(Constants.TAG, "MainActivity::serviceReceiver::OnReceive. Entry...");
+
+            if (intent.getAction().equals(Broadcasters.APPS_ENUMERATED)) {
+                enumerateInstalledApps();
+                setControls();
+            } else if (intent.getAction().equals(Broadcasters.AUTO_STATE_CHANGED)) {
+                automationStateChanged();
+            }
+
+            Log.v(Constants.TAG, "MainActivity::serviceReceiver::OnReceive. Exit.");
+        }
+    };
+
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Log.v(Constants.TAG, "MainActivity::onCreate. Entry...");
+
+        Settings.allocate(this);
+
+        packageName = getPackageName();
+        progress = new ProgressDialog(this);
+
+        progress.setTitle("");
+        progress.setMessage(getString(R.string.loading_apps));
+        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progress.setIndeterminate(true);
+        progress.show();
+
+        timeFormat = DateFormat.getTimeInstance();
+        Point displaySize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(displaySize);
+        orientationLandscape = displaySize.x > displaySize.y;
+
+        IntentFilter filter = new IntentFilter(Broadcasters.GPS_STATE_CHANGED);
+        registerReceiver(gpsStateChangedReceiver, filter);
+
+        filter = new IntentFilter();
+        filter.addAction(Broadcasters.APPS_ENUMERATED);
+        filter.addAction(Broadcasters.AUTO_STATE_CHANGED);
+        registerReceiver(serviceReceiver, filter);
+
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            version = "<unknwon>";
+        }
+
+
+        initializeScreen();
+
+        adapter = new AppAdapter(this, this);
+        addLogMessage(R.string.enumerating);
+
+        connect2Services();
+
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        Log.v(Constants.TAG, "MainActivity::onCreate. Exit.");
+    }
+
+
+    private void connect2Services() {
+        activityThread.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.v(Constants.TAG, "MainActivity::connect2Services::run. Entry...");
+
+                TogglerService.inititateMonitor(MainActivity.this);
+
+                systemize();
+
+                if (TogglerService.startServiceAndBind(MainActivity.this, serviceConnection)) {
+                    Log.i(Constants.TAG, "MainActivity::connect2Services::run. Binding in process.");
+                    decideOnMonitor();
+                } else {
+                    Log.e(Constants.TAG, "MainActivity::connect2Services::run. Failed to bind.");
+                    progress.dismiss();
+                    noService();
+                }
+
+                Log.v(Constants.TAG, "MainActivity::connect2Services::run. Exit.");
+            }
+        });
+    }
+
+
+    private void decideOnMonitor() {
+        if (Settings.isMonitorDeclined()) {
+            Log.v(Constants.TAG, "MainActivity::decideOnMonitor. Monitor installation declined. Not asking anymore.");
+            return;
+        }
+
+        activityThread.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.v(Constants.TAG, "MainActivity::decideOnMonitor::run. Entry...");
+
+                if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                        dialog.setTitle(R.string.permission_request);
+                        dialog.setMessage(R.string.req_write_external_storage);
+                        dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
+                                Log.d(Constants.TAG, "MainActivity::decideOnMonitor::run::run. Pressed <Yes>.");
+                            }
+                        });
+
+                        dialog.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                                Settings.declineMonitor();
+                                Log.d(Constants.TAG, "MainActivity::decideOnMonitor::run::run. Pressed <No>.");
+                            }
+                        });
+
+                        dialog.show();
+                    } else {
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
+                    }
+                }
+                Log.v(Constants.TAG, "MainActivity::decideOnMonitor::run. Exit.");
+            }
+        });
+    }
+
+
+    private void loadMonitor() {
+        final RunMonitor runMonitor = new RunMonitor(this);
+        activityThread.post(new Runnable() {
+            @Override
+            public void run() {
+                runMonitor.installMonitor();
+            }
+        });
+
+        activityThread.post(new Runnable() {
+            @Override
+            public void run() {
+                runMonitor.startMonitor();
+            }
+        });
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQ_WRITE_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadMonitor();
+                } else {
+                    Settings.declineMonitor();
+                }
+
+                break;
+        }
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        Log.v(Constants.TAG, "MainActivity::onDestroy. Entry...");
+        activityThread.kill();
+
+        progress.dismiss();
+
+        unregisterReceiver(gpsStateChangedReceiver);
+        unregisterReceiver(serviceReceiver);
+
+        unbindService(serviceConnection);
+
+        super.onDestroy();
+        Log.v(Constants.TAG, "MainActivity::onDestroy. Exit.");
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return (item.getItemId() == R.id.action_settings) || super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        Log.v(Constants.TAG, "MainActivity::onConfigurationChanged. Entry...");
+
+        super.onConfigurationChanged(newConfig);
+        progress.dismiss();
+
+        boolean oldOrientation = orientationLandscape;
+        orientationLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+
+        if (oldOrientation != orientationLandscape) {
+            initializeScreen();
+            setControls();
+            resurrectLog();
+        }
+
+        Log.v(Constants.TAG, "MainActivity::onConfigurationChanged. Exit.");
+    }
+
+
+    private void initializeScreen() {
+        Log.v(Constants.TAG, "MainActivity::initializeScreen. Entry...");
+
+        setTitle(String.format(getString(R.string.app_title), version));
+
+        setContentView(orientationLandscape ? R.layout.activity_l : R.layout.activity_p);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        listApps = (ListView) findViewById(R.id.listApps);
+        logScroll = (ScrollView) findViewById(R.id.scrollLog);
+        logView = (TextView) findViewById(R.id.textLog);
+
+        modeButton = (ToggleButton) findViewById(R.id.toggleAutomatic);
+        gpsButton = (ToggleButton) findViewById(R.id.toggleGPS);
+
+        gpsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
+        gpsButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() != MotionEvent.ACTION_UP) {
+                    return true;
+                }
+
+                v.setEnabled(false);
+
+                final Boolean oldGpsState = gpsState;
+                Log.i(Constants.TAG, String.format("MainActivity::initializeScreen. Toggling GPS state from %s to %s.", gpsState2String(gpsState), gpsState2String(!gpsState)));
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        expectGpsStateChanged(oldGpsState);
+
+                    }
+                }, WAIT_FOR_GPS_REACTION);
+
+                toggleGpsState();
+
+                v.performClick();
+                return true;
+            }
+        });
+
+        listApps.setAdapter(adapter);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                }
+            });
+        }
+
+        TogglerService.startServiceForever(this);
+        Log.v(Constants.TAG, "MainActivity::initializeScreen. Exit.");
+    }
+
+
+    @Override
+    public void onClickAppLookup(final AppStore appStore, final boolean enabled) {
+        Log.v(Constants.TAG, "MainActivity::onClickAppLookup. Entry...");
+
+        activityThread.post(new Runnable() {
+            @Override
+            public void run() {
+                appStore.setLookup(enabled);
+
+                ListWatched appList = new ListWatched();
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    AppStore app = adapter.getItem(i);
+                    if (app.getLookup()) {
+                        appList.add(new AppStore(app.friendlyName, app.packageName));
+                    }
+                }
+
+                if (checkBinder()) {
+                    try {
+                        Log.d(Constants.TAG, "MainActivity::onClickAppLookup::run. Informing the service to preserve the new list of watched apps...");
+                        togglerBinder.storeWatchedApps(appList);
+                        Log.d(Constants.TAG, "MainActivity::onClickAppLookup::run. Service informed to preserve the new list of watched apps.");
+                    } catch (RemoteException e) {
+                        Log.e(Constants.TAG, "MainActivity::onClickAppLookup::run. Exception: ", e);
+                    }
+
+
+                    addLogMessage(String.format(getString(enabled ? R.string.add_lookup : R.string.remove_lookup),
+                            appStore.friendlyName));
+                }
+            }
+        });
+
+        Log.v(Constants.TAG, "MainActivity::onClickAppLookup. Exit.");
+    }
+
+
+    public void onClickMode(View modeButton) {
+        Log.v(Constants.TAG, "MainActivity::onClickMode. Entry...");
+
+        boolean automation = ((ToggleButton) modeButton).isChecked();
+
+        try {
+            togglerBinder.storeAutomationState(automation);
+            addLogMessage(automation ? R.string.activate_lookup : R.string.deactivate_lookup);
+            Log.d(Constants.TAG, "MainActivity::onClickMode. Saved auomation status: " + gpsState2String(automation));
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "MainActivity::onClickMode. Exception: ", e);
+        }
+
+        setControls();
+
+        Log.v(Constants.TAG, "MainActivity::onClickMode. Exit.");
+    }
+
+
+    private void enumerateApps() {
+        Log.v(Constants.TAG, "MainActivity::enumerateApps. Entry...");
+
+        try {
+            togglerBinder.enumerateApps();
+        } catch (RemoteException e) {
+            Log.e(Constants.TAG, "MainActivity::enumerateApps. Exception: ", e);
+        }
+
+        Log.v(Constants.TAG, "MainActivity::enumerateApps. Exit.");
+    }
+
+
+    private void enumerateInstalledApps() {
+        Log.v(Constants.TAG, "MainActivity::enumerateInstalledApps. Entry...");
+
+        progress.dismiss();
+
+        ListAppStore appList = null;
+        ListWatched appSelected = null;
+
+        if (null != togglerBinder) {
+            try {
+                Log.d(Constants.TAG, "MainActivity::enumerateInstalledApps. Updating the app list.");
+                appList = togglerBinder.listInstalledApps(lastAppList);
+                if (null == appList) {
+                    Log.d(Constants.TAG, "MainActivity::enumerateInstalledApps. Nothing received.");
+                    return;
+                }
+
+                lastAppList = System.currentTimeMillis();
+                Log.d(Constants.TAG, String.format("MainActivity::enumerateInstalledApps. Received [%d] apps.", appList.size()));
+            } catch (Throwable e) {
+                Log.d(Constants.TAG, "MainActivity::enumerateInstalledApps. Exception [1]: ", e);
+                addLogMessage(getString(R.string.selected_failed));
+                Log.v(Constants.TAG, "MainActivity::enumerateInstalledApps. Exit [1].");
+                return;
+            }
+
+            try {
+                Log.d(Constants.TAG, "MainActivity::enumerateInstalledApps. Updating the watched list.");
+                appSelected = togglerBinder.listWatchedApps();
+
+                for (AppStore app : appList) {
+                    app.setLookup(appSelected.containsPackage(app.packageName));
+                }
+
+                adapter.clear();
+                adapter.addAll(appList);
+                listApps.setAdapter(adapter);
+                Log.d(Constants.TAG, String.format("MainActivity::enumerateInstalledApps. Found [%d] watched apps.", appSelected.size()));
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "MainActivity::enumerateInstalledApps. Exception [2]: ", e);
+                addLogMessage(getString(R.string.selected_failed));
+                Log.v(Constants.TAG, "MainActivity::enumerateInstalledApps. Exit [2].");
+                return;
+            }
+        }
+
+        if (null != appList && 0 < appList.size()) {
+            addLogMessage(R.string.loaded_apps);
+            addLogMessage(getString(R.string.enumerated, appList.size(), appSelected.size()));
+        } else {
+            addLogMessage(R.string.no_apps_found);
+        }
+
+        Log.v(Constants.TAG, "MainActivity::enumerateInstalledApps. Exit.");
+    }
+
+
+    private void automationStateChanged() {
+        Log.v(Constants.TAG, "MainActivity::automationStateChanged. Entry...");
+
+        ListWatched listActivated;
+
+        try {
+            Log.d(Constants.TAG, "MainActivity::automationStateChanged. Updating the activated apps list.");
+            listActivated = togglerBinder.listActivatedApps();
+            if (null == listActivated) {
+                if (null != adapter) {
+                    uploadActivatedApps(null);
+                }
+
+                Log.d(Constants.TAG, "MainActivity::automationStateChanged. Nothing received.");
+
+                addLogMessage(getString(R.string.activated, 0));
+                Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit [1].");
+                return;
+            }
+
+            Log.d(Constants.TAG, String.format("MainActivity::automationStateChanged. Received [%d] activated apps.", listActivated.size()));
+        } catch (Throwable e) {
+            Log.d(Constants.TAG, "MainActivity::automationStateChanged. Exception [1]: ", e);
+            addLogMessage(getString(R.string.activated_failed));
+            Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit [2].");
+            return;
+        }
+
+        if (null != adapter) {
+            uploadActivatedApps(listActivated);
+        }
+
+        addLogMessage(getString(R.string.activated, listActivated.size()));
+        Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit.");
+    }
+
+
+    private void uploadActivatedApps(ListWatched listActivated) {
+        Log.v(Constants.TAG, "MainActivity::uploadActivatedApps. Entry...");
+
+        adapter.uploadActivatedApps(listActivated);
+
+        listApps.invalidate();
+
+        Log.v(Constants.TAG, "MainActivity::uploadActivatedApps. Exit.");
+    }
+
+
+    private void toggleGpsState() {
+        Log.v(Constants.TAG, "MainActivity::toggleGpsState. Entry...");
+
+        try {
+            togglerBinder.toggleGpsState();
+            addLogMessage(R.string.toggle_attempted);
+            Log.e(Constants.TAG, "MainActivity::toggleGpsState. Attempted.");
+        } catch (RemoteException e) {
+            Log.e(Constants.TAG, "MainActivity::toggleGpsState. Exception [1]: ", e);
+            addLogMessage(R.string.toggle_failed);
+        }
+
+        Log.v(Constants.TAG, "MainActivity::toggleGpsState. Exit.");
+    }
+
+
+    private void expectGpsStateChanged(Boolean oldState) {
+        Log.v(Constants.TAG, "MainActivity::expectGpsStateChanged. Entry...");
+
+        if (null == gpsState || gpsState == oldState) {
+            addLogMessage(R.string.error_set_gps_state);
+            Log.e(Constants.TAG, "MainActivity::expectGpsStateChanged. Failed to set the new GPS state.");
+        }
+
+        setControls();
+
+        Log.v(Constants.TAG, "MainActivity::expectGpsStateChanged. Exit.");
+    }
+
+    private void gpsStateChanged(Boolean oldState) {
+        Log.v(Constants.TAG, "MainActivity::gpsStateChanged. Entry...");
+
+        long timestamp;
+
+        try {
+            GPSStatus status = togglerBinder.onGps();
+            gpsState = status.gpsOn;
+            timestamp = status.gpsStatusTimestamp;
+        } catch (RemoteException e) {
+            gpsState = null;
+            addLogMessage(R.string.error_obtain_gps_state);
+            Log.e(Constants.TAG, "MainActivity::gpsStateChanged. Failed to obtain the new state [1].");
+            return;
+        } catch (NullPointerException e) {
+            addLogMessage(R.string.error_obtain_gps_state);
+            Log.e(Constants.TAG, "MainActivity::gpsStateChanged. Failed to obtain the new state [2].");
+            return;
+        }
+
+        if (oldState == gpsState) {
+            Log.d(Constants.TAG, "MainActivity::gpsStateChanged. State not changed: " + gpsState2String(gpsState));
+            addLogMessage(String.format(getString(R.string.gps_state_same), gpsState2String(gpsState)));
+        } else {
+            Log.d(Constants.TAG, "MainActivity::gpsStateChanged. State changed: " + gpsState2String(gpsState) + " at timestamp: " + timestamp);
+            addLogMessage(String.format(getString(R.string.gps_state), gpsState2String(gpsState)));
+        }
+
+        setControls();
+        Log.v(Constants.TAG, "MainActivity::gpsStateChanged. Exit.");
+    }
+
+
+    private void addLogMessage(int resId) {
+        String strLog = getString(resId);
+        addLogMessage(strLog);
+    }
+
+
+    private String gpsState2String(Boolean state) {
+        if (null == state) {
+            return "[?]";
+        } else if (state) {
+            return "[ON]";
+        } else {
+            return "[OFF]";
+        }
+    }
+
+
+    private synchronized void addLogMessage(String strLog) {
+        while (log.size() > MAX_LOG_LINES) {
+            log.remove(0);
+        }
+
+        Date date = new Date();
+
+        String logLine = timeFormat.format(date) + " : " + strLog;
+        log.add(logLine);
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                showLog();
+            }
+        });
+    }
+
+
+    private void showLog() {
+        String combined = "";
+        for (String line : log) {
+            if (!combined.isEmpty()) {
+                combined += "\n";
+            }
+
+            combined += line;
+        }
+
+        logView.setText(combined);
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                logScroll.smoothScrollBy(0, logView.getBottom());
+            }
+        });
+    }
+
+
+    private void setControls() {
+        Log.v(Constants.TAG, "MainActivity::setControls. Entry...");
+
+        boolean automation = false;
+
+        if (null != togglerBinder) {
+            try {
+                automation = togglerBinder.loadAutomationState();
+
+                if (modeButton.isChecked() != automation) {
+                    modeButton.setChecked(automation);
+
+                    addLogMessage(automation ? R.string.activate_lookup : R.string.deactivate_lookup);
+                    Log.d(Constants.TAG, "MainActivity::setControls. Loaded Automation status: " + automation);
+                }
+            } catch (Exception e) {
+                addLogMessage(R.string.error_load_automation_state);
+                Log.e(Constants.TAG, "MainActivity::setControls. Exception: ", e);
+            }
+        }
+
+        gpsButton.setEnabled(!automation && null != gpsState);
+        gpsButton.setChecked(null != gpsState && gpsState);
+
+        Log.v(Constants.TAG, "MainActivity::setControls. Exit.");
+    }
+
+
+    private void resurrectLog() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                showLog();
+            }
+        });
+    }
+
+
+    private void systemize() {
+        Log.v(Constants.TAG, "MainActivity::systemize. Entry...");
+
+        if (!Settings.isRootGranted()) {
+            Log.v(Constants.TAG, "MainActivity::systemize. No, the 'root' must be obtained.");
+            if (ROOT_GRANTED == RootCaller.ifRootAvailable()) {
+                obtainRoot();
+            } else {
+                noRoot();
+            }
+        } else {
+            Log.v(Constants.TAG, "MainActivity::systemize. Yes, the 'root' was obtained earlier. May continue.");
+            if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
+                setRootGranted(false);
+                noRoot();
+            }
+
+            if (RootCaller.checkSecureSettings()) {
+                setRootGranted(true);
+            } else {
+                systemizeFailed();
+            }
+        }
+
+        Log.v(Constants.TAG, "MainActivity::systemize. Exit.");
+    }
+
+
+    private void noRoot() {
+        Log.v(Constants.TAG, "MainActivity::noRoot. Entry...");
+
+        progress.dismiss();
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(R.string.warning);
+        dialog.setMessage(R.string.no_root);
+        dialog.setPositiveButton(R.string.ok,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+                        MainActivity.this.finish();
+                        Log.d(Constants.TAG, "MainActivity::noRoot. Pressed <OK>.");
+                    }
+                });
+
+        dialog.show();
+
+        Log.v(Constants.TAG, "MainActivity::noRoot. Exit.");
+    }
+
+
+    private void noService() {
+        Log.v(Constants.TAG, "MainActivity::noService. Entry...");
+
+        progress.dismiss();
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(R.string.warning);
+        dialog.setMessage(R.string.no_service);
+        dialog.setPositiveButton(R.string.ok,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+                        TogglerService.startServiceAndBind(MainActivity.this, serviceConnection);
+                        Log.d(Constants.TAG, "MainActivity::noService. Pressed <OK>.");
+                    }
+                });
+
+        dialog.show();
+
+        Log.v(Constants.TAG, "MainActivity::noService. Exit.");
+    }
+
+
+    private void systemizeFailed() {
+        Log.v(Constants.TAG, "MainActivity::systemizeFailed. Entry...");
+
+        progress.dismiss();
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(R.string.error);
+        dialog.setMessage(R.string.systemize_failed);
+        dialog.setPositiveButton(R.string.ok,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+                        MainActivity.this.finish();
+                        Log.d(Constants.TAG, "MainActivity::systemizeFailed. Pressed <OK>.");
+                    }
+                });
+
+        dialog.show();
+
+        Log.v(Constants.TAG, "MainActivity::systemizeFailed. Exit.");
+    }
+
+
+    private void obtainRoot() {
+        Log.v(Constants.TAG, "MainActivity::obtainRoot. Entry...");
+
+        progress.dismiss();
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(R.string.warning);
+        dialog.setMessage(R.string.ask_4_root);
+        dialog.setPositiveButton(R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
+                                    setRootGranted(false);
+                                    noRoot();
+                                }
+
+                                if (RootCaller.checkSecureSettings()) {
+                                    setRootGranted(true);
+                                } else {
+                                    systemizeFailed();
+                                }
+
+                                Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <Yes>.");
+                            }
+                        });
+                    }
+                });
+
+        dialog.setNegativeButton(R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+                        MainActivity.this.finish();
+                        Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <No>.");
+                    }
+                });
+
+        dialog.show();
+
+        Log.v(Constants.TAG, "MainActivity::obtainRoot. Exit.");
+    }
+
+
+    private void setRootGranted(boolean rootGranted) {
+        Log.v(Constants.TAG, "MainActivity::setRootGranted. Entry...");
+
+        Settings.setRootGranted(rootGranted);
+
+        Log.i(Constants.TAG, String.format("MainActivity::setRootGranted. Set [%s] succeeded.", rootGranted ? "TRUE" : "FALSE"));
+        Log.v(Constants.TAG, "MainActivity::setRootGranted. Exit.");
+    }
+
+
+    private boolean checkBinder() {
+        try {
+            togglerBinder.getPid();
+            return true;
+        } catch (Exception e) {
+            addLogMessage(R.string.internal_error_1);
+            Log.e(Constants.TAG, "MainActivity::checkBinder. Severe problem. Lost service connection.");
+            return false;
+        }
+    }
+}

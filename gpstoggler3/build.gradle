@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+android {
+    compileSdkVersion 23
+    buildToolsVersion "24.0.1"
+
+    def versionPropsFile = file('version.properties')
+    def code = 1;
+    if (versionPropsFile.canRead()) {
+        def Properties versionProps = new Properties()
+
+        versionProps.load(new FileInputStream(versionPropsFile))
+        List<String> runTasks = gradle.startParameter.getTaskNames();
+        def value = 0
+        for (String item : runTasks) {
+            if (item.contains("compileDebugSources") || item.contains("compileReleaseSources")) {
+                value = 1;
+            }
+
+            print item
+        }
+        code = Integer.parseInt(versionProps['VERSION_CODE']).intValue() + value
+        versionProps['VERSION_CODE']=code.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+    }
+    else {
+        throw new GradleException("Could not read version.properties!")
+    }
+
+    defaultConfig {
+        applicationId "ogp.com.gpstoggler3"
+        minSdkVersion 16
+        targetSdkVersion 23
+        versionCode code
+        versionName "1.0." + code
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+dependencies {
+
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha2'
+    compile 'com.android.support:design:23.4.0'
+    testCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support:support-annotations:23.4.0'
+    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
+}
+
