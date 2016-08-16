@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Environment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.io.File;
@@ -16,7 +15,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import ogp.com.gpstoggler3.Manifest;
 import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.debug.Constants;
 
@@ -26,6 +24,7 @@ public class RunMonitor {
     private static final String MONITOR_APK = "gpstoggler3monitor.apk";
     private static final String SUCCESS = "Success";
     private static final String MONITOR_ACTIVITY = ".TransparentActivity";
+    private static final int BLOCK_SIZE = 64 * 1024;
 
     private Context context;
 
@@ -88,15 +87,17 @@ public class RunMonitor {
                 InputStream inputStream = am.open(MONITOR_APK);
                 OutputStream outputStream = new FileOutputStream(copiedPath);
 
-                int size = (int)am.openFd(MONITOR_APK).getLength();
-                byte buf[] = new byte[size];
-                int read = inputStream.read(buf);
-                outputStream.write(buf, 0, read);
+                byte buf[] = new byte[BLOCK_SIZE];
+
+                int read = 0;
+                while ((read = inputStream.read(buf)) > 0) {
+                    outputStream.write(buf, 0, read);
+                }
 
                 outputStream.close();
                 inputStream.close();
 
-                Log.d(Constants.TAG, String.format("RunMonitor::installMonitor. APK copied with %d bytes of %d.", read, size));
+                Log.d(Constants.TAG, String.format("RunMonitor::installMonitor. APK copied with %d bytes.", read));
             } catch (IOException e) {
                 Log.v(Constants.TAG, "RunMonitor::installMonitor. Exit [Error 1]. Exception: ", e);
                 return false;

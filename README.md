@@ -28,6 +28,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
+1.0.300
+-------
+
+1. Stability improvements. Application may be killed only by means of a custom ROM 'long back pressed'.
+
 1.0.279
 -------
 

@@ -2,7 +2,6 @@ package ogp.com.gpstoggler3.widgets;
 
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService.RemoteViewsFactory;

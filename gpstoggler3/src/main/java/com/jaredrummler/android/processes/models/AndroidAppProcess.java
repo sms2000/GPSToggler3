@@ -1,9 +1,9 @@
 package com.jaredrummler.android.processes.models;
 
+import android.text.TextUtils;
+
 import java.io.IOException;
 import java.util.Locale;
-
-import android.text.TextUtils;
 
 
 public class AndroidAppProcess {

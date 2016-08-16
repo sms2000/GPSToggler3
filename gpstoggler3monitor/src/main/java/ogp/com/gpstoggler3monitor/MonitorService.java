@@ -1,30 +1,21 @@
 package ogp.com.gpstoggler3monitor;
 
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Process;
 import android.util.Log;
-
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 
 public class MonitorService extends Service {
     final static String TAG = "GPSToggler3Monitor";
-    final static String ACTION_RESURRECT_ME = "ogp.com.toggler3monitor.RESURRECT_ME";
+    final static String ACTION_RESURRECT_ME = "ogp.com.gpstoggler3.broadcasters.RESURRECT_NOW";
 
     private static final String PACKAGE_SCHEME = "package";
     private static final int PRIORITY = 1000;

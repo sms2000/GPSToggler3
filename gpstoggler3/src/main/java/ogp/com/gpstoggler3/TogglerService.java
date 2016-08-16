@@ -11,47 +11,44 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.KeyEvent;
 
-import java.util.List;
-
-import ogp.com.gpstoggler3.apps.Settings;
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.actuators.GPSActuatorFactory;
 import ogp.com.gpstoggler3.actuators.GPSActuatorInterface;
 import ogp.com.gpstoggler3.apps.AppDatabaseProcessor;
 import ogp.com.gpstoggler3.apps.AppEnumerator;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.receivers.LocationProviderInterface;
 import ogp.com.gpstoggler3.receivers.LocationProviderReceiver;
 import ogp.com.gpstoggler3.status.GPSStatus;
-import ogp.com.gpstoggler3.su.RootCaller;
 
 
 public class TogglerService extends Service implements TogglerServiceInterface, LocationProviderInterface {
-    private static final long ACTIVATE_CLIENTS = 500;
-    private static final long BIND_TO_MONITOR_TIMEOUT = 100;
+    private static final int ACTIVATE_CLIENTS_TIMEOUT = 500;
+    private static final int BIND_TO_MONITOR_TIMEOUT = 100;
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
-    private static final long RESURRECT_FLOOD_TIMEOUT = 200;
+    private static final int RESURRECT_FLOOD_TIMEOUT = 200;
 
     private ListAppStore appList = new ListAppStore();
     private long lastNewAppList = 0;
     private AppEnumerator appEnumerator;
     private AppDatabaseProcessor appDatabaseProcessor = null;
-    private Handler handler = new Handler();
     private WatchdogThread watchdogThread = null;
     private GPSActuatorInterface gpsActuator = null;
     private boolean isClicked = false;
     private MonitorServiceConnection monitorServiceConnection = new MonitorServiceConnection();
-    private Intent bindIntent = new Intent();
+    private Intent bind2MonitorIntent = new Intent();
     private Boolean previousGpsStatus;
     private long lastGpsStatusChangeTimestamp;
     private LocationProviderReceiver locationProviderReceiver = new LocationProviderReceiver(this);
+    private WorkerThread serverThread = null;
 
 
     private class MonitorServiceConnection implements ServiceConnection {
@@ -67,10 +64,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             Log.v(Constants.TAG, "TogglerService::MonitorServiceConnection::onServiceDisconnected. Entry...");
 
             Log.i(Constants.TAG, "TogglerService::MonitorServiceConnection::onServiceDisconnected. Attempting to resurrect...");
-            handler.postDelayed(new Runnable() {
+            serverThread.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    bind2Toggler();
+                    bind2Monitor();
                 }
             }, BIND_TO_MONITOR_TIMEOUT);
 
@@ -86,8 +83,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
         @Override
-        public void enumerateApps() {
-            TogglerService.this.enumerateApps();
+        public void reloadInstalledApps() {
+            TogglerService.this.reloadInstalledApps();
         }
 
 
@@ -208,12 +205,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     public IBinder onBind(Intent arg) {
         Log.i(Constants.TAG, "TogglerService::onBind. Invoked. Activating clients...");
 
-        handler.postDelayed(new Runnable() {
+        serverThread.postDelayed(new Runnable() {
             @Override
             public void run() {
                 pushAppsDelayed();
             }
-        }, ACTIVATE_CLIENTS);
+        }, ACTIVATE_CLIENTS_TIMEOUT);
         return remoteBinder;
     }
 
@@ -226,6 +223,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Settings.allocate(this);
 
+        serverThread = new WorkerThread(this);
         appDatabaseProcessor = new AppDatabaseProcessor(this);
         appEnumerator = new AppEnumerator(this);
 
@@ -246,29 +244,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         inititateMonitor(this);
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                RootCaller.setSecureSettings(TogglerService.this.getPackageName());
-            }
-        });
-
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(Constants.TAG, "TogglerService::onCreate. Delayed inititalization invoked.");
-
-                bindIntent.setClassName("ogp.com.gpstoggler3monitor", "ogp.com.gpstoggler3monitor.MonitorService");
-                bind2Toggler();
-
-                locationProviderChanged();
-                updateWidgets();
-            }
-        });
+        initiateHumptyDumpty();
+        reloadInstalledApps();
 
         Log.v(Constants.TAG, "TogglerService::onCreate. Exit.");
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -279,9 +260,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        Log.i(Constants.TAG, "TogglerService::onTaskRemoved. Stopping service");
-
-        stopSelf();
+        Log.i(Constants.TAG, "TogglerService::onTaskRemoved. Ignored.");
     }
 
 
@@ -301,6 +280,11 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         if (null != appDatabaseProcessor) {
             appDatabaseProcessor.finish();
             appDatabaseProcessor = null;
+        }
+
+        if (null != serverThread) {
+            serverThread.kill();
+            serverThread = null;
         }
 
         Log.i(Constants.TAG, "TogglerService::onDestroy. Service destroy request received. Resurrection attempt invoked.");
@@ -330,14 +314,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
     @Override
-    public void enumerateApps() {
-        Log.v(Constants.TAG, "TogglerService::enumerateApps. Entry...");
+    public void reloadInstalledApps() {
+        Log.v(Constants.TAG, "TogglerService::reloadInstalledApps. Entry...");
 
-        if (enumerateAppsSynchro()) {
-            pushAppsDelayed();
-        }
+        enumerateInstalledAppsInThread();
 
-        Log.v(Constants.TAG, "TogglerService::enumerateApps. Exit.");
+        Log.v(Constants.TAG, "TogglerService::reloadInstalledApps. Exit.");
     }
 
 
@@ -466,16 +448,24 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.v(Constants.TAG, "TogglerService::automationStateProcessing. Entry...");
 
         boolean automationMode = intentReceived.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, false);
-        boolean gpsDecidedOn = intentReceived.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_GPS, false);
-        setGpsState(gpsDecidedOn);      // Actual (de)activation in the Automatic mode is here!
 
-        int activated = WatchdogThread.getActivatedApps().size();
-        Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
-        intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, true);            // Changed by automation.
-        sendBroadcast(intent);
+        if (automationMode) {
+            boolean gpsDecidedOn = intentReceived.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_GPS, false);
+            setGpsState(gpsDecidedOn);      // Actual (de)activation in the Automatic mode is here!
 
-        Log.e(Constants.TAG, String.format("++++ TogglerService::automationStateProcessing. Status: [%s], automation: [%s], activated apps: [%d]",
-                    gpsDecidedOn ? "ON" : "OFF", automationMode ? "ON" : "OFF", activated));
+
+            int activated = WatchdogThread.getActivatedApps().size();
+            Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
+            intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, true);            // Changed by automation.
+            sendBroadcast(intent);
+
+
+            Log.i(Constants.TAG, String.format("TogglerService::automationStateProcessing. Status: [%s], automation: [ON], activated apps: [%d].",
+                    gpsDecidedOn ? "ON" : "OFF", activated));
+        } else {
+            Log.i(Constants.TAG, "TogglerService::automationStateProcessing. automation: [OFF].");
+        }
+
         Log.v(Constants.TAG, "TogglerService::automationStateProcessing. Exit.");
     }
 
@@ -485,21 +475,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Log.i(Constants.TAG, "TogglerService::startServiceForever. Starting service unstoppable...");
 
-        String packageName = context.getPackageName();
-        String command = String.format("am startservice %s/%s", packageName, TogglerService.class.getName());
-        Log.i(Constants.TAG, "Applying: " + command);
-        List<String> returned = RootCaller.executeOnRoot(command);
-        if (null == returned || 0 == returned.size()) {
-            Log.i(Constants.TAG, "TogglerService::startServiceForever. Succeeded.");
-        } else {
-            Log.i(Constants.TAG, "---- 'startservice' returned: ----");
-
-            for (String line : returned) {
-                Log.i(Constants.TAG, line);
-            }
-
-            Log.i(Constants.TAG, "----------------------------------");
-        }
+        Intent intent = new Intent(context.getApplicationContext(), TogglerService.class);
+        context.getApplicationContext().startService(intent);
 
         Log.v(Constants.TAG, "TogglerService::startServiceForever. Exit.");
     }
@@ -531,27 +508,16 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         try {
             Intent intent = new Intent();
-            intent.setClassName("ogp.com.gpstoggler3monitor", "ogp.com.gpstoggler3monitor.TransparentActivity");
+            intent.setClassName(Broadcasters.HD_MONITOR_PACKAGE, Broadcasters.HD_MONITOR_ACTIVITY);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Log.w(Constants.TAG, "TogglerService::inititateMonitor. No Monitora application installed apparently. Autonomous mode doesn't guarantee permanent existence.");
+            Log.w(Constants.TAG, "TogglerService::inititateMonitor. No Monitor application installed apparently. Autonomous mode doesn't guarantee permanent existence.");
         } catch (Exception e) {
             Log.e(Constants.TAG, "TogglerService::inititateMonitor. Exception: ", e);
         }
 
         Log.v(Constants.TAG, "TogglerService::inititateMonitor. Exit.");
-    }
-
-
-    private void updateWidgets() {
-        Log.v(Constants.TAG, "TogglerService::updateWidgets. Entry...");
-
-        Intent intent = new Intent(Broadcasters.RETRIVE_WIDGETS);
-        sendBroadcast(intent);
-
-        Log.i(Constants.TAG, "TogglerService::updateWidgets. All widgets have been updated.");
-        Log.v(Constants.TAG, "TogglerService::updateWidgets. Exit.");
     }
 
 
@@ -609,37 +575,56 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     }
 
 
-    private boolean enumerateAppsSynchro() {
-        Log.v(Constants.TAG, "TogglerService::enumerateAppsSynchro. Entry...");
+    private void initiateHumptyDumpty() {
+        serverThread.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(Constants.TAG, "TogglerService::initiateHumptyDumpty. Delayed initialization invoked.");
 
-        ListAppStore list = appEnumerator.execute();
-        if (list.size() != appList.size()) {
-            appList = list;
-            lastNewAppList = System.currentTimeMillis();
-            Log.i(Constants.TAG, String.format("TogglerService::enumerateAppsSynchro. Encountered [%d] apps. [1].", list.size()));
-            Log.v(Constants.TAG, "TogglerService::enumerateAppsSynchro. Exit [1].");
-            return true;
-        } else {
-            if (!appList.containsAll(list)) {
-                appList = list;
-                lastNewAppList = System.currentTimeMillis();
-                Log.i(Constants.TAG, String.format("TogglerService::enumerateAppsSynchro. Encountered [%d] apps. [2].", list.size()));
-                Log.v(Constants.TAG, "TogglerService::enumerateAppsSynchro. Exit [2].");
-                return true;
+                bind2MonitorIntent.setClassName(Broadcasters.HD_MONITOR_PACKAGE, Broadcasters.HD_MONITOR_SERVICE);
+                bind2Monitor();
             }
-        }
+        });
+    }
 
-        if (0 >= lastNewAppList) {
-            appList = list;
-            lastNewAppList = System.currentTimeMillis();
-            Log.i(Constants.TAG, String.format("TogglerService::enumerateAppsSynchro. Encountered [%d] apps. [3].", list.size()));
-            Log.v(Constants.TAG, "TogglerService::enumerateAppsSynchro. Exit [3].");
-            return true;
-        }
 
-        Log.i(Constants.TAG, String.format("TogglerService::enumerateAppsSynchro. Encountered [%d] apps. [4].", list.size()));
-        Log.v(Constants.TAG, "TogglerService::enumerateAppsSynchro. Exit [4].");
-        return false;
+    private void enumerateInstalledAppsInThread() {
+        Log.v(Constants.TAG, "TogglerService::enumerateInstalledAppsInThread. Entry...");
+
+        serverThread.post(new Runnable() {
+            @Override
+            public void run() {
+                long previousUpdate = lastNewAppList;
+
+                ListAppStore list = appEnumerator.execute();
+                if (list.size() != appList.size()) {
+                    appList = list;
+                    lastNewAppList = System.currentTimeMillis();
+                    Log.i(Constants.TAG, String.format("TogglerService::enumerateInstalledAppsInThread::run. Encountered [%d] apps. Updating [1]...", list.size()));
+                } else {
+                    if (!appList.containsAll(list)) {
+                        appList = list;
+                        lastNewAppList = System.currentTimeMillis();
+                        Log.i(Constants.TAG, String.format("TogglerService::enumerateInstalledAppsInThread::run. Encountered [%d] apps. Updating [2]...", list.size()));
+                    }
+                }
+
+                if (0 >= lastNewAppList) {
+                    appList = list;
+                    lastNewAppList = System.currentTimeMillis();
+                    Log.i(Constants.TAG, String.format("TogglerService::enumerateInstalledAppsInThread::run. Encountered [%d] apps. Updating [3]...", list.size()));
+                } else {
+                    Log.i(Constants.TAG, String.format("TogglerService::enumerateInstalledAppsInThread::run. Encountered [%d] apps. Not updating.", list.size()));
+                }
+
+                if (previousUpdate != lastNewAppList) {
+                    pushAppsDelayed();
+
+                }
+
+                Log.v(Constants.TAG, "TogglerService::enumerateInstalledAppsInThread::run. Exit.");
+            }
+        });
     }
 
 
@@ -690,7 +675,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             Log.d(Constants.TAG, "TogglerService::widgetClickProcessing. 1st click registered.");
 
             isClicked = true;
-            handler.postDelayed(new Runnable() {
+            serverThread.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     if (isClicked) {
@@ -739,16 +724,16 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     }
 
 
-    private void bind2Toggler() {
-        Log.v(Constants.TAG, "TogglerService::bind2Toggler. Entry...");
+    private void bind2Monitor() {
+        Log.v(Constants.TAG, "TogglerService::bind2Monitor. Entry...");
 
         try {
-            bindService(bindIntent, monitorServiceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT);
+            bindService(bind2MonitorIntent, monitorServiceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT);
         } catch (Exception e) {
-            Log.e(Constants.TAG, "MonitorService::bind2Toggler. Exception: ", e);
+            Log.e(Constants.TAG, "MonitorService::bind2Monitor. Exception: ", e);
         }
 
-        Log.v(Constants.TAG, "TogglerService::bind2Toggler. Exit.");
+        Log.v(Constants.TAG, "TogglerService::bind2Monitor. Exit.");
     }
 
 

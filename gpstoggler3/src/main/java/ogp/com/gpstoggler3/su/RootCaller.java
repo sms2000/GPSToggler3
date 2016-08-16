@@ -16,6 +16,9 @@ public class RootCaller {
     private final static String CMD_EXEC = "-c";
     private static final String[] SU_PATHES = {"/system/xbin/which", "/system/bin/which"};
 
+    private static boolean securitySettingsSet = false;
+
+
     public enum RootStatus {NO_ROOT, ROOT_FAILED, ROOT_GRANTED}
 
 
@@ -53,6 +56,12 @@ public class RootCaller {
 
 
     public static RootStatus setSecureSettings(String packageName) {
+        if (securitySettingsSet) {
+            return RootStatus.ROOT_GRANTED;
+        }
+
+        securitySettingsSet = true;
+
         Log.v(Constants.TAG, String.format("RootCaller::setSecureSettings. Entry (packageName: %s)...", packageName));
 
         RootStatus success = RootStatus.ROOT_FAILED;

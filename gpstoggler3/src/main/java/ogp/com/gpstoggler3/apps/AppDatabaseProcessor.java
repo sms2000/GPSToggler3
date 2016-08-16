@@ -1,7 +1,6 @@
 package ogp.com.gpstoggler3.apps;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;

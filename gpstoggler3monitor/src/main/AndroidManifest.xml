@@ -39,7 +39,6 @@
             android:name=".MonitorService"
             android:enabled="true"
             android:exported="true"
-            android:process=":remote"
             android:stopWithTask="false"
             android:permission="ogp.com.gpstoggler3monitor.MONITORING" />
 

@@ -6,24 +6,25 @@ import android.content.Intent;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.TogglerService;
+import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.su.RootCaller;
 
 
-public class BootReceiver extends BroadcastReceiver {
+public class ClickReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.v(Constants.TAG, "BootReceiver::onReceive. Entry...");
+        Log.v(Constants.TAG, "ClickReceiver::onReceive. Entry...");
 
-        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            Log.v(Constants.TAG, "BootReceiver::onReceive. Activating service...");
+        if (intent.getAction().equals(Broadcasters.GPS_PIC_CLICK)) {
+            Log.i(Constants.TAG, "ClickReceiver::onReceive. Activating service...");
 
             RootCaller.setSecureSettings(context.getPackageName());
             TogglerService.startServiceForever(context.getApplicationContext());
 
-            Log.v(Constants.TAG, "BootReceiver::onReceive. Activating service finished.");
+            Log.i(Constants.TAG, "ClickReceiver::onReceive. Activating service finished.");
         }
 
-        Log.v(Constants.TAG, "BootReceiver::onReceive. Exit.");
+        Log.v(Constants.TAG, "ClickReceiver::onReceive. Exit.");
     }
 }

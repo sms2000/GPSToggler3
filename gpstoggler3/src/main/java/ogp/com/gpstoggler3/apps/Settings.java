@@ -14,15 +14,16 @@ public class Settings {
     static private final String APP_LIST = "ActivatedApps";
     static private final String SEPARATOR = "_##_";
     static private final String APP_SEPARATOR = "_#_";
-    static private final long DEF_DOUBLE_CLICK_DELAY = 300;
+    static private final int DEF_DOUBLE_CLICK_DELAY = 300;
     private static final String MONITOR_DECLINED = "MonitorDeclined";
 
     public static Settings settingsSingleton = null;
 
+    private static boolean multiWindowAware = false;
     private static boolean automation;
     private static boolean rootGranted;
     private static SharedPreferences settings;
-    private static long doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
+    private static int doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
 
 
     public static Settings allocate(Context context) {
@@ -137,7 +138,7 @@ public class Settings {
         return listApps;
     }
 
-    public static long getDoubleClickDelay() {
+    public static int getDoubleClickDelay() {
         return doubleClickDelay;
     }
 
@@ -151,5 +152,10 @@ public class Settings {
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean(MONITOR_DECLINED, true);
         editor.apply();
+    }
+
+
+    public static boolean getSplitAware() {
+        return multiWindowAware;
     }
 }

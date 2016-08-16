@@ -6,8 +6,8 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.TogglerService;
+import ogp.com.gpstoggler3.debug.Constants;
 
 
 public class ResurrectReceiver extends BroadcastReceiver {

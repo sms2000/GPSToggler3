@@ -1,7 +1,6 @@
 package com.jaredrummler.android.processes.models;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 
 public final class Cgroup extends ProcFile

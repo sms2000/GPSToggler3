@@ -30,6 +30,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -69,11 +70,12 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private static final long WAIT_FOR_GPS_REACTION = 1000;
     private static final int MAX_LOG_LINES = 200;
     private static final int REQ_WRITE_EXTERNAL_STORAGE = 1;
-    private static final int ENUMERATE_APPS_BIND_DELAY = 1000;
 
     private static AppAdapter adapter = null;
     private static long lastAppList = 0;
     private static String version;
+
+    private static boolean secureSettingsSet = false;
 
     private Boolean orientationLandscape;
     private ListView listApps;
@@ -150,7 +152,14 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             }
 
             resurrectLog();
-            enumerateApps(ENUMERATE_APPS_BIND_DELAY);
+
+            progress.dismiss();
+
+            try {
+                togglerBinder.reloadInstalledApps();
+            } catch (RemoteException e) {
+                Log.e(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exception in 'reloadInstalledApps'.");
+            }
 
             Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exit.");
         }
@@ -174,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 enumerateInstalledApps();
                 setControls();
             } else if (intent.getAction().equals(Broadcasters.AUTO_STATE_CHANGED)) {
-                automationStateChanged();
+                automationStateChanged(intent.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, false));
             }
 
             Log.v(Constants.TAG, "MainActivity::serviceReceiver::OnReceive. Exit.");
@@ -224,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         initializeScreen();
 
         adapter = new AppAdapter(this, this);
-        addLogMessage(R.string.enumerating);
 
         connect2Services();
 
@@ -294,7 +302,10 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     } else {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
                     }
+                } else {
+                    loadMonitor();
                 }
+
                 Log.v(Constants.TAG, "MainActivity::decideOnMonitor::run. Exit.");
             }
         });
@@ -316,32 +327,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 runMonitor.startMonitor();
             }
         });
-    }
-
-
-    private void enumerateApps(int delay) {
-        if (delay < 0) {
-            delay = 0;
-        }
-
-        activityThread.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.v(Constants.TAG, "MainActivity::enumerateApps::run. Entry...");
-
-                try {
-                    if (null != togglerBinder) {
-                        togglerBinder.enumerateApps();
-                    } else {
-                        Log.e(Constants.TAG, "MainActivity::enumerateApps::run. 'togglerBinder==null'.");
-                    }
-                } catch (RemoteException e) {
-                    Log.e(Constants.TAG, "MainActivity::enumerateApps::run. Exception: ", e);
-                }
-
-                Log.v(Constants.TAG, "MainActivity::enumerateApps::run. Exit.");
-            }
-        }, delay);
     }
 
 
@@ -370,6 +355,36 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
 
     @Override
+    public void onResume() {
+        Log.v(Constants.TAG, "MainActivity::onResume. Entry...");
+
+        super.onResume();
+
+        try {
+            if (null != togglerBinder) {
+                togglerBinder.reloadInstalledApps();
+            }
+        } catch (RemoteException e) {
+            Log.e(Constants.TAG, "MainActivity::onResume. Exception in 'reloadInstalledApps'.");
+        }
+
+        Log.v(Constants.TAG, "MainActivity::onResume. Exit.");
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode){
+            case KeyEvent.KEYCODE_BACK:
+                finish();
+                return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    @Override
     public void onStop() {
         super.onStop();
 
@@ -387,9 +402,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         unregisterReceiver(gpsStateChangedReceiver);
         unregisterReceiver(serviceReceiver);
-/*
+
         unbindService(serviceConnection);
-*/
+
         super.onDestroy();
         Log.v(Constants.TAG, "MainActivity::onDestroy. Exit.");
     }
@@ -562,8 +577,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private void enumerateInstalledApps() {
         Log.v(Constants.TAG, "MainActivity::enumerateInstalledApps. Entry...");
 
-        progress.dismiss();
-
         ListAppStore appList = null;
         ListWatched appSelected = null;
 
@@ -616,27 +629,32 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     }
 
 
-    private void automationStateChanged() {
+    private void automationStateChanged(boolean automationOn) {
         Log.v(Constants.TAG, "MainActivity::automationStateChanged. Entry...");
 
-        ListWatched listActivated;
+        ListWatched listActivated = new ListWatched();
 
         try {
             Log.d(Constants.TAG, "MainActivity::automationStateChanged. Updating the activated apps list.");
-            listActivated = togglerBinder.listActivatedApps();
-            if (null == listActivated) {
-                if (null != adapter) {
-                    uploadActivatedApps(null);
+
+            if (automationOn) {
+                listActivated = togglerBinder.listActivatedApps();
+                if (null == listActivated) {
+                    if (null != adapter) {
+                        uploadActivatedApps(null);
+                    }
+
+                    Log.d(Constants.TAG, "MainActivity::automationStateChanged. Nothing received.");
+
+                    addLogMessage(getString(R.string.activated, 0));
+                    Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit [1].");
+                    return;
                 }
 
-                Log.d(Constants.TAG, "MainActivity::automationStateChanged. Nothing received.");
-
-                addLogMessage(getString(R.string.activated, 0));
-                Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit [1].");
-                return;
+                Log.d(Constants.TAG, String.format("MainActivity::automationStateChanged. Enabled and received [%d] activated apps.", listActivated.size()));
+            } else {
+                Log.d(Constants.TAG, "MainActivity::automationStateChanged. Disabled.");
             }
-
-            Log.d(Constants.TAG, String.format("MainActivity::automationStateChanged. Received [%d] activated apps.", listActivated.size()));
         } catch (Throwable e) {
             Log.d(Constants.TAG, "MainActivity::automationStateChanged. Exception [1]: ", e);
             addLogMessage(getString(R.string.activated_failed));
@@ -646,9 +664,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         if (null != adapter) {
             uploadActivatedApps(listActivated);
+            addLogMessage(getString(R.string.activated, listActivated.size()));
         }
 
-        addLogMessage(getString(R.string.activated, listActivated.size()));
         Log.v(Constants.TAG, "MainActivity::automationStateChanged. Exit.");
     }
 
@@ -670,7 +688,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         try {
             togglerBinder.toggleGpsState();
             addLogMessage(R.string.toggle_attempted);
-            Log.e(Constants.TAG, "MainActivity::toggleGpsState. Attempted.");
+            Log.i(Constants.TAG, "MainActivity::toggleGpsState. Attempted.");
         } catch (RemoteException e) {
             Log.e(Constants.TAG, "MainActivity::toggleGpsState. Exception [1]: ", e);
             addLogMessage(R.string.toggle_failed);
@@ -685,6 +703,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         Boolean gpsState = null;
         try {
+            Log.v(Constants.TAG, String.format("MainActivity::expectGpsStateChanged. Old state: [%s],", oldState ? "ON" : "OFF"));
+
             gpsState = togglerBinder.onGps().gpsOn;
         } catch (RemoteException | NullPointerException e) {
             Log.e(Constants.TAG, "MainActivity::expectGpsStateChanged. Exception in 'onGps'.");
@@ -853,16 +873,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             }
         } else {
             Log.v(Constants.TAG, "MainActivity::systemize. Yes, the 'root' was obtained earlier. May continue.");
-            if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
-                setRootGranted(false);
-                noRoot();
-            }
-
-            if (RootCaller.checkSecureSettings()) {
-                setRootGranted(true);
-            } else {
-                systemizeFailed();
-            }
         }
 
         Log.v(Constants.TAG, "MainActivity::systemize. Exit.");
@@ -958,15 +968,19 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
-                                    setRootGranted(false);
-                                    noRoot();
-                                }
+                                if (!secureSettingsSet) {
+                                    if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
+                                        setRootGranted(false);
+                                        noRoot();
+                                    }
 
-                                if (RootCaller.checkSecureSettings()) {
-                                    setRootGranted(true);
-                                } else {
-                                    systemizeFailed();
+
+                                    if (RootCaller.checkSecureSettings()) {
+                                        setRootGranted(true);
+                                        secureSettingsSet = true;
+                                    } else {
+                                        systemizeFailed();
+                                    }
                                 }
 
                                 Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <Yes>.");

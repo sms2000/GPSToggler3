@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.jaredrummler.android.processes.ProcessManager;
 import com.jaredrummler.android.processes.models.AndroidAppProcess;
@@ -17,9 +16,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppStore;
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 
 
 class WatchdogThread extends Thread {
@@ -33,7 +33,7 @@ class WatchdogThread extends Thread {
     private ActivityManager activityManager;
     private boolean active;
     private Boolean screenOn = null;
-    private Boolean automationOn = null;
+    private boolean automationOn = false;
     private Boolean gpsDecidedOn = null;
     private TogglerServiceInterface togglerServiceInterface = null;
     private Handler handler = new Handler();
@@ -74,13 +74,6 @@ class WatchdogThread extends Thread {
                 context.sendBroadcast(intent);
 
                 Log.e(Constants.TAG, String.format("^^^^ StatusChange::run. Bundle sent with %d application(s).", activatedApps.size()));
-
-                String text = context.getResources().getString((enableGPS != null && enableGPS) ? R.string.gps_app_on : R.string.gps_app_off);
-                if (enableGPS != null && enableGPS) {
-                    text = String.format(text, activatedApps.size());
-                }
-
-                Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.e(Constants.TAG, "StatusChange::run. Exception: ", e);
             }
@@ -131,7 +124,7 @@ class WatchdogThread extends Thread {
         Log.v(Constants.TAG, "WatchdogThread. Started.");
 
         while (active) {
-            if (null != automationOn && automationOn && null != togglerServiceInterface.listActivatedApps()) {
+            if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     verifyGPSSoftwareRunning21();
                 } else {
@@ -165,13 +158,13 @@ class WatchdogThread extends Thread {
     }
 
 
-    synchronized void automationOnOff(Boolean automation) {
+    synchronized void automationOnOff(boolean automation) {
         Log.v(Constants.TAG, "WatchdogThread::automationOnOff. Entry...");
 
         if (this.automationOn != automation) {
             this.automationOn = automation;
 
-            Log.e(Constants.TAG, String.format("<< ? >> WatchdogThread::automationOnOff. %s automation.", automation ? "Enabling" : "Disabling"));
+            Log.i(Constants.TAG, String.format("WatchdogThread::automationOnOff. %s automation.", automation ? "Enabling" : "Disabling"));
 
             interrupt();
 
@@ -192,8 +185,8 @@ class WatchdogThread extends Thread {
     synchronized private void verifyGPSSoftwareRunning() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        int importance = /*StateMachine.getSplitAware() ?
-                ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE : */ ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+        int importance = Settings.getSplitAware() ?
+                ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE : ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 
         List<ActivityManager.RunningAppProcessInfo> list = activityManager.getRunningAppProcesses();
 
@@ -254,7 +247,7 @@ class WatchdogThread extends Thread {
     private void verifyGPSSoftwareRunning21() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        boolean forceForeground = /*StateMachine.getSplitAware() ? false : */ true;
+        boolean forceForeground = !Settings.getSplitAware();
 
         List<AndroidAppProcess> list = ProcessManager.getRunningAppProcesses();
 

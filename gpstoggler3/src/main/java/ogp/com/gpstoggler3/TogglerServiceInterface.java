@@ -6,11 +6,11 @@ import ogp.com.gpstoggler3.status.GPSStatus;
 
 interface TogglerServiceInterface {
     int getPid();
-    void enumerateApps();
 
     ListAppStore listInstalledApps(long lastNewAppList);
     ListWatched listActivatedApps();
 
+    void reloadInstalledApps();
     ListWatched listWatchedApps();
     boolean storeWatchedApps(ListWatched appList);
 

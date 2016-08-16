@@ -2,20 +2,18 @@ package ogp.com.gpstoggler3.widgets;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.ITogglerService;
 import ogp.com.gpstoggler3.TogglerService;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 
 
 public abstract class BaseWidget extends AppWidgetProvider {
@@ -87,10 +85,12 @@ public abstract class BaseWidget extends AppWidgetProvider {
                 bindIfNot(context);
                 break;
 
+            /*
             case Broadcasters.RETRIVE_WIDGETS:
                 Log.v(Constants.TAG, "BaseWidget::onReceive. Widgets retrived.");
                 bindIfNot(context);
                 break;
+            */
         }
 
         Log.v(Constants.TAG, "BaseWidget::onReceive. Exit.");

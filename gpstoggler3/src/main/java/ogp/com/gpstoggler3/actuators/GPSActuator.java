@@ -57,7 +57,7 @@ class GPSActuator implements GPSActuatorInterface {
             gpsStatusI = Settings.Secure.getInt(context.getContentResolver(),
                     Settings.Secure.LOCATION_MODE);
 
-            if (Settings.Secure.LOCATION_MODE_HIGH_ACCURACY == gpsStatusI) {
+            if (Settings.Secure.LOCATION_MODE_BATTERY_SAVING != gpsStatusI) {
                 gpsStatusI = Settings.Secure.LOCATION_MODE_BATTERY_SAVING;
             }
 
@@ -76,11 +76,11 @@ class GPSActuator implements GPSActuatorInterface {
         try {
             if (UNKNOWN == gpsStatusI) {
                 gpsStatusI = Settings.Secure.LOCATION_MODE_BATTERY_SAVING;
-            } else {
-                Settings.Secure.putInt(context.getContentResolver(),
+            }
+
+            Settings.Secure.putInt(context.getContentResolver(),
                         Settings.Secure.LOCATION_MODE,
                         gpsStatusI);
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }

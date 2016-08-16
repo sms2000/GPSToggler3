@@ -16,13 +16,14 @@ import android.widget.RemoteViews;
 
 import java.text.DateFormat;
 
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
 
 public class GPSFullWidget extends BaseWidget {
+    @Override
     protected void createWidgetView(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         Log.v(Constants.TAG, "GPSFullWidget::createWidgetView. Entry...");
 
@@ -67,6 +68,16 @@ public class GPSFullWidget extends BaseWidget {
         manager.updateAppWidget(thisWidget, updateViews);
 
         Log.v(Constants.TAG, "GPSFullWidget::createWidgetView. Exit.");
+    }
+
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.v(Constants.TAG, "GPSFullWidget::onReceive. Entry...");
+
+        super.onReceive(context, intent);
+
+        Log.v(Constants.TAG, "GPSFullWidget::onReceive. Exit.");
     }
 
 

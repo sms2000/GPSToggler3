@@ -14,9 +14,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import ogp.com.gpstoggler3.debug.Constants;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.debug.Constants;
 
 
 public class GPSIconWidget extends BaseWidget {
@@ -44,6 +44,16 @@ public class GPSIconWidget extends BaseWidget {
         manager.updateAppWidget(thisWidget, updateViews);
 
         Log.v(Constants.TAG, "GPSIconWidget::createWidgetView. Exit.");
+    }
+
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.v(Constants.TAG, "GPSIconWidget::onReceive. Entry...");
+
+        super.onReceive(context, intent);
+
+        Log.v(Constants.TAG, "GPSIconWidget::onReceive. Exit.");
     }
 
 
