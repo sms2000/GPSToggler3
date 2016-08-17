@@ -3,7 +3,7 @@ package ogp.com.gpstoggler3.actuators;
 import android.content.Context;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 public class GPSActuatorFactory {
     private static GPSActuatorInterface singletonGPSActuatorInterface = null;

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import ogp.com.gpstoggler3.ExecuteOnServiceWithTimeout;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 class AppListProvider implements RemoteViewsFactory {

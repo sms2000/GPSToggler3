@@ -14,7 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.R;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.resources.IconStorage;
 
 

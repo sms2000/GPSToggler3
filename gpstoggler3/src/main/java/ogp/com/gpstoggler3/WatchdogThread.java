@@ -19,7 +19,7 @@ import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 class WatchdogThread extends Thread {
@@ -28,6 +28,7 @@ class WatchdogThread extends Thread {
     private static final long TIMEOUT_ON = 10000;           // Polling time (ms) when GPS on
 
     private static final ListWatched lastActivatedApps = new ListWatched();
+    private static final int MAX_MANDATORY_UPDATES = 2;
 
     private Context context;
     private ActivityManager activityManager;
@@ -38,6 +39,7 @@ class WatchdogThread extends Thread {
     private TogglerServiceInterface togglerServiceInterface = null;
     private Handler handler = new Handler();
     private SortComparator comparator = new SortComparator();
+    private int countDownForMandatoryUpdates = MAX_MANDATORY_UPDATES;
 
 
     private class SortComparator implements Comparator<AppStore> {
@@ -223,7 +225,7 @@ class WatchdogThread extends Thread {
 
 
         boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal) {
+        if (gpsStatusNow != gpsOnNow || !equal || 0 < countDownForMandatoryUpdates) {
             Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
@@ -234,6 +236,10 @@ class WatchdogThread extends Thread {
                         lastActivatedApps.add(activatedApps.get(i));
                     }
                 }
+            }
+
+            if (0 < countDownForMandatoryUpdates) {
+                countDownForMandatoryUpdates--;
             }
 
             handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
@@ -286,7 +292,7 @@ class WatchdogThread extends Thread {
 
 
         boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal) {
+        if (gpsStatusNow != gpsOnNow || !equal || 0 < countDownForMandatoryUpdates) {
             Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
@@ -300,6 +306,10 @@ class WatchdogThread extends Thread {
 
                     }
                 }
+            }
+
+            if (0 < countDownForMandatoryUpdates) {
+                countDownForMandatoryUpdates--;
             }
 
             handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));

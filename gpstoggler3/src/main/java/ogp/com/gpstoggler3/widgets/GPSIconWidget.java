@@ -16,7 +16,7 @@ import android.widget.RemoteViews;
 
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 public class GPSIconWidget extends BaseWidget {

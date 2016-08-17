@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.KeyEvent;
 
 import ogp.com.gpstoggler3.actuators.GPSActuatorFactory;
 import ogp.com.gpstoggler3.actuators.GPSActuatorInterface;
@@ -24,7 +23,7 @@ import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.receivers.LocationProviderInterface;
 import ogp.com.gpstoggler3.receivers.LocationProviderReceiver;
 import ogp.com.gpstoggler3.status.GPSStatus;

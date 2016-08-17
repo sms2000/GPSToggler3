@@ -28,6 +28,17 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
+1.0.302
+-------
+
+1. Maximum possible defence against application killing: 
+
+  * Filtering press back' key' filtered to close Activities ASAP before Android kills the process itself.
+  * A nested 'GPSToggler3Monitor' application tries to resurrect the main application if killed.
+
+2. SettingsActivity placeholder.
+
+
 1.0.300
 -------
 

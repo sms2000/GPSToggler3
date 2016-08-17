@@ -19,10 +19,9 @@ android {
             print item
         }
         code = Integer.parseInt(versionProps['VERSION_CODE']).intValue() + value
-        versionProps['VERSION_CODE']=code.toString()
+        versionProps['VERSION_CODE'] = code.toString()
         versionProps.store(versionPropsFile.newWriter(), null)
-    }
-    else {
+    } else {
         throw new GradleException("Could not read version.properties!")
     }
 
@@ -33,6 +32,7 @@ android {
         versionCode code
         versionName "1.0." + code
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -45,12 +45,14 @@ dependencies {
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha2'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha4'
     compile 'com.android.support:design:23.4.0'
+    compile 'com.google.android.gms:play-services-appindexing:9.4.0'
+    compile 'com.android.support:support-v4:23.4.0'
+    compile 'com.android.support:support-vector-drawable:23.4.0'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support:support-annotations:23.4.0'
-    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
 }
 

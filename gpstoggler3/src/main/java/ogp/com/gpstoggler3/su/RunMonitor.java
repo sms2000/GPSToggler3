@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import ogp.com.gpstoggler3.apps.Settings;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 public class RunMonitor {

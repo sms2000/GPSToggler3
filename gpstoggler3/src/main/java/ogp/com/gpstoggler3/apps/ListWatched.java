@@ -6,7 +6,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     public static final Parcelable.Creator<ListWatched> CREATOR = new Parcelable.Creator<ListWatched>() {

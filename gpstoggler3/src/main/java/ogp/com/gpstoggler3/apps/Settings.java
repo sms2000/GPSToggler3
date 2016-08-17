@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 public class Settings {
@@ -24,6 +24,7 @@ public class Settings {
     private static boolean rootGranted;
     private static SharedPreferences settings;
     private static int doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
+    private static boolean ignoreLongBackPress = true;
 
 
     public static Settings allocate(Context context) {
@@ -157,5 +158,9 @@ public class Settings {
 
     public static boolean getSplitAware() {
         return multiWindowAware;
+    }
+
+    public static boolean isIgnoreLongBackPress() {
+        return ignoreLongBackPress;
     }
 }

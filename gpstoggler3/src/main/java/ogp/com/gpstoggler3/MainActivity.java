@@ -31,8 +31,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
@@ -57,7 +55,7 @@ import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.apps.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.status.GPSStatus;
 import ogp.com.gpstoggler3.su.RootCaller;
 import ogp.com.gpstoggler3.su.RunMonitor;
@@ -92,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private ProgressDialog progress;
     private WorkerThread activityThread = new WorkerThread(this);
     private GoogleApiClient client;
+    private long backPressedTime = 0;
 
 
     private BroadcastReceiver gpsStateChangedReceiver = new BroadcastReceiver() {
@@ -374,14 +373,61 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch(keyCode){
+        switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                finish();
-                return true;
+                if (Settings.isIgnoreLongBackPress()) {
+                    backPressedTime = System.currentTimeMillis();
+                    Log.d(Constants.TAG, "MainActivity::onKeyDown. Recognized 'back key' pressed. Escape procedure initiated...");
+
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (0 < backPressedTime) {
+                                Log.w(Constants.TAG, "MainActivity::onKeyDown. Escaping the termination by 'long back press'. Close the activity before Android killed the whole process.");
+                                finish();
+                            }
+                        }
+                    }, Constants.BACK_KEY_TIMEOUT);
+                }
         }
 
         return super.onKeyDown(keyCode, event);
     }
+
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                backPressedTime = 0;
+                Log.d(Constants.TAG, "MainActivity::onKeyUp. Recognized 'back key' unpressed. Escape procedure cancelled.");
+                break;
+
+            case KeyEvent.KEYCODE_MENU:
+                Log.d(Constants.TAG, "MainActivity::onKeyUp. Recognized 'menu' unpressed. Start the 'SettingsActivity'.");
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivityForResult(intent, Constants.SETTINGS_REQUEST_CODE);
+                break;
+        }
+
+        return super.onKeyUp(keyCode, event);
+    }
+
+
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if (Constants.SETTINGS_REQUEST_CODE != requestCode) {
+            return;
+        }
+
+        if (Constants.SETTINGS_KILLED != resultCode) {
+            return;
+        }
+
+        Log.d(Constants.TAG, "MainActivity::onActivityResult. Recognized 'long back press' from sub-activity. Killing the 'MainActivity' to prevent process extermination...");
+        finish();
+    }
+
 
 
     @Override
@@ -407,18 +453,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         super.onDestroy();
         Log.v(Constants.TAG, "MainActivity::onDestroy. Exit.");
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return (item.getItemId() == R.id.action_settings) || super.onOptionsItemSelected(item);
     }
 
 

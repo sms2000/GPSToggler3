@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViewsService;
 
-import ogp.com.gpstoggler3.debug.Constants;
+import ogp.com.gpstoggler3.global.Constants;
 
 
 public class WidgetsService extends RemoteViewsService {
