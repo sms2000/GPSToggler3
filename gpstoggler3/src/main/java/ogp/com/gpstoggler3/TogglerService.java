@@ -119,6 +119,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             watchdogThread.automationOnOff(automation);
 
             TogglerService.this.storeAutomationState(automation);
+
+            broadcastGpsStateChanged();
         }
 
 
@@ -245,6 +247,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         initiateHumptyDumpty();
         reloadInstalledApps();
+
+        broadcastGpsStateChanged();
 
         Log.v(Constants.TAG, "TogglerService::onCreate. Exit.");
     }
@@ -392,6 +396,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         status.gpsOn = ret;
         status.gpsStatusTimestamp = lastGpsStatusChangeTimestamp;
 
+        Log.i(Constants.TAG, String.format("TogglerService::onGps. Current status [%s]m timestamp: %d", ret ? "ON" : "OFF", lastGpsStatusChangeTimestamp));
         Log.v(Constants.TAG, "TogglerService::onGps. Exit.");
         return status;
     }
@@ -454,10 +459,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
             int activated = WatchdogThread.getActivatedApps().size();
-            Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
-            intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, true);            // Changed by automation.
-            sendBroadcast(intent);
 
+            broadcastGpsStateChanged();
 
             Log.i(Constants.TAG, String.format("TogglerService::automationStateProcessing. Status: [%s], automation: [ON], activated apps: [%d].",
                     gpsDecidedOn ? "ON" : "OFF", activated));
@@ -537,6 +540,18 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
         Log.v(Constants.TAG, "TogglerService::setItForeground. Exit.");
+    }
+
+
+    private void broadcastGpsStateChanged() {
+        Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
+        intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, Settings.loadAutomationState());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT);
+        }
+
+        sendBroadcast(intent);
     }
 
 
@@ -641,14 +656,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             lastGpsStatusChangeTimestamp = System.currentTimeMillis();
         }
 
-        Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
-        intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, false);             // Changed by outside activity or manual influence.
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT);
-        }
-
-        sendBroadcast(intent);
+        broadcastGpsStateChanged();
 
         Log.v(Constants.TAG, "TogglerService::locationProviderChanged. Exit.");
     }
