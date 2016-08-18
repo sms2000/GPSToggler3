@@ -47,8 +47,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
 
     private static boolean isXLargeTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
+        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
 
 
@@ -56,8 +55,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
         sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                PreferenceManager.getDefaultSharedPreferences(preference.getContext()).getString(preference.getKey(), ""));
+                        PreferenceManager.getDefaultSharedPreferences(preference.getContext()).getString(preference.getKey(),
+                        ""));
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
