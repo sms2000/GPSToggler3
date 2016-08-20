@@ -27,10 +27,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
@@ -74,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private static String version;
 
     private static boolean secureSettingsSet = false;
+    private static boolean systemizedAttempt = false;
 
     private Boolean orientationLandscape;
     private ListView listApps;
@@ -372,6 +376,26 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.settings, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startSettingsActivity();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
@@ -405,8 +429,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
             case KeyEvent.KEYCODE_MENU:
                 Log.d(Constants.TAG, "MainActivity::onKeyUp. Recognized 'menu' unpressed. Start the 'SettingsActivity'.");
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivityForResult(intent, Constants.SETTINGS_REQUEST_CODE);
+                startSettingsActivity();
                 break;
         }
 
@@ -485,6 +508,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         listApps = (ListView) findViewById(R.id.listApps);
         logScroll = (ScrollView) findViewById(R.id.scrollLog);
@@ -754,6 +778,17 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         Log.v(Constants.TAG, "MainActivity::expectGpsStateChanged. Exit.");
     }
 
+
+    private void startSettingsActivity() {
+        Log.v(Constants.TAG, "MainActivity::startSettingsActivity. Entry...");
+
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(intent, Constants.SETTINGS_REQUEST_CODE);
+
+        Log.v(Constants.TAG, "MainActivity::startSettingsActivity. Exit.");
+    }
+
+
     private void gpsStateChanged(Boolean oldState) {
         Log.v(Constants.TAG, "MainActivity::gpsStateChanged. Entry...");
 
@@ -898,15 +933,19 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private void systemize() {
         Log.v(Constants.TAG, "MainActivity::systemize. Entry...");
 
-        if (!Settings.isRootGranted()) {
-            Log.v(Constants.TAG, "MainActivity::systemize. No, the 'root' must be obtained.");
-            if (ROOT_GRANTED == RootCaller.ifRootAvailable()) {
-                obtainRoot();
+        if (!systemizedAttempt) {
+            systemizedAttempt = true;
+
+            if (!Settings.isRootGranted()) {
+                Log.v(Constants.TAG, "MainActivity::systemize. No, the 'root' must be obtained.");
+                if (ROOT_GRANTED == RootCaller.ifRootAvailable()) {
+                    obtainRoot();
+                } else {
+                    noRoot();
+                }
             } else {
-                noRoot();
+                Log.v(Constants.TAG, "MainActivity::systemize. Yes, the 'root' was obtained earlier. May continue.");
             }
-        } else {
-            Log.v(Constants.TAG, "MainActivity::systemize. Yes, the 'root' was obtained earlier. May continue.");
         }
 
         Log.v(Constants.TAG, "MainActivity::systemize. Exit.");
@@ -928,6 +967,15 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                         dialog.cancel();
                         MainActivity.this.finish();
                         Log.d(Constants.TAG, "MainActivity::noRoot. Pressed <OK>.");
+                    }
+                });
+
+        dialog.setNegativeButton(R.string.as_is,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int id) {
+                        dialog.cancel();
+                        Log.d(Constants.TAG, "MainActivity::noRoot. Pressed <As Is>.");
                     }
                 });
 

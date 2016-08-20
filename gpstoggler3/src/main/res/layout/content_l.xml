@@ -1,79 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_l"
-    tools:context="ogp.com.gpstoggler3.MainActivity"
-    android:weightSum="100"
+    android:baselineAligned="false"
     android:orientation="horizontal"
-    android:baselineAligned="false">
+    android:weightSum="100"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="ogp.com.gpstoggler3.MainActivity"
+    tools:showIn="@layout/activity_l">
 
-    <LinearLayout   android:id="@+id/linearLeft"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_weight="40"
-                    android:weightSum="100">
+    <LinearLayout
+        android:id="@+id/linearLeft"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="40"
+        android:orientation="vertical"
+        android:weightSum="100">
 
-        <LinearLayout   android:id="@+id/linearAutomatic"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/activity_vertical_margin"
-                        android:layout_marginBottom="@dimen/activity_vertical_margin"
-                        android:weightSum="2"
-                        android:orientation="horizontal" >
+        <LinearLayout
+            android:id="@+id/linearAutomatic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:orientation="horizontal"
+            android:weightSum="1">
 
 
-            <ToggleButton   android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                            android:layout_marginStart="@dimen/activity_horizontal_margin"
-                            android:id="@+id/toggleAutomatic"
-                            android:layout_gravity="start"
-                            android:textOn="@string/automaticOn"
-                            android:textOff="@string/automaticOff"
-                            android:onClick="onClickMode"
-                            android:layout_weight="1"/>
+            <ToggleButton
+                android:id="@+id/toggleAutomatic"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
+                android:layout_marginStart="@dimen/activity_horizontal_small_margin"
+                android:layout_weight="0.5"
+                android:onClick="onClickMode"
+                android:textOff="@string/automaticOff"
+                android:textOn="@string/automaticOn" />
 
-            <ToggleButton   android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                            android:layout_marginStart="@dimen/activity_horizontal_margin"
-                            android:id="@+id/toggleGPS"
-                            android:layout_gravity="end"
-                            android:textOn="@string/gpsOn"
-                            android:textOff="@string/gpsOff"
-                            android:layout_weight="1"/>
+            <ToggleButton
+                android:id="@+id/toggleGPS"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
+                android:layout_marginStart="@dimen/activity_horizontal_small_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_small_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_small_margin"
+                android:layout_weight="0.5"
+                android:textOff="@string/gpsOff"
+                android:textOn="@string/gpsOn" />
+
         </LinearLayout>
 
-        <ScrollView android:id="@+id/scrollLog"
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"
-                    android:layout_marginBottom="@dimen/activity_vertical_margin"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginStart="@dimen/activity_horizontal_margin"
-                    android:scrollbarStyle="insideOverlay" >
+        <ScrollView
+            android:id="@+id/scrollLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:scrollbarStyle="insideOverlay">
 
-            <TextView   android:id="@+id/textLog"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/editLogHint"/>
+            <TextView
+                android:id="@+id/textLog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/editLogHint" />
 
         </ScrollView>
     </LinearLayout>
 
-    <ListView   android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:id="@+id/listApps"
-                android:layout_weight="60"
-                android:scrollbarStyle="insideOverlay"
-                android:scrollbars="vertical" />
+    <ListView
+        android:id="@+id/listApps"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_weight="60"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical" />
 </LinearLayout>

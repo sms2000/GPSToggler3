@@ -16,29 +16,31 @@
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:orientation="horizontal"
-                  android:weightSum="2">
+                  android:weightSum="1">
         <ToggleButton
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/toggleAutomatic"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_small_margin"
             android:textOn="@string/automaticOn"
             android:textOff="@string/automaticOff"
             android:onClick="onClickMode"
-            android:layout_weight="1"/>
+            android:layout_weight="0.5"/>
 
         <ToggleButton
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/toggleGPS"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_small_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_small_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_small_margin"
             android:textOn="@string/gpsOn"
             android:textOff="@string/gpsOff"
-            android:layout_weight="1"/>
+            android:layout_weight="0.5"/>
     </LinearLayout>
 
     <ListView

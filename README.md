@@ -28,6 +28,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
+1.0.304
+-------
+
+1. The 'Settings' activity continued.
+
+
 1.0.302
 -------
 

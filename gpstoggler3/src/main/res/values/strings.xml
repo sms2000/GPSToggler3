@@ -29,8 +29,10 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="as_is">Continue as is</string>
     <string name="gpsOn">GPS enabled</string>
     <string name="gpsOff">GPS disabled</string>
+    <string name="settings">…</string>
     <string name="automaticOn">Automatic mode</string>
     <string name="automaticOff">Manual mode</string>
     <string name="ask_4_root">GPSToggler3 requires \'root\' access which could be obtained on this device. Agree?</string>
@@ -82,7 +84,7 @@
     </string-array>
 
     <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
+    <string name="pref_header_lifespan">Self-protection &amp; Monitor</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">
