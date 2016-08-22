@@ -28,6 +28,16 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
+1.0.308
+-------
+
+1. Boot initiation fixed partially. More work required. For no please start main activity for few seconds after every boot.
+
+2. Spelling.
+
+3. Settings continued.
+
+
 1.0.304
 -------
 

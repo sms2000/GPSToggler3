@@ -439,18 +439,12 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
     @Override
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        if (Constants.SETTINGS_REQUEST_CODE != requestCode) {
-            return;
+        if (Constants.SETTINGS_REQUEST_CODE == requestCode &&
+            Constants.SETTINGS_KILLED == resultCode) {
+            Log.d(Constants.TAG, "MainActivity::onActivityResult. Recognized 'long back press' from sub-activity. Killing the 'MainActivity' to prevent process extermination...");
+            finish();
         }
-
-        if (Constants.SETTINGS_KILLED != resultCode) {
-            return;
-        }
-
-        Log.d(Constants.TAG, "MainActivity::onActivityResult. Recognized 'long back press' from sub-activity. Killing the 'MainActivity' to prevent process extermination...");
-        finish();
     }
-
 
 
     @Override

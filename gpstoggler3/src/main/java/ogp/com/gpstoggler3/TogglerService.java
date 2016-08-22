@@ -396,7 +396,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         status.gpsOn = ret;
         status.gpsStatusTimestamp = lastGpsStatusChangeTimestamp;
 
-        Log.i(Constants.TAG, String.format("TogglerService::onGps. Current status [%s]m timestamp: %d", ret ? "ON" : "OFF", lastGpsStatusChangeTimestamp));
+        Log.i(Constants.TAG, String.format("TogglerService::onGps. Current status [%s], last changed at: %d", ret ? "ON" : "OFF", lastGpsStatusChangeTimestamp));
         Log.v(Constants.TAG, "TogglerService::onGps. Exit.");
         return status;
     }

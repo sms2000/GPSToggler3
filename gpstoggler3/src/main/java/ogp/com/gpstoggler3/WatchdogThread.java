@@ -81,7 +81,7 @@ class WatchdogThread extends Thread {
     }
 
 
-    WatchdogThread(Context context,TogglerServiceInterface togglerServiceInterface) {
+    WatchdogThread(Context context, TogglerServiceInterface togglerServiceInterface) {
         Log.v(Constants.TAG, "WatchdogThread. Entry...");
 
         this.context = context;
@@ -121,7 +121,7 @@ class WatchdogThread extends Thread {
 
     @Override
     public void run() {
-        Log.v(Constants.TAG, "WatchdogThread. Started.");
+        Log.v(Constants.TAG, "WatchdogThread::run. Started.");
 
         while (active) {
             if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
@@ -130,16 +130,19 @@ class WatchdogThread extends Thread {
                 } else {
                     verifyGPSSoftwareRunning();
                 }
+            } else {
+                Log.v(Constants.TAG, "WatchdogThread::run. Idle...");
+            }
 
-                try {
-                    if (null == screenOn || screenOn) {
-                        Thread.sleep(null != gpsDecidedOn && gpsDecidedOn ? TIMEOUT_ON : TIMEOUT_OFF);
-                    } else {
-                        Thread.sleep(TIMEOUT_SCREEN_OFF);
-                    }
-                } catch (InterruptedException e) {
-                    Log.e(Constants.TAG, "WatchdogThread. Exception in 'sleep'. Interrupted?");
+
+            try {
+                if (null == screenOn || screenOn) {
+                    Thread.sleep(null != gpsDecidedOn && gpsDecidedOn ? TIMEOUT_ON : TIMEOUT_OFF);
+                } else {
+                    Thread.sleep(TIMEOUT_SCREEN_OFF);
                 }
+            } catch (InterruptedException e) {
+                Log.e(Constants.TAG, "WatchdogThread::run. Exception in 'sleep'. Interrupted?");
             }
         }
 
@@ -147,7 +150,7 @@ class WatchdogThread extends Thread {
             notify();
         }
 
-        Log.v(Constants.TAG, "WatchdogThread. Finished.");
+        Log.v(Constants.TAG, "WatchdogThread::run. Finished.");
     }
 
 

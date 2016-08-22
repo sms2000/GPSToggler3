@@ -125,7 +125,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_lefispan);
+            addPreferencesFromResource(R.xml.pref_lifespan);
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference("sync_frequency"));
