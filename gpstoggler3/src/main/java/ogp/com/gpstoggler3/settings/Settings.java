@@ -1,9 +1,11 @@
-package ogp.com.gpstoggler3.apps;
+package ogp.com.gpstoggler3.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import ogp.com.gpstoggler3.apps.AppStore;
+import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
 
 
