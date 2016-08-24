@@ -28,8 +28,17 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
-1.0.319
+1.0.320
 -------
+
+1. Versioning restored.
+
+
+
+1.0.309
+-------
+
+0. Actual 1.0.319.
 
 1. Settings continued.
 
