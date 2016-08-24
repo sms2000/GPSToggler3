@@ -27,7 +27,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -56,7 +55,7 @@ import ogp.com.gpstoggler3.apps.AppAdapterInterface;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
-import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.status.GPSStatus;
@@ -399,7 +398,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                if (Settings.isIgnoreLongBackPress()) {
+                final int delay = Settings.getLongBackKeyPressDelay();
+                if (0 < delay) {
                     backPressedTime = System.currentTimeMillis();
                     Log.d(Constants.TAG, "MainActivity::onKeyDown. Recognized 'back key' pressed. Escape procedure initiated...");
 
@@ -411,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                                 finish();
                             }
                         }
-                    }, Constants.BACK_KEY_TIMEOUT);
+                    }, delay);
                 }
         }
 

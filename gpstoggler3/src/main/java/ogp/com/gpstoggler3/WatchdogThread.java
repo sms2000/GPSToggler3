@@ -17,7 +17,7 @@ import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
-import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -188,7 +188,7 @@ class WatchdogThread extends Thread {
     synchronized private void verifyGPSSoftwareRunning() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        int importance = Settings.getSplitAware() ?
+        int importance = Settings.getMultiWindowAware() ?
                 ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE : ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 
         List<ActivityManager.RunningAppProcessInfo> list = activityManager.getRunningAppProcesses();
@@ -250,7 +250,7 @@ class WatchdogThread extends Thread {
     private void verifyGPSSoftwareRunning21() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        boolean forceForeground = !Settings.getSplitAware();
+        boolean forceForeground = !Settings.getMultiWindowAware();
 
         List<AndroidAppProcess> list = ProcessManager.getRunningAppProcesses();
 

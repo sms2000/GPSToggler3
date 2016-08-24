@@ -56,7 +56,7 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Callable<Object> rpcTask = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                Log.e(Constants.TAG, ">> 3 >> ExecuteOnServiceWithTimeout. Waiting more...");
+                Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout. Waiting more...");
 
                 Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::execute::call. Entry/Exit.");
                 return transferWithResult(rpcMethod);
@@ -66,7 +66,7 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Object result = null;
         Future<Object> future = Executors.newFixedThreadPool(1).submit(rpcTask);
         try {
-            Log.e(Constants.TAG, ">> 2 >> ExecuteOnServiceWithTimeout. Waiting...");
+            Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout. Waiting...");
 
             result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
         } catch (Exception ignored) {

@@ -20,7 +20,7 @@ import android.view.MenuItem;
 
 import java.util.List;
 
-import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.global.Constants;
 
 public class SettingsActivity extends AppCompatPreferenceActivity {
@@ -158,7 +158,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                if (Settings.isIgnoreLongBackPress()) {
+                final int delay = Settings.getLongBackKeyPressDelay();
+                if (0 < delay) {
                     backPressedTime = System.currentTimeMillis();
                     Log.d(Constants.TAG, "SettingsActivity::onKeyDown. Recognized 'back key' pressed. Escape procedure initiated...");
 
@@ -171,7 +172,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                 finish();
                             }
                         }
-                    }, Constants.BACK_KEY_TIMEOUT);
+                    }, delay);
                 }
         }
 

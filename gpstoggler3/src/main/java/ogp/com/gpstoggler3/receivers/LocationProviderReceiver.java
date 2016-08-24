@@ -38,7 +38,6 @@ public class LocationProviderReceiver extends BroadcastReceiver {
 
     public synchronized void registerReceiver(LocationProviderInterface iface) {
         if (++regCounter == 1) {
-            LocationManager locationManager = (LocationManager)context.getSystemService(LOCATION_SERVICE);
             IntentFilter intentFilter = new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION);
             context.registerReceiver(this, intentFilter);
         }

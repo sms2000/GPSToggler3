@@ -21,7 +21,7 @@ import ogp.com.gpstoggler3.apps.AppDatabaseProcessor;
 import ogp.com.gpstoggler3.apps.AppEnumerator;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
-import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.receivers.LocationProviderInterface;
@@ -240,13 +240,13 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         registerReceiver(automationState, intentFilter);
 
         watchdogThread = new WatchdogThread(this, this);
-
         locationProviderReceiver.registerReceiver(this);
 
         inititateMonitor(this);
 
         initiateHumptyDumpty();
         reloadInstalledApps();
+        initiateAutomationState();
 
         broadcastGpsStateChanged();
 
@@ -540,6 +540,17 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
         Log.v(Constants.TAG, "TogglerService::setItForeground. Exit.");
+    }
+
+
+    private void initiateAutomationState() {
+        Log.v(Constants.TAG, "TogglerService::initiateAutomationState. Entry...");
+
+        boolean automationState = Settings.loadAutomationState();
+        watchdogThread.automationOnOff(automationState);
+        Log.i(Constants.TAG, String.format("Automation state initiated as [%s].", automationState ? "ON" : "OFF"));
+
+        Log.v(Constants.TAG, "TogglerService::initiateAutomationState. Exit.");
     }
 
 

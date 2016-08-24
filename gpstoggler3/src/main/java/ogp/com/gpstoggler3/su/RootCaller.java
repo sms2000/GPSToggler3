@@ -170,7 +170,7 @@ public class RootCaller {
     }
 
 
-    public static ArrayList<String> executeOnRoot(String command) {
+    static ArrayList<String> executeOnRoot(String command) {
         Process chperm = null;
 
         try {

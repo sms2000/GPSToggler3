@@ -1,57 +1,23 @@
 package ogp.com.gpstoggler3.apps;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.settings.Settings;
+import ogp.com.gpstoggler3.WorkerThread;
 
 
 public class AppDatabaseProcessor {
-    private Handler handler;
     private ListWatched listApps;
-    private StoreThread storeThread = null;
-    private Context context;
-
-
-    private class StoreThread extends Thread {
-        StoreThread() {
-            super();
-            start();
-        }
-
-
-        @Override
-        public void run() {
-            Log.v(Constants.TAG, "AppDatabaseProcessor::StoreThread::run. Entry...");
-
-            Looper.prepare();
-            handler = new Handler();
-            Looper.loop();
-
-            Log.v(Constants.TAG, "AppDatabaseProcessor::StoreThread::run. Exit.");
-        }
-
-
-        void finish() {
-            Log.v(Constants.TAG, "AppDatabaseProcessor::finish::run. Entry...");
-
-            handler.post(null);
-
-            Log.v(Constants.TAG, "AppDatabaseProcessor::finish::run. Exit.");
-        }
-    }
+    private WorkerThread storeThread = null;
 
 
     public AppDatabaseProcessor(Context context) {
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Entry...");
 
-        this.context = context;
-
-        listApps = Settings.allocate(context).loadWatchedApps();
-
-        storeThread = new StoreThread();
+        listApps = Settings.loadWatchedApps();
+        storeThread = new WorkerThread(context);
 
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Exit.");
     }
@@ -62,7 +28,7 @@ public class AppDatabaseProcessor {
 
         if (null != storeThread) {
             Log.i(Constants.TAG, "AppDatabaseProcessor::finish. Stopping thread...");
-            storeThread.finish();
+            storeThread.kill();
         }
 
         Log.v(Constants.TAG, "AppDatabaseProcessor::finish. Exit.");
@@ -84,10 +50,10 @@ public class AppDatabaseProcessor {
 
         this.listApps = listApps;
 
-        handler.post(new Runnable() {
+        storeThread.post(new Runnable() {
             @Override
             public void run() {
-                Settings.allocate(context).saveWatchedApps(listApps);
+                Settings.saveWatchedApps(listApps);
             }
         });
 

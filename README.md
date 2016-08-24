@@ -28,6 +28,14 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 
+1.0.319
+-------
+
+1. Settings continued.
+
+2. Warnings fixed.
+
+
 1.0.308
 -------
 

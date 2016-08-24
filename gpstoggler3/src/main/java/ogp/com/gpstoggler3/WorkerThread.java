@@ -30,6 +30,7 @@ public class WorkerThread extends Thread {
     }
 
 
+    @SuppressWarnings("WeakerAccess")
     public void postDelayed(Runnable runnable, int delay) {
         handler.postDelayed(runnable, delay);
     }

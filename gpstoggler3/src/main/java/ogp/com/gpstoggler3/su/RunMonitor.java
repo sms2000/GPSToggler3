@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import ogp.com.gpstoggler3.apps.Settings;
+import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.global.Constants;
 
 
@@ -89,7 +89,7 @@ public class RunMonitor {
 
                 byte buf[] = new byte[BLOCK_SIZE];
 
-                int read = 0;
+                int read;
                 while ((read = inputStream.read(buf)) > 0) {
                     outputStream.write(buf, 0, read);
                 }

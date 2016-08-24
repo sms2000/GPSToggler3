@@ -15,7 +15,7 @@ public class AppStore {
     }
 
 
-    public boolean getActive() {
+    boolean getActive() {
         return active;
     }
 
@@ -25,7 +25,7 @@ public class AppStore {
     }
 
 
-    public void setActive(boolean active) {
+    void setActive(boolean active) {
         this.active = active;
     }
 

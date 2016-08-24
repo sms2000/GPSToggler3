@@ -10,23 +10,27 @@ import ogp.com.gpstoggler3.global.Constants;
 
 
 public class Settings {
-    static private final String PREFERENCES = "Preferences";
-    static private final String WATCHER = "Automation";
-    static private final String ROOT_GRANTED = "RootGranted";
-    static private final String APP_LIST = "ActivatedApps";
-    static private final String SEPARATOR = "_##_";
-    static private final String APP_SEPARATOR = "_#_";
-    static private final int DEF_DOUBLE_CLICK_DELAY = 300;
+    private static final String PREFERENCES = "Preferences";
+    private static final String AUTOMATION = "Automation";
+    private static final String ROOT_GRANTED = "RootGranted";
+    private static final String APP_LIST = "ActivatedApps";
     private static final String MONITOR_DECLINED = "MonitorDeclined";
+    private static final String MULTIWINDOW_AWARE = "MultiWindowAware";
+    private static final String BACK_KEY_DELAY = "BackKeyDelay";
+    private static final String DOUBLE_CLICK_DELAY = "DoubleClickDelay";
 
-    public static Settings settingsSingleton = null;
+    private static final int DEF_DOUBLE_CLICK_DELAY = -1;
+    private static final String SEPARATOR = "_##_";
+    private static final String APP_SEPARATOR = "_#_";
 
+    private static Settings settingsSingleton = null;
+
+    private static SharedPreferences settings;
     private static boolean multiWindowAware = false;
     private static boolean automation;
     private static boolean rootGranted;
-    private static SharedPreferences settings;
     private static int doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
-    private static boolean ignoreLongBackPress = true;
+    private static int preventLongBackKeyPressDelay = -1;
 
 
     public static Settings allocate(Context context) {
@@ -47,8 +51,11 @@ public class Settings {
 
         settings = context.getSharedPreferences(PREFERENCES, 0);
 
-        automation = settings.getBoolean(WATCHER, false);
+        automation = settings.getBoolean(AUTOMATION, false);
         rootGranted = settings.getBoolean(ROOT_GRANTED, false);
+        multiWindowAware = settings.getBoolean(MULTIWINDOW_AWARE, false);
+        preventLongBackKeyPressDelay = settings.getInt(BACK_KEY_DELAY, DEF_DOUBLE_CLICK_DELAY);
+        doubleClickDelay = settings.getInt(DOUBLE_CLICK_DELAY, DEF_DOUBLE_CLICK_DELAY);
 
         Log.v(Constants.TAG, "Settings::<init>. Exit.");
     }
@@ -84,7 +91,7 @@ public class Settings {
         Settings.automation = automation;
 
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(WATCHER, automation);
+        editor.putBoolean(AUTOMATION, automation);
 
         editor.apply();
 
@@ -92,7 +99,7 @@ public class Settings {
     }
 
 
-    static void saveWatchedApps(ListWatched listApps) {
+    public static void saveWatchedApps(ListWatched listApps) {
         Log.v(Constants.TAG, "Settings::saveWatchedApps. Entry...");
 
         String serialized = "";
@@ -118,7 +125,7 @@ public class Settings {
     }
 
 
-    static ListWatched loadWatchedApps() {
+    public static ListWatched loadWatchedApps() {
         Log.v(Constants.TAG, "Settings::loadWatchedApps. Entry...");
 
         ListWatched listApps = new ListWatched();
@@ -141,6 +148,7 @@ public class Settings {
         return listApps;
     }
 
+
     public static int getDoubleClickDelay() {
         return doubleClickDelay;
     }
@@ -158,11 +166,12 @@ public class Settings {
     }
 
 
-    public static boolean getSplitAware() {
+    public static boolean getMultiWindowAware() {
         return multiWindowAware;
     }
 
-    public static boolean isIgnoreLongBackPress() {
-        return ignoreLongBackPress;
+
+    public static int getLongBackKeyPressDelay() {
+        return preventLongBackKeyPressDelay;
     }
 }

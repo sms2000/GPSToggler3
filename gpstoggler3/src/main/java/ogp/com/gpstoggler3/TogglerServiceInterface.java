@@ -4,6 +4,7 @@ import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
+
 interface TogglerServiceInterface {
     int getPid();
 

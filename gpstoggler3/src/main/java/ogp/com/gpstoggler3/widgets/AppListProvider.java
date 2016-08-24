@@ -27,20 +27,38 @@ class AppListProvider implements RemoteViewsFactory {
     }
 
 
-
     @Override
     public void onCreate() {
+        Log.v(Constants.TAG, "AppListProvider::onCreate. Invoked.");
     }
 
 
     @Override
     public void onDataSetChanged() {
-        ArrayList<AppStore> list = (ArrayList<AppStore>) new ExecuteOnServiceWithTimeout(context).execute(RPC_METHOD, RPC_TIMEOUT);
+        Log.v(Constants.TAG, "AppListProvider::onDataSetChanged. Entry...");
 
         listItemList.clear();
-        if (null != list) {
-            for (AppStore app : list) {
+
+        ArrayList   list;
+
+        try {
+            list = (ArrayList) new ExecuteOnServiceWithTimeout(context).execute(RPC_METHOD, RPC_TIMEOUT);
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [1].");
+
+            Log.v(Constants.TAG, "AppListProvider::onDataSetChanged. Exit [1].");
+            return;
+        }
+
+        for (int i = 0; null != list && i < list.size(); i++) {
+            try {
+                AppStore app = (AppStore) list.get(i);
                 listItemList.add(app.friendlyName);
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [2].");
+
+                Log.v(Constants.TAG, "AppListProvider::onDataSetChanged. Exit [2].");
+                return;
             }
         }
 
@@ -50,11 +68,14 @@ class AppListProvider implements RemoteViewsFactory {
         }
 
         Log.i(Constants.TAG, String.format("AppListProvider::onDataSetChanged. Loaded %d app(s).", listItemList.size()));
+
+        Log.v(Constants.TAG, "AppListProvider::onDataSetChanged. Exit [3].");
     }
 
 
     @Override
     public void onDestroy() {
+        Log.v(Constants.TAG, "AppListProvider::onDestroy. Invoked.");
     }
 
 

@@ -66,7 +66,7 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         for (int i = 0; i < getCount(); i++) {
             AppStore appStore = getItem(i);
 
-            if (null != listActivated && listActivated.contains(appStore.packageName)) {
+            if (null != listActivated && listActivated.containsPackage(appStore.packageName)) {
                 activated++;
                 appStore.setActive(true);
             } else {
