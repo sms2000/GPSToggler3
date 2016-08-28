@@ -10,7 +10,7 @@ import ogp.com.gpstoggler3.global.Constants;
 
 
 public class Settings {
-    private static final String PREFERENCES = "Preferences";
+    private static final String PREFERENCES = "%s_preferences";
     private static final String AUTOMATION = "Automation";
     private static final String ROOT_GRANTED = "RootGranted";
     private static final String APP_LIST = "ActivatedApps";
@@ -19,7 +19,9 @@ public class Settings {
     private static final String BACK_KEY_DELAY = "BackKeyDelay";
     private static final String DOUBLE_CLICK_DELAY = "DoubleClickDelay";
 
-    private static final int DEF_DOUBLE_CLICK_DELAY = -1;
+    private static final int DEF_DOUBLE_CLICK_DELAY = 250;
+    private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
+
     private static final String SEPARATOR = "_##_";
     private static final String APP_SEPARATOR = "_#_";
 
@@ -30,7 +32,7 @@ public class Settings {
     private static boolean automation;
     private static boolean rootGranted;
     private static int doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
-    private static int preventLongBackKeyPressDelay = -1;
+    private static int preventLongBackKeyPressDelay = DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
 
 
     public static Settings allocate(Context context) {
@@ -49,7 +51,8 @@ public class Settings {
     private Settings(Context context) {
         Log.v(Constants.TAG, "Settings::<init>. Entry...");
 
-        settings = context.getSharedPreferences(PREFERENCES, 0);
+        String prefFile = String.format(PREFERENCES, context.getPackageName());
+        settings = context.getSharedPreferences(prefFile, 0);
 
         automation = settings.getBoolean(AUTOMATION, false);
         rootGranted = settings.getBoolean(ROOT_GRANTED, false);

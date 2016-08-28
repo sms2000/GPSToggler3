@@ -60,7 +60,7 @@ public class GPSFullWidget extends BaseWidget {
         // Text
         updateViews.setTextViewText(R.id.gpsStatus, timestampChange);
 
-        Log.w(Constants.TAG, "GPSFullWidget::createWidgetView. setOnClickPendingIntent invoked.");
+        Log.d(Constants.TAG, "GPSFullWidget::createWidgetView. setOnClickPendingIntent invoked.");
 
         ComponentName thisWidget = new ComponentName(context, GPSFullWidget.class);
 

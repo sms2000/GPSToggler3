@@ -82,6 +82,21 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
 
         final Object[] result = {null};
 
+        if (null != togglerBinder) {
+            try {
+                Method method = togglerBinder.getClass().getMethod(rpcMethod);
+                result[0] = method.invoke(togglerBinder);
+                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange succeeded [1].");
+
+                Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit [1].");
+                return result[0];
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error! [1]. Reconnecting...");
+            }
+        } else {
+            Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Needs to connect to the main service...");
+        }
+
         post(new Runnable() {
             @Override
             public void run() {
@@ -103,26 +118,28 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
 
         if (null == togglerBinder) {
             Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Error. Bind failed!");
-            return result;
-        }
-
-        Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Bind confirmed.");
-
-        try {
-            Method method = togglerBinder.getClass().getMethod(rpcMethod);
-            result[0] = method.invoke(togglerBinder);
-            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange succeeded.");
-        } catch (Exception e) {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error!");
-        }
-
-        Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit.");
-
-        if (null != result[0]) {
-            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. OK: " + result[0].toString());
         } else {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Problem! result == null.");
+            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Bind confirmed.");
+
+            try {
+                Method method = togglerBinder.getClass().getMethod(rpcMethod);
+                result[0] = method.invoke(togglerBinder);
+                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange succeeded [2].");
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error! [2]");
+            }
+
+            Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit.");
+
+            if (null != result[0]) {
+                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. OK: " + result[0].toString());
+            } else {
+                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Problem! result == null.");
+            }
         }
+
+
+        Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit [2].");
         return result[0];
     }
 }

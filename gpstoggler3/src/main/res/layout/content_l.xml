@@ -76,7 +76,7 @@
         </ScrollView>
     </LinearLayout>
 
-    <ListView
+    <ogp.com.gpstoggler3.controls.OverscrollView
         android:id="@+id/listApps"
         android:layout_width="0dp"
         android:layout_height="match_parent"

@@ -29,6 +29,7 @@ class WatchdogThread extends Thread {
 
     private static final ListWatched lastActivatedApps = new ListWatched();
 
+    private boolean initialPost = false;
     private Context context;
     private ActivityManager activityManager;
     private boolean active;
@@ -57,14 +58,17 @@ class WatchdogThread extends Thread {
         private StatusChange(Boolean enableAutomation, Boolean enableGPS, ListWatched activatedApps) {
             this.enableAutomation = enableAutomation;
             this.enableGPS = enableGPS;
-            this.activatedApps = activatedApps;
+
+            this.activatedApps = new ListWatched();
+            this.activatedApps.addAll(activatedApps);
         }
 
 
         @Override
         public void run() {
+            Log.v(Constants.TAG, "WatchdogThread::StatusChange::run. Entry. reportGPSSoftwareStatus succeeded for " + enableGPS);
+
             try {
-                Log.v(Constants.TAG, "StatusChange::run. reportGPSSoftwareStatus succeeded for " + enableGPS);
 
                 Intent intent = new Intent(Broadcasters.AUTO_STATE_CHANGED);
                 intent.putExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, enableAutomation);
@@ -73,10 +77,12 @@ class WatchdogThread extends Thread {
 
                 context.sendBroadcast(intent);
 
-                Log.e(Constants.TAG, String.format("^^^^ StatusChange::run. Bundle sent with %d application(s).", activatedApps.size()));
+                Log.d(Constants.TAG, String.format("WatchdogThread::StatusChange::run. Bundle sent with %d application(s).", activatedApps.size()));
             } catch (Exception e) {
-                Log.e(Constants.TAG, "StatusChange::run. Exception: ", e);
+                Log.e(Constants.TAG, "WatchdogThread::StatusChange::run. Exception: ", e);
             }
+
+            Log.v(Constants.TAG, "WatchdogThread::StatusChange::run. Exit.");
         }
     }
 
@@ -216,7 +222,7 @@ class WatchdogThread extends Thread {
             equal = activatedApps.size() == lastActivatedApps.size();
             if (equal) {
                 for (int i = 0; i < activatedApps.size(); i++) {
-                    if (!activatedApps.get(i).equals(lastActivatedApps.get(i))) {
+                    if (!activatedApps.packageExists(lastActivatedApps.get(i))) {
                         equal = false;
                         break;
                     }
@@ -226,15 +232,19 @@ class WatchdogThread extends Thread {
 
 
         boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal) {
+        if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
+            initialPost = true;
+
             Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
             if (!equal) {
                 synchronized (lastActivatedApps) {
                     lastActivatedApps.clear();
-                    for (int i = 0; i < activatedApps.size(); i++) {
-                        lastActivatedApps.add(activatedApps.get(i));
+                    lastActivatedApps.addAll(activatedApps);
+
+                    for (AppStore app : lastActivatedApps) {
+                        Log.v(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning. Active application: %s.", app.packageName));
                     }
                 }
             }
@@ -289,7 +299,9 @@ class WatchdogThread extends Thread {
 
 
         boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal) {
+        if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
+            initialPost = true;
+
             Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
@@ -299,8 +311,7 @@ class WatchdogThread extends Thread {
                     lastActivatedApps.addAll(activatedApps);
 
                     for (AppStore app : lastActivatedApps) {
-                        Log.e(Constants.TAG, String.format("##!!!## >>> %s", app.packageName));
-
+                        Log.v(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
                     }
                 }
             }

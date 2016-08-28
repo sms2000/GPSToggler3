@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import ogp.com.gpstoggler3.ExecuteOnServiceWithTimeout;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
+import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
 
 
 class AppListProvider implements RemoteViewsFactory {
     private static final String RPC_METHOD = "listActivatedApps";
-    private static final int RPC_TIMEOUT = 5000;            // 5 second
+    private static final int RPC_TIMEOUT = 5000;            // 5 seconds
 
-    private ArrayList<String> listItemList = new ArrayList<>();
+    private static ArrayList<String> listItemList = new ArrayList<>();
     private Context context = null;
 
 
@@ -39,10 +40,10 @@ class AppListProvider implements RemoteViewsFactory {
 
         listItemList.clear();
 
-        ArrayList   list;
+        ListWatched list;
 
         try {
-            list = (ArrayList) new ExecuteOnServiceWithTimeout(context).execute(RPC_METHOD, RPC_TIMEOUT);
+            list = (ListWatched)new ExecuteOnServiceWithTimeout(context).execute(RPC_METHOD, RPC_TIMEOUT);
         } catch (Exception e) {
             Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [1].");
 
@@ -52,7 +53,7 @@ class AppListProvider implements RemoteViewsFactory {
 
         for (int i = 0; null != list && i < list.size(); i++) {
             try {
-                AppStore app = (AppStore) list.get(i);
+                AppStore app = list.get(i);
                 listItemList.add(app.friendlyName);
             } catch (Exception e) {
                 Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [2].");
@@ -65,9 +66,11 @@ class AppListProvider implements RemoteViewsFactory {
         if (0 == listItemList.size()) {
             String noActiveApps = context.getResources().getString(R.string.no_active_apps_found);
             listItemList.add(noActiveApps);
-        }
 
-        Log.i(Constants.TAG, String.format("AppListProvider::onDataSetChanged. Loaded %d app(s).", listItemList.size()));
+            Log.w(Constants.TAG, "AppListProvider::onDataSetChanged. No apps loaded.");
+        } else {
+            Log.w(Constants.TAG, String.format("AppListProvider::onDataSetChanged. Loaded %d app(s).", listItemList.size()));
+        }
 
         Log.v(Constants.TAG, "AppListProvider::onDataSetChanged. Exit [3].");
     }

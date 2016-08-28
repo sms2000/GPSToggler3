@@ -26,44 +26,48 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
    Actually this software has nothing to do with SMS at all (see the sources).
 
 
+
 Versions:
+
+1.0.326
+-------
+
+1. Bugs fixed.
+
+
+1.0.323
+-------
+1. Settings continued.
+2. Widget list timeout set to 15 seconds.
+
 
 1.0.320
 -------
-
 1. Versioning restored.
 
 
 
 1.0.309
 -------
-
 0. Actual 1.0.319.
-
 1. Settings continued.
-
 2. Warnings fixed.
 
 
 1.0.308
 -------
-
 1. Boot initiation fixed partially. More work required. For no please start main activity for few seconds after every boot.
-
 2. Spelling.
-
 3. Settings continued.
 
 
 1.0.304
 -------
-
 1. The 'Settings' activity continued.
 
 
 1.0.302
 -------
-
 1. Maximum possible defence against application killing: 
 
   * Filtering press back' key' filtered to close Activities ASAP before Android kills the process itself.
@@ -74,10 +78,9 @@ Versions:
 
 1.0.300
 -------
-
 1. Stability improvements. Application may be killed only by means of a custom ROM 'long back pressed'.
+
 
 1.0.279
 -------
-
 1. Routine code development

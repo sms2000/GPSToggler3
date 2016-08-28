@@ -5,6 +5,9 @@ import android.content.Context;
 import android.location.LocationManager;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
+import android.util.Log;
+
+import ogp.com.gpstoggler3.global.Constants;
 
 
 class GPSActuatorLegacy implements GPSActuatorInterface {
@@ -52,7 +55,7 @@ class GPSActuatorLegacy implements GPSActuatorInterface {
                     Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
                     newSet);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(Constants.TAG, "GPSActuatorLegacy::turnGpsOn. Exception: ", e);
         }
     }
 
@@ -65,7 +68,7 @@ class GPSActuatorLegacy implements GPSActuatorInterface {
                     Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
                     gpsStatusS);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(Constants.TAG, "GPSActuatorLegacy::turnGpsOff. Exception: ", e);
         }
     }
 }

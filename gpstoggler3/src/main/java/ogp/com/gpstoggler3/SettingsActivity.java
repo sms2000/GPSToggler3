@@ -91,8 +91,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName)
-                || LifespanPreferenceFragment.class.getName().equals(fragmentName);
+               ||
+               GeneralPreferenceFragment.class.getName().equals(fragmentName)
+               ||
+               LifespanPreferenceFragment.class.getName().equals(fragmentName);
     }
 
 
@@ -104,8 +106,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            bindPreferenceSummaryToValue(findPreference("widget_double_click"));
         }
 
         @Override
@@ -128,7 +129,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_lifespan);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+            bindPreferenceSummaryToValue(findPreference("back_delay"));
         }
 
         @Override

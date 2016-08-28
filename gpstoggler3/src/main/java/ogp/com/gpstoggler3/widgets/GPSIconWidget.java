@@ -36,7 +36,7 @@ public class GPSIconWidget extends BaseWidget {
 
         updateViews.setOnClickPendingIntent(R.id.widget_icon, pendingIntent);
 
-        Log.i(Constants.TAG, "GPSIconWidget::createWidgetView. setOnClickPendingIntent invoked.");
+        Log.d(Constants.TAG, "GPSIconWidget::createWidgetView. setOnClickPendingIntent invoked.");
 
         ComponentName thisWidget = new ComponentName(context, GPSIconWidget.class);
 

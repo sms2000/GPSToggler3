@@ -505,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
 
         listApps = (ListView) findViewById(R.id.listApps);
+
         logScroll = (ScrollView) findViewById(R.id.scrollLog);
         logView = (TextView) findViewById(R.id.textLog);
 
