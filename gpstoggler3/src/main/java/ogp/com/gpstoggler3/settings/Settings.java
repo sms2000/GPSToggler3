@@ -10,14 +10,17 @@ import ogp.com.gpstoggler3.global.Constants;
 
 
 public class Settings {
+    // From internal codes
     private static final String PREFERENCES = "%s_preferences";
-    private static final String AUTOMATION = "Automation";
-    private static final String ROOT_GRANTED = "RootGranted";
-    private static final String APP_LIST = "ActivatedApps";
-    private static final String MONITOR_DECLINED = "MonitorDeclined";
-    private static final String MULTIWINDOW_AWARE = "MultiWindowAware";
-    private static final String BACK_KEY_DELAY = "BackKeyDelay";
-    private static final String DOUBLE_CLICK_DELAY = "DoubleClickDelay";
+    private static final String AUTOMATION = "automation_on";
+    private static final String ROOT_GRANTED = "root_granted";
+    private static final String APP_LIST = "activated_apps";
+
+    // From ActivitySettings
+    private static final String MONITOR_DECLINED = "use_monitor_app";
+    private static final String MULTIWINDOW_AWARE = "multiwindow_aware";
+    private static final String BACK_KEY_DELAY = "back_key_delay";
+    private static final String DOUBLE_CLICK_DELAY = "widget_double_click";
 
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;

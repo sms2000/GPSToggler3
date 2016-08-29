@@ -251,8 +251,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             public void run() {
                 Log.v(Constants.TAG, "MainActivity::connect2Services::run. Entry...");
 
-                TogglerService.initiateMonitor(MainActivity.this);
-
                 systemize();
 
                 if (TogglerService.startServiceAndBind(MainActivity.this, serviceConnection)) {

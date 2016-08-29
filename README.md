@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.334
+-------
+1. Settings processing.
+
+
 1.0.333
 -------
 1. Class repositioning and some classes renamed.
