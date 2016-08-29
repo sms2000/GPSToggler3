@@ -80,12 +80,12 @@
         </receiver>
 
         <service
-            android:name=".TogglerService"
+            android:name=".services.TogglerService"
             android:enabled="true"
             android:exported="true"
             android:permission="ogp.com.gpstoggler3.GPS_ACCESS" />
         <service
-            android:name=".widgets.WidgetsService"
+            android:name=".services.WidgetsService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 

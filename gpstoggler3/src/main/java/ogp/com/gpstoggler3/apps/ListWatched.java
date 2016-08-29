@@ -103,7 +103,7 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     }
 
 
-    public boolean packageExists(String packageName) {
+    private boolean packageExists(String packageName) {
         for (AppStore app : this) {
             if (app.packageName.equals(packageName)) {
                 return true;

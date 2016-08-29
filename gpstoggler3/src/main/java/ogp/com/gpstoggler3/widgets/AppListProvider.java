@@ -8,14 +8,14 @@ import android.widget.RemoteViewsService.RemoteViewsFactory;
 
 import java.util.ArrayList;
 
-import ogp.com.gpstoggler3.ExecuteOnServiceWithTimeout;
+import ogp.com.gpstoggler3.servlets.ExecuteOnServiceWithTimeout;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
 
 
-class AppListProvider implements RemoteViewsFactory {
+public class AppListProvider implements RemoteViewsFactory {
     private static final String RPC_METHOD = "listActivatedApps";
     private static final int RPC_TIMEOUT = 5000;            // 5 seconds
 
@@ -23,7 +23,7 @@ class AppListProvider implements RemoteViewsFactory {
     private Context context = null;
 
 
-    AppListProvider(Context context) {
+    public AppListProvider(Context context) {
         this.context = context;
     }
 

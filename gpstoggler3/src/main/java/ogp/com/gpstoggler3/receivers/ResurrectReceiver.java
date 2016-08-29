@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.TogglerService;
+import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.global.Constants;
 
 

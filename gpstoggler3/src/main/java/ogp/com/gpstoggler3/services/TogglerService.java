@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.services;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -15,16 +15,22 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
+import ogp.com.gpstoggler3.apps.ApplicationsWatchdog;
+import ogp.com.gpstoggler3.ITogglerService;
+import ogp.com.gpstoggler3.MainActivity;
+import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.actuators.GPSActuatorFactory;
-import ogp.com.gpstoggler3.actuators.GPSActuatorInterface;
+import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 import ogp.com.gpstoggler3.apps.AppDatabaseProcessor;
 import ogp.com.gpstoggler3.apps.AppEnumerator;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.interfaces.TogglerServiceInterface;
+import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
-import ogp.com.gpstoggler3.receivers.LocationProviderInterface;
+import ogp.com.gpstoggler3.interfaces.LocationProviderInterface;
 import ogp.com.gpstoggler3.receivers.LocationProviderReceiver;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
@@ -39,7 +45,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private long lastNewAppList = 0;
     private AppEnumerator appEnumerator;
     private AppDatabaseProcessor appDatabaseProcessor = null;
-    private WatchdogThread watchdogThread = null;
+    private ApplicationsWatchdog watchdogThread = null;
     private GPSActuatorInterface gpsActuator = null;
     private boolean isClicked = false;
     private MonitorServiceConnection monitorServiceConnection = new MonitorServiceConnection();
@@ -239,10 +245,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         intentFilter = new IntentFilter(Broadcasters.AUTO_STATE_CHANGED);
         registerReceiver(automationState, intentFilter);
 
-        watchdogThread = new WatchdogThread(this, this);
+        watchdogThread = new ApplicationsWatchdog(this, this);
         locationProviderReceiver.registerReceiver(this);
 
-        inititateMonitor(this);
+        initiateMonitor(this);
 
         initiateHumptyDumpty();
         reloadInstalledApps();
@@ -440,7 +446,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         ListWatched activated;
         synchronized (this) {
-            activated = WatchdogThread.getActivatedApps();
+            activated = ApplicationsWatchdog.getActivatedApps();
         }
 
         Log.v(Constants.TAG, "TogglerService::listActivatedApps. Exit.");
@@ -452,18 +458,15 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.v(Constants.TAG, "TogglerService::automationStateProcessing. Entry...");
 
         boolean automationMode = intentReceived.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, false);
-
         if (automationMode) {
             boolean gpsDecidedOn = intentReceived.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_GPS, false);
             setGpsState(gpsDecidedOn);      // Actual (de)activation in the Automatic mode is here!
 
-
-            int activated = WatchdogThread.getActivatedApps().size();
-
+            int size = ApplicationsWatchdog.getActivatedApps().size();
             broadcastGpsStateChanged();
 
             Log.i(Constants.TAG, String.format("TogglerService::automationStateProcessing. Status: [%s], automation: [ON], activated apps: [%d].",
-                    gpsDecidedOn ? "ON" : "OFF", activated));
+                    gpsDecidedOn ? "ON" : "OFF", size));
         } else {
             Log.i(Constants.TAG, "TogglerService::automationStateProcessing. automation: [OFF].");
         }
@@ -487,15 +490,15 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     public static boolean startServiceAndBind(Context context, ServiceConnection serviceConnection) {
         Log.v(Constants.TAG, "TogglerService::startServiceAndBind. Entry...");
 
-        boolean success = true;
+        boolean success = false;
 
         Log.i(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind...");
         Intent intent = new Intent(context, TogglerService.class);
-        if (!context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT)) {
-            Log.e(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind failed.");
-            success = false;
+        if (context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT)) {
+            success = true;
+            Log.i(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind succeeded.");
         } else {
-            Log.i(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind succeded.");
+            Log.e(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind failed.");
         }
 
         Log.v(Constants.TAG, "TogglerService::startServiceAndBind. Exit.");
@@ -503,10 +506,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     }
 
 
-    static void inititateMonitor(Context context) {
-        Log.v(Constants.TAG, "TogglerService::inititateMonitor. Entry...");
+    public static void initiateMonitor(Context context) {
+        Log.v(Constants.TAG, "TogglerService::initiateMonitor. Entry...");
 
-        Log.i(Constants.TAG, "TogglerService::inititateMonitor. Initiating MonitorActivity...");
+        Log.i(Constants.TAG, "TogglerService::initiateMonitor. Initiating MonitorActivity...");
 
         try {
             Intent intent = new Intent();
@@ -514,12 +517,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Log.w(Constants.TAG, "TogglerService::inititateMonitor. No Monitor application installed apparently. Autonomous mode doesn't guarantee permanent existence.");
+            Log.w(Constants.TAG, "TogglerService::initiateMonitor. No Monitor application installed apparently. Autonomous mode doesn't guarantee permanent existence.");
         } catch (Exception e) {
-            Log.e(Constants.TAG, "TogglerService::inititateMonitor. Exception: ", e);
+            Log.e(Constants.TAG, "TogglerService::initiateMonitor. Exception: ", e);
         }
 
-        Log.v(Constants.TAG, "TogglerService::inititateMonitor. Exit.");
+        Log.v(Constants.TAG, "TogglerService::initiateMonitor. Exit.");
     }
 
 

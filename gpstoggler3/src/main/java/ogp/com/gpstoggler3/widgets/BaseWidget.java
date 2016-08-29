@@ -11,7 +11,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.ITogglerService;
-import ogp.com.gpstoggler3.TogglerService;
+import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 

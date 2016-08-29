@@ -5,7 +5,7 @@ import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.settings.Settings;
-import ogp.com.gpstoggler3.WorkerThread;
+import ogp.com.gpstoggler3.servlets.WorkerThread;
 
 
 public class AppDatabaseProcessor {

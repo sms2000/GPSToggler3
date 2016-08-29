@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.servlets;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import ogp.com.gpstoggler3.ITogglerService;
+import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.global.Constants;
 
 

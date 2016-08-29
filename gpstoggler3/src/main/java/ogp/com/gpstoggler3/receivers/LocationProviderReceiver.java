@@ -9,7 +9,7 @@ import android.location.LocationManager;
 
 import java.util.ArrayList;
 
-import static android.content.Context.LOCATION_SERVICE;
+import ogp.com.gpstoggler3.interfaces.LocationProviderInterface;
 
 
 public class LocationProviderReceiver extends BroadcastReceiver {

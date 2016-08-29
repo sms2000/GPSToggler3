@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.servlets;
 
 
 import android.content.Context;

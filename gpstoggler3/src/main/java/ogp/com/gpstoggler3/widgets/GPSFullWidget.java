@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.services.WidgetsService;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
 

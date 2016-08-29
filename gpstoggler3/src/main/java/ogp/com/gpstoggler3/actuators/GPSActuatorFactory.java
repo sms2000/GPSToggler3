@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 
 public class GPSActuatorFactory {
     private static GPSActuatorInterface singletonGPSActuatorInterface = null;

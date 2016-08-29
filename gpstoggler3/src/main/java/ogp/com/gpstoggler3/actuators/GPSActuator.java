@@ -8,6 +8,7 @@ import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 
 
 class GPSActuator implements GPSActuatorInterface {

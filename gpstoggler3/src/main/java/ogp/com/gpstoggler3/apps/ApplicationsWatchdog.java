@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.apps;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -9,7 +9,6 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.jaredrummler.android.processes.ProcessManager;
-import com.jaredrummler.android.processes.models.AndroidAppProcess;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,12 +16,13 @@ import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.interfaces.TogglerServiceInterface;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 
 
-class WatchdogThread extends Thread {
+public class ApplicationsWatchdog extends Thread {
     private static final long TIMEOUT_SCREEN_OFF = 30000;   // Polling time (ms) when screen off
     private static final long TIMEOUT_OFF = 4000;           // Polling time (ms) when GPS off
     private static final long TIMEOUT_ON = 10000;           // Polling time (ms) when GPS on
@@ -66,7 +66,7 @@ class WatchdogThread extends Thread {
 
         @Override
         public void run() {
-            Log.v(Constants.TAG, "WatchdogThread::StatusChange::run. Entry. reportGPSSoftwareStatus succeeded for " + enableGPS);
+            Log.v(Constants.TAG, "ApplicationsWatchdog::StatusChange::run. Entry. reportGPSSoftwareStatus succeeded for " + enableGPS);
 
             try {
 
@@ -77,18 +77,18 @@ class WatchdogThread extends Thread {
 
                 context.sendBroadcast(intent);
 
-                Log.d(Constants.TAG, String.format("WatchdogThread::StatusChange::run. Bundle sent with %d application(s).", activatedApps.size()));
+                Log.d(Constants.TAG, String.format("ApplicationsWatchdog::StatusChange::run. Bundle sent with %d application(s).", activatedApps.size()));
             } catch (Exception e) {
-                Log.e(Constants.TAG, "WatchdogThread::StatusChange::run. Exception: ", e);
+                Log.e(Constants.TAG, "ApplicationsWatchdog::StatusChange::run. Exception: ", e);
             }
 
-            Log.v(Constants.TAG, "WatchdogThread::StatusChange::run. Exit.");
+            Log.v(Constants.TAG, "ApplicationsWatchdog::StatusChange::run. Exit.");
         }
     }
 
 
-    WatchdogThread(Context context, TogglerServiceInterface togglerServiceInterface) {
-        Log.v(Constants.TAG, "WatchdogThread. Entry...");
+    public ApplicationsWatchdog(Context context, TogglerServiceInterface togglerServiceInterface) {
+        Log.v(Constants.TAG, "ApplicationsWatchdog. Entry...");
 
         this.context = context;
         this.togglerServiceInterface = togglerServiceInterface;
@@ -97,19 +97,19 @@ class WatchdogThread extends Thread {
         active = true;
         start();
 
-        Log.v(Constants.TAG, "WatchdogThread. Exit.");
+        Log.v(Constants.TAG, "ApplicationsWatchdog. Exit.");
     }
 
 
-    static ListWatched getActivatedApps() {
+    public static ListWatched getActivatedApps() {
         synchronized (lastActivatedApps) {
             return lastActivatedApps;
         }
     }
 
 
-    void finish() {
-        Log.v(Constants.TAG, "WatchdogThread. Finalized...");
+    public void finish() {
+        Log.v(Constants.TAG, "ApplicationsWatchdog. Finalized...");
 
         active = false;
 
@@ -117,17 +117,17 @@ class WatchdogThread extends Thread {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Log.v(Constants.TAG, "WatchdogThread. Exception in 'wait'. Interrupted?");
+                Log.v(Constants.TAG, "ApplicationsWatchdog. Exception in 'wait'. Interrupted?");
             }
         }
 
-        Log.i(Constants.TAG, "WatchdogThread. Joined.");
+        Log.i(Constants.TAG, "ApplicationsWatchdog. Joined.");
     }
 
 
     @Override
     public void run() {
-        Log.v(Constants.TAG, "WatchdogThread::run. Started.");
+        Log.v(Constants.TAG, "ApplicationsWatchdog::run. Started.");
 
         while (active) {
             if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
@@ -137,7 +137,7 @@ class WatchdogThread extends Thread {
                     verifyGPSSoftwareRunning();
                 }
             } else {
-                Log.v(Constants.TAG, "WatchdogThread::run. Idle...");
+                Log.v(Constants.TAG, "ApplicationsWatchdog::run. Idle...");
             }
 
 
@@ -148,7 +148,7 @@ class WatchdogThread extends Thread {
                     Thread.sleep(TIMEOUT_SCREEN_OFF);
                 }
             } catch (InterruptedException e) {
-                Log.e(Constants.TAG, "WatchdogThread::run. Exception in 'sleep'. Interrupted?");
+                Log.e(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
             }
         }
 
@@ -156,24 +156,24 @@ class WatchdogThread extends Thread {
             notify();
         }
 
-        Log.v(Constants.TAG, "WatchdogThread::run. Finished.");
+        Log.v(Constants.TAG, "ApplicationsWatchdog::run. Finished.");
     }
 
 
-    void screenOnOff(boolean screenOn) {
+    public void screenOnOff(boolean screenOn) {
         this.screenOn = screenOn;
 
         interrupt();
     }
 
 
-    synchronized void automationOnOff(boolean automation) {
-        Log.v(Constants.TAG, "WatchdogThread::automationOnOff. Entry...");
+    public synchronized void automationOnOff(boolean automation) {
+        Log.v(Constants.TAG, "ApplicationsWatchdog::automationOnOff. Entry...");
 
         if (this.automationOn != automation) {
             this.automationOn = automation;
 
-            Log.i(Constants.TAG, String.format("WatchdogThread::automationOnOff. %s automation.", automation ? "Enabling" : "Disabling"));
+            Log.i(Constants.TAG, String.format("ApplicationsWatchdog::automationOnOff. %s automation.", automation ? "Enabling" : "Disabling"));
 
             interrupt();
 
@@ -187,7 +187,7 @@ class WatchdogThread extends Thread {
             }
         }
 
-        Log.v(Constants.TAG, "WatchdogThread::automationOnOff. Exit.");
+        Log.v(Constants.TAG, "ApplicationsWatchdog::automationOnOff. Exit.");
     }
 
 
@@ -204,7 +204,7 @@ class WatchdogThread extends Thread {
                 for (AppStore iterator2 : watchedApps) {
                     if (iterator.processName.equals(iterator2.packageName)) {
                         activatedApps.add(iterator2);
-                        Log.v(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning. GPS status active due to running process: " + iterator.processName);
+                        Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS status active due to running process: " + iterator.processName);
                     }
                 }
             }
@@ -235,7 +235,7 @@ class WatchdogThread extends Thread {
         if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
             initialPost = true;
 
-            Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
+            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
             if (!equal) {
@@ -244,7 +244,7 @@ class WatchdogThread extends Thread {
                     lastActivatedApps.addAll(activatedApps);
 
                     for (AppStore app : lastActivatedApps) {
-                        Log.v(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning. Active application: %s.", app.packageName));
+                        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning. Active application: %s.", app.packageName));
                     }
                 }
             }
@@ -252,7 +252,7 @@ class WatchdogThread extends Thread {
             handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
         }
 
-        Log.v(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning. Total processes: %d, watched processes: %d, activated: %d/%d.",
+        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning. Total processes: %d, watched processes: %d, activated: %d/%d.",
                 list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
     }
 
@@ -262,9 +262,9 @@ class WatchdogThread extends Thread {
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
         boolean forceForeground = !Settings.getMultiWindowAware();
 
-        List<AndroidAppProcess> list = ProcessManager.getRunningAppProcesses();
+        List<ProcessManager.AndroidAppProcess> list = ProcessManager.getRunningAppProcesses();
 
-        for (AndroidAppProcess iterator : list) {
+        for (ProcessManager.AndroidAppProcess iterator : list) {
             if (forceForeground && !iterator.isForeground()) {
                 continue;
             }
@@ -272,7 +272,7 @@ class WatchdogThread extends Thread {
             for (AppStore iterator2 : watchedApps) {
                 if (iterator.getPackageName().equals(iterator2.packageName)) {
                     activatedApps.add(iterator2);
-                    Log.v(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning21. GPS status active due to running process: " + iterator2);
+                    Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS status active due to running process: " + iterator2);
                 }
             }
         }
@@ -302,7 +302,7 @@ class WatchdogThread extends Thread {
         if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
             initialPost = true;
 
-            Log.i(Constants.TAG, "WatchdogThread::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
+            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
             gpsDecidedOn = gpsStatusNow;
             if (!equal) {
@@ -311,7 +311,7 @@ class WatchdogThread extends Thread {
                     lastActivatedApps.addAll(activatedApps);
 
                     for (AppStore app : lastActivatedApps) {
-                        Log.v(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
+                        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
                     }
                 }
             }
@@ -319,7 +319,7 @@ class WatchdogThread extends Thread {
             handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
         }
 
-        Log.d(Constants.TAG, String.format("WatchdogThread::verifyGPSSoftwareRunning21. Total processes: %d, watched processes: %d, activated: %d/%d.",
+        Log.d(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Total processes: %d, watched processes: %d, activated: %d/%d.",
                 list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
     }
 }

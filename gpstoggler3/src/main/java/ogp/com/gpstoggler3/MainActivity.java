@@ -51,10 +51,12 @@ import java.util.Date;
 import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppAdapter;
-import ogp.com.gpstoggler3.apps.AppAdapterInterface;
+import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.services.TogglerService;
+import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
@@ -249,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             public void run() {
                 Log.v(Constants.TAG, "MainActivity::connect2Services::run. Entry...");
 
-                TogglerService.inititateMonitor(MainActivity.this);
+                TogglerService.initiateMonitor(MainActivity.this);
 
                 systemize();
 

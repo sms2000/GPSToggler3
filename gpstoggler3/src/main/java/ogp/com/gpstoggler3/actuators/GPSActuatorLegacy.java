@@ -8,6 +8,7 @@ import android.provider.Settings.Secure;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 
 
 class GPSActuatorLegacy implements GPSActuatorInterface {

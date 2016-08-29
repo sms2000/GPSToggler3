@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3.actuators;
+package ogp.com.gpstoggler3.interfaces;
 
 
 public interface GPSActuatorInterface {

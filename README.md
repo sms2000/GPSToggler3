@@ -28,10 +28,17 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 
 Versions:
+=========
+
+1.0.333
+-------
+1. Class repositioning and some classes renamed.
+2. Speller checker.
+3. Minor bugs fixed.
+
 
 1.0.326
 -------
-
 1. Bugs fixed.
 
 

@@ -1,11 +1,11 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.interfaces;
 
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
 
-interface TogglerServiceInterface {
+public interface TogglerServiceInterface {
     int getPid();
 
     ListAppStore listInstalledApps(long lastNewAppList);
