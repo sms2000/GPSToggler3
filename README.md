@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.338
+-------
+1. Proper widget updates (removed duplicated calls).
+
+
 1.0.334
 -------
 1. Settings processing.

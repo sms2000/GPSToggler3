@@ -20,6 +20,7 @@ import android.view.MenuItem;
 
 import java.util.List;
 
+import ogp.com.gpstoggler3.settings.AppCompatPreferenceActivity;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -64,7 +65,24 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.v(Constants.TAG, "SettingsActivity::onCreate. Entry...");
+
         setupActionBar();
+
+        Log.v(Constants.TAG, "SettingsActivity::onCreate. Exit.");
+    }
+
+
+    @Override
+    protected void onPause() {
+        Log.v(Constants.TAG, "SettingsActivity::onPause. Entry...");
+
+        Settings.reloadSettings();
+
+        super.onPause();
+
+        Log.v(Constants.TAG, "SettingsActivity::onPause. Exit.");
     }
 
 

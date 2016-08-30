@@ -14,8 +14,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import ogp.com.gpstoggler3.apps.AppStore;
-import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.interfaces.TogglerServiceInterface;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
@@ -59,8 +57,11 @@ public class ApplicationsWatchdog extends Thread {
             this.enableAutomation = enableAutomation;
             this.enableGPS = enableGPS;
 
-            this.activatedApps = new ListWatched();
-            this.activatedApps.addAll(activatedApps);
+            synchronized (lastActivatedApps) {
+                ListWatched copyWatched = new ListWatched();
+                copyWatched.addAll(activatedApps);
+                this.activatedApps = copyWatched;
+            }
         }
 
 
@@ -103,7 +104,9 @@ public class ApplicationsWatchdog extends Thread {
 
     public static ListWatched getActivatedApps() {
         synchronized (lastActivatedApps) {
-            return lastActivatedApps;
+            ListWatched copyWatched = new ListWatched();
+            copyWatched.addAll(lastActivatedApps);
+            return copyWatched;
         }
     }
 
@@ -177,14 +180,7 @@ public class ApplicationsWatchdog extends Thread {
 
             interrupt();
 
-            if (!automation) {
-                synchronized (lastActivatedApps) {
-                    gpsDecidedOn = null;
-                    lastActivatedApps.clear();
-                }
-
-                handler.post(new StatusChange(automationOn, gpsDecidedOn, lastActivatedApps));
-            }
+            handler.post(new StatusChange(automationOn, gpsDecidedOn, lastActivatedApps));
         }
 
         Log.v(Constants.TAG, "ApplicationsWatchdog::automationOnOff. Exit.");
@@ -228,18 +224,16 @@ public class ApplicationsWatchdog extends Thread {
                     }
                 }
             }
-        }
 
 
-        boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
-            initialPost = true;
+            boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
+            if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
+                initialPost = true;
 
-            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
+                Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
-            gpsDecidedOn = gpsStatusNow;
-            if (!equal) {
-                synchronized (lastActivatedApps) {
+                gpsDecidedOn = gpsStatusNow;
+                if (!equal) {
                     lastActivatedApps.clear();
                     lastActivatedApps.addAll(activatedApps);
 
@@ -247,13 +241,13 @@ public class ApplicationsWatchdog extends Thread {
                         Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning. Active application: %s.", app.packageName));
                     }
                 }
+
+                handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
             }
 
-            handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
+            Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning. Total processes: %d, watched processes: %d, activated: %d/%d.",
+                    list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
         }
-
-        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning. Total processes: %d, watched processes: %d, activated: %d/%d.",
-                list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
     }
 
 
@@ -295,31 +289,30 @@ public class ApplicationsWatchdog extends Thread {
                     }
                 }
             }
-        }
 
 
-        boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
-        if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
-            initialPost = true;
+            boolean gpsOnNow = togglerServiceInterface.onGps().gpsOn;
+            if (gpsStatusNow != gpsOnNow || !equal || !initialPost) {
+                initialPost = true;
 
-            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
+                Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS software status changed. Now it's " + (gpsStatusNow ? "running." : "stopped."));
 
-            gpsDecidedOn = gpsStatusNow;
-            if (!equal) {
-                synchronized (lastActivatedApps) {
+                gpsDecidedOn = gpsStatusNow;
+                if (!equal) {
                     lastActivatedApps.clear();
                     lastActivatedApps.addAll(activatedApps);
 
                     for (AppStore app : lastActivatedApps) {
-                        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
+                        Log.w(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
                     }
                 }
+
+                handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
             }
 
-            handler.post(new StatusChange(true, gpsDecidedOn, lastActivatedApps));
-        }
 
-        Log.d(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Total processes: %d, watched processes: %d, activated: %d/%d.",
-                list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
+            Log.d(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Total processes: %d, watched processes: %d, activated: %d/%d.",
+                    list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
+        }
     }
 }

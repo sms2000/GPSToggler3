@@ -58,7 +58,7 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Callable<Object> rpcTask = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout. Waiting more...");
+                Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting more...");
 
                 Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::execute::call. Entry/Exit.");
                 return transferWithResult(rpcMethod);
@@ -68,7 +68,7 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Object result = null;
         Future<Object> future = Executors.newFixedThreadPool(1).submit(rpcTask);
         try {
-            Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout. Waiting...");
+            Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting...");
 
             result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
         } catch (Exception ignored) {
@@ -86,14 +86,16 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
 
         if (null != togglerBinder) {
             try {
+                Log.i(Constants.TAG, String.format("ExecuteOnServiceWithTimeout::transferWithResult. Invoking [1] '%s'...", rpcMethod));
+
                 Method method = togglerBinder.getClass().getMethod(rpcMethod);
                 result[0] = method.invoke(togglerBinder);
-                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange succeeded [1].");
+                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [1].");
 
                 Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit [1].");
                 return result[0];
             } catch (Exception e) {
-                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error! [1]. Reconnecting...");
+                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange error! [1]. Reconnecting...");
             }
         } else {
             Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Needs to connect to the main service...");
@@ -119,14 +121,16 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         }
 
         if (null == togglerBinder) {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Error. Bind failed!");
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Error. Bind failed!");
         } else {
-            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Bind confirmed.");
+            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Bind confirmed.");
 
             try {
+                Log.i(Constants.TAG, String.format("ExecuteOnServiceWithTimeout::transferWithResult. Invoking [2] '%s'...", rpcMethod));
+
                 Method method = togglerBinder.getClass().getMethod(rpcMethod);
                 result[0] = method.invoke(togglerBinder);
-                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange succeeded [2].");
+                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [2].");
             } catch (Exception e) {
                 Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error! [2]");
             }
@@ -134,9 +138,9 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
             Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit.");
 
             if (null != result[0]) {
-                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. OK: " + result[0].toString());
+                Log.w(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. OK: " + result[0].toString());
             } else {
-                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Problem! result == null.");
+                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Problem! result == null.");
             }
         }
 

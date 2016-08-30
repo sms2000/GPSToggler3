@@ -25,8 +25,8 @@ public class Settings {
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
 
-    private static final String SEPARATOR = "_##_";
-    private static final String APP_SEPARATOR = "_#_";
+    private static final String APPS_SEPARATOR = "_##_";
+    private static final String FIELD_SEPARATOR = "_#_";
 
     private static Settings settingsSingleton = null;
 
@@ -57,13 +57,30 @@ public class Settings {
         String prefFile = String.format(PREFERENCES, context.getPackageName());
         settings = context.getSharedPreferences(prefFile, 0);
 
-        automation = settings.getBoolean(AUTOMATION, false);
-        rootGranted = settings.getBoolean(ROOT_GRANTED, false);
-        multiWindowAware = settings.getBoolean(MULTIWINDOW_AWARE, false);
-        preventLongBackKeyPressDelay = settings.getInt(BACK_KEY_DELAY, DEF_DOUBLE_CLICK_DELAY);
-        doubleClickDelay = settings.getInt(DOUBLE_CLICK_DELAY, DEF_DOUBLE_CLICK_DELAY);
+        try {
+            automation = settings.getBoolean(AUTOMATION, false);
+        } catch (Exception ignored) {
+            automation = false;
+        }
+
+        try {
+            rootGranted = settings.getBoolean(ROOT_GRANTED, false);
+        } catch (Exception ignored) {
+            rootGranted = false;
+        }
+
+        reloadSettingsInternal();
 
         Log.v(Constants.TAG, "Settings::<init>. Exit.");
+    }
+
+
+    public static void reloadSettings() {
+        Log.v(Constants.TAG, "Settings::reloadSettings. Entry...");
+
+        settingsSingleton.reloadSettingsInternal();
+
+        Log.v(Constants.TAG, "Settings::reloadSettings. Exit.");
     }
 
 
@@ -111,12 +128,7 @@ public class Settings {
         String serialized = "";
 
         for (AppStore app : listApps) {
-            String appData = app.friendlyName + APP_SEPARATOR + app.packageName;
-
-            if (0 != serialized.length()) {
-                serialized += SEPARATOR;
-            }
-
+            String appData = app.friendlyName + FIELD_SEPARATOR + app.packageName + APPS_SEPARATOR;
             serialized += appData;
         }
 
@@ -136,15 +148,13 @@ public class Settings {
 
         ListWatched listApps = new ListWatched();
         String serialized = settings.getString(APP_LIST, "");
-        String[] apps = 0 == serialized.length() ? null : serialized.split(SEPARATOR);
+        String[] apps = 0 == serialized.length() ? null : serialized.split(APPS_SEPARATOR);
         if (null != apps) {
             for (String app : apps) {
-                String[] splitted = app.split(APP_SEPARATOR);
-                if (2 != splitted.length) {
-                    continue;
+                String[] splitted = app.split(FIELD_SEPARATOR);
+                if (2 <= splitted.length) {
+                    listApps.add(new AppStore(splitted[0], splitted[1]));
                 }
-
-                listApps.add(new AppStore(splitted[0], splitted[1]));
             }
         }
 
@@ -179,5 +189,30 @@ public class Settings {
 
     public static int getLongBackKeyPressDelay() {
         return preventLongBackKeyPressDelay;
+    }
+
+
+    private void reloadSettingsInternal() {
+        Log.v(Constants.TAG, "Settings::reloadSettingsInternal. Entry...");
+
+        try {
+            multiWindowAware = settings.getBoolean(MULTIWINDOW_AWARE, false);
+        } catch (Exception ignored) {
+            multiWindowAware = false;
+        }
+
+        try {
+            preventLongBackKeyPressDelay = settings.getInt(BACK_KEY_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
+        } catch (Exception ignored) {
+            preventLongBackKeyPressDelay = DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
+        }
+
+        try {
+            doubleClickDelay = settings.getInt(DOUBLE_CLICK_DELAY, DEF_DOUBLE_CLICK_DELAY);
+        } catch (Exception ignored) {
+            doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
+        }
+
+        Log.v(Constants.TAG, "Settings::reloadSettingsInternal. Exit.");
     }
 }

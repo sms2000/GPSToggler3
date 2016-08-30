@@ -1,4 +1,4 @@
-package ogp.com.gpstoggler3;
+package ogp.com.gpstoggler3.settings;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

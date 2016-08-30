@@ -668,9 +668,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         if (newGpsStatus != previousGpsStatus) {
             previousGpsStatus = newGpsStatus;
             lastGpsStatusChangeTimestamp = System.currentTimeMillis();
+            broadcastGpsStateChanged();
         }
-
-        broadcastGpsStateChanged();
 
         Log.v(Constants.TAG, "TogglerService::locationProviderChanged. Exit.");
     }
