@@ -13,6 +13,7 @@ import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.servlets.WorkerThread;
 
 
 public class AppListProvider implements RemoteViewsFactory {
@@ -21,6 +22,7 @@ public class AppListProvider implements RemoteViewsFactory {
 
     private static ArrayList<String> listItemList = new ArrayList<>();
     private Context context = null;
+    private ExecuteOnServiceWithTimeout executor;
 
 
     public AppListProvider(Context context) {
@@ -31,6 +33,8 @@ public class AppListProvider implements RemoteViewsFactory {
     @Override
     public void onCreate() {
         Log.v(Constants.TAG, "AppListProvider::onCreate. Invoked.");
+
+        executor = new ExecuteOnServiceWithTimeout(context);
     }
 
 
@@ -43,7 +47,7 @@ public class AppListProvider implements RemoteViewsFactory {
         ListWatched list;
 
         try {
-            list = (ListWatched)new ExecuteOnServiceWithTimeout(context).execute(RPC_METHOD, RPC_TIMEOUT);
+            list = (ListWatched)executor.execute(RPC_METHOD, RPC_TIMEOUT);
         } catch (Exception e) {
             Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [1].");
 
@@ -79,6 +83,8 @@ public class AppListProvider implements RemoteViewsFactory {
     @Override
     public void onDestroy() {
         Log.v(Constants.TAG, "AppListProvider::onDestroy. Invoked.");
+
+        executor.kill();
     }
 
 

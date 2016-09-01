@@ -88,12 +88,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
         @Override
-        public void reloadInstalledApps() {
-            TogglerService.this.reloadInstalledApps();
-        }
-
-
-        @Override
         public ListAppStore listInstalledApps(long lastNewAppList) {
             return TogglerService.this.listInstalledApps(lastNewAppList);
         }
@@ -179,6 +173,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Widget icon click...");
 
                 widgetClickProcessing();
+            } else if (action.equals(Broadcasters.ENUMERATE_INSTALLED_APPS)) {
+                Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Enumerate installed apps.");
+
+                enumerateInstalledAppsInThread();
             } else {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Unknown action. Ignored.");
             }
@@ -240,6 +238,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Broadcasters.GPS_PIC_CLICK);
+        intentFilter.addAction(Broadcasters.ENUMERATE_INSTALLED_APPS);
         registerReceiver(activityManagement, intentFilter);
 
         intentFilter = new IntentFilter(Broadcasters.AUTO_STATE_CHANGED);
@@ -251,7 +250,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         initiateMonitor(this);
 
         initiateHumptyDumpty();
-        reloadInstalledApps();
+        enumerateInstalledAppsInThread();
         initiateAutomationState();
 
         broadcastGpsStateChanged();
@@ -319,16 +318,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.v(Constants.TAG, "TogglerService::onDestroy. Exit.");
 
         super.onDestroy();
-    }
-
-
-    @Override
-    public void reloadInstalledApps() {
-        Log.v(Constants.TAG, "TogglerService::reloadInstalledApps. Entry...");
-
-        enumerateInstalledAppsInThread();
-
-        Log.v(Constants.TAG, "TogglerService::reloadInstalledApps. Exit.");
     }
 
 
@@ -444,10 +433,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     public ListWatched listActivatedApps() {
         Log.v(Constants.TAG, "TogglerService::listActivatedApps. Entry...");
 
-        ListWatched activated;
-        synchronized (this) {
-            activated = ApplicationsWatchdog.getActivatedApps();
-        }
+        ListWatched activated = ApplicationsWatchdog.getActivatedApps();
 
         Log.v(Constants.TAG, "TogglerService::listActivatedApps. Exit.");
         return activated;

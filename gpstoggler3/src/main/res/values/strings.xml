@@ -53,7 +53,7 @@
     <string name="internal_error_1">Internal error [1].</string>
     <string name="Name">Name</string>
     <string name="Package">Package</string>
-    <string name="no_timestamp">Last GPS timestamp unknown.</string>
+    <string name="no_timestamp">  Last update\nunknown</string>
     <string name="permission_request">Permission request</string>
     <string name="req_write_external_storage">GPSToggler3 may install an additional program - the Monitor. This Monitor helps to prevent Android closing GPSToggler3 and promotes always-available mode.\nYou need to grant access to the External Storage. If you disagree the GPSToggler3 will run as is.</string>
     <string name="title_activity_settings">Settings</string>

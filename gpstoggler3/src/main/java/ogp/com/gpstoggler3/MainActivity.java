@@ -103,10 +103,12 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         public void onReceive(Context context, Intent intent) {
             Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Entry...");
 
-            try {
-                gpsStateChanged(togglerBinder.onGps().gpsOn);
-            } catch (RemoteException | NullPointerException e) {
-                Log.e(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exception in 'onGps'.");
+            if (null != togglerBinder) {
+                try {
+                    gpsStateChanged(togglerBinder.onGps().gpsOn);
+                } catch (RemoteException | NullPointerException e) {
+                    Log.e(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exception in 'onGps'.");
+                }
             }
 
             Log.v(Constants.TAG, "MainActivity::gpsStateChangedReceiver::onReceive. Exit.");
@@ -158,13 +160,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             resurrectLog();
 
             progress.dismiss();
-
-            try {
-                togglerBinder.reloadInstalledApps();
-            } catch (RemoteException e) {
-                Log.e(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exception in 'reloadInstalledApps'.");
-            }
-
+            reloadInstalledApps();
             Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exit.");
         }
 
@@ -175,6 +171,12 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             togglerBinder = null;
             Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceDisconnected. Exit.");
         }
+    }
+
+
+    private void reloadInstalledApps() {
+        Intent intent = new Intent(Broadcasters.ENUMERATE_INSTALLED_APPS);
+        sendBroadcast(intent);
     }
 
 
@@ -362,13 +364,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         super.onResume();
 
-        try {
-            if (null != togglerBinder) {
-                togglerBinder.reloadInstalledApps();
-            }
-        } catch (RemoteException e) {
-            Log.e(Constants.TAG, "MainActivity::onResume. Exception in 'reloadInstalledApps'.");
-        }
+        reloadInstalledApps();
 
         Log.v(Constants.TAG, "MainActivity::onResume. Exit.");
     }

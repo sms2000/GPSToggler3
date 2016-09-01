@@ -30,6 +30,13 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.348
+-------
+1. Asynchronous engine bug fixed. 
+2. Textuals fixed.
+3. Widget processing improved.
+ 
+
 1.0.338
 -------
 1. Proper widget updates (removed duplicated calls).

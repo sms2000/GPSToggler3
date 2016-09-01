@@ -70,7 +70,6 @@ public class ApplicationsWatchdog extends Thread {
             Log.v(Constants.TAG, "ApplicationsWatchdog::StatusChange::run. Entry. reportGPSSoftwareStatus succeeded for " + enableGPS);
 
             try {
-
                 Intent intent = new Intent(Broadcasters.AUTO_STATE_CHANGED);
                 intent.putExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, enableAutomation);
                 intent.putExtra(Broadcasters.AUTO_STATE_CHANGED_GPS, enableGPS);

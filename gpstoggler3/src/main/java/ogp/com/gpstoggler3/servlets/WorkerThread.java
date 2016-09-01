@@ -10,12 +10,14 @@ import ogp.com.gpstoggler3.global.Constants;
 
 
 public class WorkerThread extends Thread {
+    private static final long WAIT_HANDLER = 100;
     protected Context context;
-    private Handler handler;
+    private Handler handler = null;
 
 
     public WorkerThread(Context context) {
         this.context = context;
+        setDaemon(true);
         start();
     }
 
@@ -26,6 +28,13 @@ public class WorkerThread extends Thread {
 
 
     public void post(Runnable runnable) {
+        while (null == handler) {
+            try {
+                Thread.sleep(WAIT_HANDLER);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
         handler.post(runnable);
     }
 

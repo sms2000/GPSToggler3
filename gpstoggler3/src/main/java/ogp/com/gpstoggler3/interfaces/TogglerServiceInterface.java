@@ -11,7 +11,6 @@ public interface TogglerServiceInterface {
     ListAppStore listInstalledApps(long lastNewAppList);
     ListWatched listActivatedApps();
 
-    void reloadInstalledApps();
     ListWatched listWatchedApps();
     boolean storeWatchedApps(ListWatched appList);
 

@@ -8,9 +8,11 @@ import android.util.Log;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import ogp.com.gpstoggler3.ITogglerService;
 import ogp.com.gpstoggler3.services.TogglerService;
@@ -36,6 +38,8 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
             Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout. Bind succeeded.");
 
             synchronized (ExecuteOnServiceWithTimeout.this) {
+                Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult::onServiceConnected. 'wait' interrupting...");
+
                 ExecuteOnServiceWithTimeout.this.notify();
             }
 
@@ -68,10 +72,15 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Object result = null;
         Future<Object> future = Executors.newFixedThreadPool(1).submit(rpcTask);
         try {
-            Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting...");
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting for 'get' with timeout...");
 
             result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
-        } catch (Exception ignored) {
+        } catch (TimeoutException e) {
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. TimeoutException accountered!");
+        } catch (InterruptedException e) {
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. InterruptedException accountered!");
+        } catch (ExecutionException e) {
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. ExecutionException accountered!", e);
         }
 
         Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Exit.");
@@ -82,18 +91,23 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
     private Object transferWithResult(final String rpcMethod) {
         Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Entry...");
 
-        final Object[] result = {null};
+        Object result = null;
 
         if (null != togglerBinder) {
             try {
                 Log.i(Constants.TAG, String.format("ExecuteOnServiceWithTimeout::transferWithResult. Invoking [1] '%s'...", rpcMethod));
 
                 Method method = togglerBinder.getClass().getMethod(rpcMethod);
-                result[0] = method.invoke(togglerBinder);
-                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [1].");
+                result = method.invoke(togglerBinder);
+
+                if (null != result) {
+                    Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [1].");
+                } else {
+                    Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange failed with 'null' result [1].");
+                }
 
                 Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit [1].");
-                return result[0];
+                return result;
             } catch (Exception e) {
                 Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange error! [1]. Reconnecting...");
             }
@@ -117,6 +131,7 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
             try {
                 wait();
             } catch (InterruptedException ignored) {
+                Log.d(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. 'wait' interrupted.");
             }
         }
 
@@ -129,23 +144,20 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
                 Log.i(Constants.TAG, String.format("ExecuteOnServiceWithTimeout::transferWithResult. Invoking [2] '%s'...", rpcMethod));
 
                 Method method = togglerBinder.getClass().getMethod(rpcMethod);
-                result[0] = method.invoke(togglerBinder);
-                Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [2].");
+                result = method.invoke(togglerBinder);
+
+                if (null != result) {
+                    Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange succeeded [2].");
+                } else {
+                    Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exchange failed with 'null' result [2].");
+                }
             } catch (Exception e) {
                 Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout. Exchange error! [2]");
-            }
-
-            Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit.");
-
-            if (null != result[0]) {
-                Log.w(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. OK: " + result[0].toString());
-            } else {
-                Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Problem! result == null.");
             }
         }
 
 
         Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::transferWithResult. Exit [2].");
-        return result[0];
+        return result;
     }
 }

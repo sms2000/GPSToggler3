@@ -84,13 +84,6 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
                 bindIfNot(context);
                 break;
-
-            /*
-            case Broadcasters.RETRIVE_WIDGETS:
-                Log.v(Constants.TAG, "BaseWidget::onReceive. Widgets retrived.");
-                bindIfNot(context);
-                break;
-            */
         }
 
         Log.v(Constants.TAG, "BaseWidget::onReceive. Exit.");

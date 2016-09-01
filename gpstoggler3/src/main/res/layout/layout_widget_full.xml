@@ -4,20 +4,22 @@
     android:id="@+id/widget_full"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@color/colorWhite"
     android:focusable="true"
-    android:orientation="vertical" >
-
+    android:orientation="vertical"
+    android:padding="1px">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/colorBlack">
 
         <ImageView
             android:id="@+id/gpsPic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_marginBottom="2dp"
             android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
             android:layout_marginRight="@dimen/activity_horizontal_small_margin"
@@ -29,19 +31,27 @@
             android:id="@+id/gpsStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@+id/gpsPic"
             android:layout_toEndOf="@+id/gpsPic"
-            android:lines="2"
+            android:layout_toRightOf="@+id/gpsPic"
+            android:lines="3"
             android:text="@string/no_timestamp" />
     </RelativeLayout>
 
-    <ListView
-        android:id="@+id/listApps"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/activity_vertical_small_margin"/>
+        android:background="@color/colorBlack" >
 
+        <ListView
+            android:id="@+id/listApps"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="@dimen/activity_vertical_small_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_small_margin"
+            android:layout_marginTop="@dimen/activity_vertical_small_margin" />
+    </LinearLayout>
 </LinearLayout>

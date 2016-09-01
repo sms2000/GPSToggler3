@@ -32,7 +32,7 @@ public class GPSFullWidget extends BaseWidget {
         GPSStatus gpsStatus = new GPSStatus();
         try {
             gpsStatus = togglerBinder.onGps();
-            if (null != gpsStatus.gpsOn && -1 != gpsStatus.gpsStatusTimestamp) {
+            if (null != gpsStatus.gpsOn && 86400 < gpsStatus.gpsStatusTimestamp) {
                 timestampChange = DateFormat.getDateTimeInstance().format(gpsStatus.gpsStatusTimestamp);
             }
         } catch (RemoteException | NullPointerException e) {
