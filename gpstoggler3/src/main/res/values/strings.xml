@@ -94,6 +94,8 @@
     </string-array>
 
     <string name="pref_title_widget_double_click">Widget double click delay</string>
+    <string name="appactivity_service_description">Application Activity service</string>
+    <string name="appactivity_service_label">GPSToggler3 watchdog</string>
     <string-array name="pref_widget_double_click_titles">
         <item>100 ms</item>
         <item>150 ms</item>

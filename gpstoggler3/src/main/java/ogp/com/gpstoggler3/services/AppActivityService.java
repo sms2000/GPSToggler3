@@ -19,6 +19,8 @@ public class AppActivityService extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
 
+        Log.e(Constants.TAG, "AppActivityService::onServiceConnected. Entry...");
+
         AccessibilityServiceInfo serviceInfo = new AccessibilityServiceInfo();
         serviceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         serviceInfo.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
@@ -28,20 +30,26 @@ public class AppActivityService extends AccessibilityService {
         }
 
         setServiceInfo(serviceInfo);
+
+        Log.e(Constants.TAG, "AppActivityService::onServiceConnected. Exit.");
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Entry...");
+
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             ComponentName componentName = new ComponentName(event.getPackageName().toString(), event.getClassName().toString());
 
             if (null != tryGetActivity(componentName)) {
-                Log.i(Constants.TAG, "AppActivityService::onAccessibilityEvent. Window stack changed. Pass event to Automation thread.");
+                Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Window stack changed. Pass event to Automation thread.");
 
                 Intent intent = new Intent(Broadcasters.WINDOW_STACK_CHANGED);
                 sendBroadcast(intent);
             }
         }
+
+        Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Exit.");
     }
 
 

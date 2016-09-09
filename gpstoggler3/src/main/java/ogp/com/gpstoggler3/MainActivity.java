@@ -1,6 +1,7 @@
 package ogp.com.gpstoggler3;
 
 import android.Manifest;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -35,6 +36,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -55,6 +58,7 @@ import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.services.AppActivityService;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
@@ -1042,7 +1046,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                             @Override
                             public void run() {
                                 if (!secureSettingsSet) {
-                                    if (NO_ROOT == RootCaller.setSecureSettings(packageName)) {
+                                    if (NO_ROOT == RootCaller.setSecureSettings(MainActivity.this, packageName, AppActivityService.class.getCanonicalName())) {
                                         setRootGranted(false);
                                         noRoot();
                                     }

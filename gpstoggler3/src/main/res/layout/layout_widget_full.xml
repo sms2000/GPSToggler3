@@ -12,7 +12,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorBlack">
+        android:background="@color/colorTransparent">
 
         <ImageView
             android:id="@+id/gpsPic"
@@ -25,7 +25,8 @@
             android:layout_marginRight="@dimen/activity_horizontal_small_margin"
             android:layout_marginTop="@dimen/activity_vertical_small_margin"
             android:contentDescription="@+id/widget_full_description"
-            android:src="@drawable/disabled" />
+            android:src="@drawable/disabled"
+            android:background="@color/colorTransparent"/>
 
         <TextView
             android:id="@+id/gpsStatus"
@@ -36,14 +37,20 @@
             android:layout_centerVertical="true"
             android:layout_toEndOf="@+id/gpsPic"
             android:layout_toRightOf="@+id/gpsPic"
+            android:layout_alignTop="@+id/gpsPic"
+            android:layout_alignBottom="@+id/gpsPic"
+            android:paddingLeft="@dimen/activity_horizontal_small_margin"
+            android:paddingRight="@dimen/activity_horizontal_small_margin"
             android:lines="3"
-            android:text="@string/no_timestamp" />
+            android:text="@string/no_timestamp"
+            android:background="@color/colorTransparent"
+            android:textColor="@color/colorWhite" />
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorBlack" >
+        android:background="@color/colorTransparent">
 
         <ListView
             android:id="@+id/listApps"
@@ -52,6 +59,7 @@
             android:layout_marginBottom="@dimen/activity_vertical_small_margin"
             android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
             android:layout_marginRight="@dimen/activity_horizontal_small_margin"
-            android:layout_marginTop="@dimen/activity_vertical_small_margin" />
+            android:layout_marginTop="@dimen/activity_vertical_small_margin"
+            android:background="@color/colorTransparent"/>
     </LinearLayout>
 </LinearLayout>

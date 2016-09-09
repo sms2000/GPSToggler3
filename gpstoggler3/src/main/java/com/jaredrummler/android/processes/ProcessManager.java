@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import ogp.com.gpstoggler3.global.Constants;
+
 
 public class ProcessManager {
     public static List<AndroidAppProcess> getRunningAppProcesses() {
@@ -30,7 +32,7 @@ public class ProcessManager {
                 try {
                     processes.add(new AndroidAppProcess(pid));
                 } catch (Exception e) {
-                    Log.e("AndroidAppProcess", "ProcessManager::getRunningAppProcesses. Exception: ", e);
+                    Log.e(Constants.TAG, "ProcessManager::getRunningAppProcesses. Exception: ", e);
                 }
             }
         }
@@ -86,7 +88,7 @@ public class ProcessManager {
                         reader.close();
                     }
                 } catch (Exception e) {
-                    Log.e("AndroidAppProcess", "ProcFile::readFile. Exception: ", e);
+                    Log.e(Constants.TAG, "ProcFile::readFile. Exception: ", e);
                 }
             }
         }

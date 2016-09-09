@@ -33,6 +33,7 @@ import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.LocationProviderInterface;
 import ogp.com.gpstoggler3.receivers.LocationProviderReceiver;
 import ogp.com.gpstoggler3.status.GPSStatus;
+import ogp.com.gpstoggler3.su.RootCaller;
 
 
 public class TogglerService extends Service implements TogglerServiceInterface, LocationProviderInterface {
@@ -177,6 +178,13 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Enumerate installed apps.");
 
                 enumerateInstalledAppsInThread();
+            } else if (action.equals(Broadcasters.WINDOW_STACK_CHANGED)) {
+                Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Window stack changed.");
+
+                if (null != watchdogThread) {
+                    watchdogThread.activateNow();
+                }
+
             } else {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Unknown action. Ignored.");
             }
@@ -239,6 +247,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Broadcasters.GPS_PIC_CLICK);
         intentFilter.addAction(Broadcasters.ENUMERATE_INSTALLED_APPS);
+        intentFilter.addAction(Broadcasters.WINDOW_STACK_CHANGED);
         registerReceiver(activityManagement, intentFilter);
 
         intentFilter = new IntentFilter(Broadcasters.AUTO_STATE_CHANGED);
@@ -465,6 +474,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.v(Constants.TAG, "TogglerService::startServiceForever. Entry...");
 
         Log.i(Constants.TAG, "TogglerService::startServiceForever. Starting service unstoppable...");
+
+        String className = AppActivityService.class.getCanonicalName();
+        String packageName = context.getPackageName();
+        RootCaller.setSecureSettings(context, packageName, className);
 
         Intent intent = new Intent(context.getApplicationContext(), TogglerService.class);
         context.getApplicationContext().startService(intent);
@@ -723,7 +736,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.i(Constants.TAG, "TogglerService::processDoubleClick. Starting the Main activity.");
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
 
         Log.v(Constants.TAG, "TogglerService::processDoubleClick. Exit.");

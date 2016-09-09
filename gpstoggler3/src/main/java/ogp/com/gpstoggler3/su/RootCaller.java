@@ -1,12 +1,17 @@
 package ogp.com.gpstoggler3.su;
 
+import android.content.Context;
+import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -55,7 +60,7 @@ public class RootCaller {
     }
 
 
-    public static RootStatus setSecureSettings(String packageName) {
+    public static RootStatus setSecureSettings(Context context, String packageName, String appServiceName) {
         if (securitySettingsSet) {
             return RootStatus.ROOT_GRANTED;
         }
@@ -68,69 +73,35 @@ public class RootCaller {
 
         Log.i(Constants.TAG, "RootCaller::setSecureSettings. Hacking Android. Attempt to set 'android.permission.WRITE_SECURE_SETTINGS'...");
 
+        int stage = 0;
         String command = String.format("pm grant %s android.permission.WRITE_SECURE_SETTINGS", packageName);
-        List<String> returned = executeOnRoot(command);
-
-        if (null != returned && 0 < returned.size()) {
-            Log.d(Constants.TAG, "----- Result of stage 1 ----");
-            for (String line : returned) {
-                Log.i(Constants.TAG, line);
-            }
-
-            Log.d(Constants.TAG, "----- Result of stage 1 ----");
-        } else {
-            Log.d(Constants.TAG, "----- Empty result of stage 1 (expected) ----");
-            success = RootStatus.ROOT_GRANTED;
-        }
-
-        /*
-        if (RootStatus.ROOT_GRANTED == success) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ignore) {
-            }
-
-            Log.i(Constants.TAG, "RootCaller::setSecureSettings. Hacking Android. Attempt to set 'android.permission.REAL_GET_TASKS'...");
-
-            command = String.format("pm grant %s android.permission.REAL_GET_TASKS", packageName);
-            returned = executeOnRoot(command);
-
-            if (null != returned && 0 < returned.size()) {
-                Log.d(Constants.TAG, "----- Result of stage 2 ----");
-                for (String line : returned) {
-                    Log.i(Constants.TAG, line);
-                }
-
-                Log.d(Constants.TAG, "----- Result of stage 2 ----");
-            } else {
-                Log.d(Constants.TAG, "----- Empty result of stage 2 (expected) ----");
-                success = RootStatus.ROOT_GRANTED;
-            }
-        }
-        */
+        success = executeSystemCommand(command, ++stage);
 
         if (RootStatus.ROOT_GRANTED == success) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ignore) {
-            }
+            command = String.format("pm grant %s android.permission.BIND_ACCESSIBILITY_SERVICE", packageName);
+            success = executeSystemCommand(command, ++stage);
+        }
 
-            Log.i(Constants.TAG, "RootCaller::setSecureSettings. Hacking Android. Attempt to set 'settings put secure location_providers_allowed gps,network,wifi'...");
+        if (RootStatus.ROOT_GRANTED == success) {
+            success = executeSystemCommand("settings put secure location_providers_allowed gps,network,wifi", ++stage);
+        }
 
-            returned = executeOnRoot("settings put secure location_providers_allowed gps,network,wifi");
+        if (RootStatus.ROOT_GRANTED == success) {
+            success = executeSystemCommand("settings put secure accessibility_enabled 1", ++stage);
+        }
 
-            if (null != returned && 0 < returned.size()) {
-                Log.d(Constants.TAG, "----- Result of stage 3 ----");
-                for (String line : returned) {
-                    Log.i(Constants.TAG, line);
+        if (RootStatus.ROOT_GRANTED == success) {
+            String services = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (!services.contains(appServiceName)) {
+                if (!services.isEmpty()) {
+                    services += ":";
                 }
-                Log.d(Constants.TAG, "----- Result of stage 3 ----");
 
-                success = RootStatus.ROOT_FAILED;
-            } else {
-                Log.d(Constants.TAG, "----- Empty result of stage 3 (expected) ----");
-                success = RootStatus.ROOT_GRANTED;
+                services += packageName + "/" + appServiceName;
             }
+
+            command = String.format("settings put secure enabled_accessibility_services %s/%s", packageName, services);
+            success = executeSystemCommand(command, ++stage);
         }
 
         Log.v(Constants.TAG, "RootCaller::setSecureSettings. Exit [2].");
@@ -190,5 +161,35 @@ public class RootCaller {
                 chperm.destroy();
             }
         }
+    }
+
+
+    private static RootStatus executeSystemCommand(String command, int stage) {
+        RootStatus success = RootStatus.ROOT_GRANTED;
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ignore) {
+        }
+
+        Log.e(Constants.TAG, String.format("RootCaller::setSecureSettings. Hacking Android. Attempt to set '%s'...", command));
+
+        List<String> returned = executeOnRoot(command);
+
+        if (null != returned && 0 < returned.size()) {
+            String logS = String.format(Locale.US, "----- Result of stage %d ----", stage);
+
+            Log.d(Constants.TAG, logS);
+            for (String line : returned) {
+                Log.i(Constants.TAG, line);
+            }
+            Log.d(Constants.TAG, logS);
+
+            success = RootStatus.ROOT_FAILED;
+        } else {
+            Log.d(Constants.TAG, String.format(Locale.US, "----- Empty result of stage %d (expected) ----", stage));
+        }
+
+        return success;
     }
 }

@@ -2,8 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ogp.com.gpstoggler3">
 
-    <uses-sdk	android:minSdkVersion="16" android:targetSdkVersion="23" />
-
     <permission android:name="ogp.com.gpstoggler3.GPS_ACCESS" />
     <permission android:name="ogp.com.gpstoggler3.RESURRECT" />
 
@@ -11,8 +9,10 @@
     <uses-permission android:name="android.permission.ACCESS_CONTENT_PROVIDERS_EXTERNALLY" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="ogp.com.gpstoggler3monitor.MONITORING" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
     <application
         android:name=".global.GPSToggler3Application"
@@ -48,7 +48,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -70,24 +70,31 @@
                 <action android:name="ogp.com.gpstoggler3.broadcasters.RESURRECT_NOW" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".receivers.ClickReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_PIC_CLICK" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name=".services.TogglerService"
             android:enabled="true"
             android:exported="true"
-            android:permission="ogp.com.gpstoggler3.GPS_ACCESS" />
+            android:permission="ogp.com.gpstoggler3.GPS_ACCESS"
+            android:process=":remote1" />
+
         <service
             android:name=".services.WidgetsService"
             android:exported="false"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:process=":remote2" />
+
+        <service
+            android:name=".services.AppActivityService"
+            android:label="@string/appactivity_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/appactivityservice" />
+        </service>
 
         <receiver
             android:name=".widgets.GPSIconWidget"

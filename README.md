@@ -30,6 +30,14 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.367
+-------
+1. Implemented (WIP) Accessibility service to quickly react to any applications ons and offs. 
+   Less CPU overhead, quicker GPS turns.
+
+2. Bugs/spelling fixed.
+
+
 1.0.348
 -------
 1. Asynchronous engine bug fixed. 

@@ -72,15 +72,15 @@ public class ExecuteOnServiceWithTimeout extends WorkerThread {
         Object result = null;
         Future<Object> future = Executors.newFixedThreadPool(1).submit(rpcTask);
         try {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting for 'get' with timeout...");
+            Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Waiting for 'get' with timeout...");
 
             result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. TimeoutException accountered!");
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. TimeoutException accounted!");
         } catch (InterruptedException e) {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. InterruptedException accountered!");
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. InterruptedException accounted!");
         } catch (ExecutionException e) {
-            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. ExecutionException accountered!", e);
+            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. ExecutionException accounted!", e);
         }
 
         Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::execute. Exit.");

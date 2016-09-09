@@ -22,8 +22,8 @@ import ogp.com.gpstoggler3.global.Constants;
 
 public class ApplicationsWatchdog extends Thread {
     private static final long TIMEOUT_SCREEN_OFF = 30000;   // Polling time (ms) when screen off
-    private static final long TIMEOUT_OFF = 4000;           // Polling time (ms) when GPS off
-    private static final long TIMEOUT_ON = 10000;           // Polling time (ms) when GPS on
+    private static final long TIMEOUT_SCREEN_ON = 10000;    // Polling time (ms) when screen on
+    private static final long DELAYED_ACTIVATION = 250;     // Activate thread after xxx ms
 
     private static final ListWatched lastActivatedApps = new ListWatched();
 
@@ -110,6 +110,21 @@ public class ApplicationsWatchdog extends Thread {
     }
 
 
+    public void activateNow() {
+        Log.v(Constants.TAG, "ApplicationsWatchdog::activateNow. Entry...");
+
+        Log.e(Constants.TAG, "ApplicationsWatchdog::activateNow. Interrupt!");
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ApplicationsWatchdog.this.interrupt();
+            }
+        }, DELAYED_ACTIVATION);
+
+        Log.v(Constants.TAG, "ApplicationsWatchdog::activateNow. Exit.");
+    }
+
+
     public void finish() {
         Log.v(Constants.TAG, "ApplicationsWatchdog. Finalized...");
 
@@ -145,12 +160,12 @@ public class ApplicationsWatchdog extends Thread {
 
             try {
                 if (null == screenOn || screenOn) {
-                    Thread.sleep(null != gpsDecidedOn && gpsDecidedOn ? TIMEOUT_ON : TIMEOUT_OFF);
+                    Thread.sleep(TIMEOUT_SCREEN_ON);
                 } else {
                     Thread.sleep(TIMEOUT_SCREEN_OFF);
                 }
             } catch (InterruptedException e) {
-                Log.e(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
+                Log.d(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
             }
         }
 

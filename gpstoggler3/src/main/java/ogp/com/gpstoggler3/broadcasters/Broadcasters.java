@@ -16,8 +16,9 @@ public class Broadcasters {
     public static final String APPS_ENUMERATED = "ogp.com.gpstoggler3.broadcasters.APPS_ENUMERATED";
     public static final String RESURRECT = "ogp.com.gpstoggler3.broadcasters.RESURRECT_NOW";
 
-
     public static final String HD_MONITOR_PACKAGE = "ogp.com.gpstoggler3monitor";
     public static final String HD_MONITOR_ACTIVITY = "ogp.com.gpstoggler3monitor.TransparentActivity";
     public static final String HD_MONITOR_SERVICE = "ogp.com.gpstoggler3monitor.MonitorService";
+
+    public static final String WINDOW_STACK_CHANGED = "ogp.com.gpstoggler3.WINDOW_STACK_CHANGED";
 }

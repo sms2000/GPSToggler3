@@ -18,7 +18,6 @@ public class BootReceiver extends BroadcastReceiver {
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
             Log.v(Constants.TAG, "BootReceiver::onReceive. Activating service...");
 
-            RootCaller.setSecureSettings(context.getPackageName());
             TogglerService.startServiceForever(context.getApplicationContext());
 
             Log.v(Constants.TAG, "BootReceiver::onReceive. Activating service finished.");
