@@ -87,10 +87,6 @@ public class RootCaller {
         }
 
         if (RootStatus.ROOT_GRANTED == success) {
-            success = executeSystemCommand("settings put secure accessibility_enabled 1", ++stage);
-        }
-
-        if (RootStatus.ROOT_GRANTED == success) {
             String services = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
             if (!services.contains(appServiceName)) {
                 if (!services.isEmpty()) {
@@ -98,10 +94,17 @@ public class RootCaller {
                 }
 
                 services += packageName + "/" + appServiceName;
-            }
 
-            command = String.format("settings put secure enabled_accessibility_services %s/%s", packageName, services);
-            success = executeSystemCommand(command, ++stage);
+                command = String.format("settings put secure enabled_accessibility_services %s", services);
+                success = executeSystemCommand(command, ++stage);
+            } else {
+                Log.d(Constants.TAG, String.format(Locale.US, "----- Stage %d ommited ----", stage));
+                success = RootStatus.ROOT_GRANTED;
+            }
+        }
+
+        if (RootStatus.ROOT_GRANTED == success) {
+            success = executeSystemCommand("settings put secure accessibility_enabled 1", ++stage);
         }
 
         Log.v(Constants.TAG, "RootCaller::setSecureSettings. Exit [2].");

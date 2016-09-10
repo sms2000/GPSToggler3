@@ -29,6 +29,10 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+1.0.371
+-------
+1. WIP: Accessibility service automatic engage with root. 
+
 
 1.0.367
 -------

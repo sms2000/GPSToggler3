@@ -20,6 +20,7 @@ import ogp.com.gpstoggler3.ITogglerService;
 import ogp.com.gpstoggler3.MainActivity;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.actuators.GPSActuatorFactory;
+import ogp.com.gpstoggler3.global.GPSToggler3Application;
 import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 import ogp.com.gpstoggler3.apps.AppDatabaseProcessor;
 import ogp.com.gpstoggler3.apps.AppEnumerator;
@@ -736,8 +737,18 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.i(Constants.TAG, "TogglerService::processDoubleClick. Starting the Main activity.");
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        Context context = GPSToggler3Application.getMainActivity();
+        if (null == context) {
+            context = getApplicationContext();
+        }
+
+        try {
+            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivity(intent);
+        } catch (Exception e) {
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
 
         Log.v(Constants.TAG, "TogglerService::processDoubleClick. Exit.");
     }

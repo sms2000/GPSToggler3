@@ -1,5 +1,6 @@
 package ogp.com.gpstoggler3.global;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
@@ -7,6 +8,8 @@ import android.util.Log;
 
 public class GPSToggler3Application extends Application {
     private static GPSToggler3Application globalApp;
+    private static Activity mainActivity;
+
 
     @Override
     public void onCreate() {
@@ -29,6 +32,21 @@ public class GPSToggler3Application extends Application {
         try {
             return globalApp.getBaseContext();
         } catch (NullPointerException e) {
+            return null;
+        }
+    }
+
+
+    public static void setMainActivity(Activity activity) {
+        mainActivity = activity;
+    }
+
+
+    public static Activity getMainActivity() {
+        try {
+            mainActivity.getApplication();
+            return mainActivity;
+        } catch (Exception e) {
             return null;
         }
     }

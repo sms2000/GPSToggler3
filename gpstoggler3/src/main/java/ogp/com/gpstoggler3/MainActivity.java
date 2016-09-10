@@ -1,7 +1,6 @@
 package ogp.com.gpstoggler3;
 
 import android.Manifest;
-import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -36,8 +35,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -54,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppAdapter;
+import ogp.com.gpstoggler3.global.GPSToggler3Application;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
@@ -207,6 +205,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         super.onCreate(savedInstanceState);
 
         Log.v(Constants.TAG, "MainActivity::onCreate. Entry...");
+
+        GPSToggler3Application.setMainActivity(this);
 
         Settings.allocate(this);
 
@@ -583,6 +583,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 ListWatched appList = new ListWatched();
                 for (int i = 0; i < adapter.getCount(); i++) {
                     AppStore app = adapter.getItem(i);
+                    assert app != null;
                     if (app.getLookup()) {
                         appList.add(new AppStore(app.friendlyName, app.packageName));
                     }

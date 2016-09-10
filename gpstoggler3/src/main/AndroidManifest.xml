@@ -75,18 +75,22 @@
             android:name=".services.TogglerService"
             android:enabled="true"
             android:exported="true"
-            android:permission="ogp.com.gpstoggler3.GPS_ACCESS"
-            android:process=":remote1" />
+            android:stopWithTask="false"
+            android:permission="ogp.com.gpstoggler3.GPS_ACCESS" />
 
         <service
             android:name=".services.WidgetsService"
             android:exported="false"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:process=":remote2" />
+            android:stopWithTask="false"
+            android:enabled="true"
+            android:permission="android.permission.BIND_REMOTEVIEWS"  />
 
         <service
             android:name=".services.AppActivityService"
             android:label="@string/appactivity_service_label"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:enabled="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
