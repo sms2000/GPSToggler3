@@ -44,7 +44,7 @@ public class RunMonitor {
         Log.v(Constants.TAG, String.format("RunMonitor::installMonitor%s. Entry...", forced ? " [forced]" : ""));
 
         // 0. Check if permissions to be granded
-        if (Settings.isMonitorDeclined()) {
+        if (!Settings.isMonitorAppUsed()) {
             Log.v(Constants.TAG, "RunMonitor::installMonitor. Exit [1].");
             return false;
         }
@@ -160,7 +160,7 @@ public class RunMonitor {
         Log.v(Constants.TAG, "RunMonitor::startMonitor. Entry...");
 
         // 0. Check if permissions to be granded
-        if (Settings.isMonitorDeclined()) {
+        if (!Settings.isMonitorAppUsed()) {
             Log.v(Constants.TAG, "RunMonitor::startMonitor. Exit [1].");
             return false;
         }

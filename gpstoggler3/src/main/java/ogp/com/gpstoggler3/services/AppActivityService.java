@@ -19,7 +19,7 @@ public class AppActivityService extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
 
-        Log.e(Constants.TAG, "AppActivityService::onServiceConnected. Entry...");
+        Log.v(Constants.TAG, "AppActivityService::onServiceConnected. Entry...");
 
         AccessibilityServiceInfo serviceInfo = new AccessibilityServiceInfo();
         serviceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
@@ -31,25 +31,27 @@ public class AppActivityService extends AccessibilityService {
 
         setServiceInfo(serviceInfo);
 
-        Log.e(Constants.TAG, "AppActivityService::onServiceConnected. Exit.");
+        Log.v(Constants.TAG, "AppActivityService::onServiceConnected. Exit.");
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Entry...");
+        Log.v(Constants.TAG, "AppActivityService::onAccessibilityEvent. Entry...");
 
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            ComponentName componentName = new ComponentName(event.getPackageName().toString(), event.getClassName().toString());
+            if (null != event.getPackageName() && null != event.getClassName()) {
+                ComponentName componentName = new ComponentName(event.getPackageName().toString(), event.getClassName().toString());
 
-            if (null != tryGetActivity(componentName)) {
-                Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Window stack changed. Pass event to Automation thread.");
+                if (null != tryGetActivity(componentName)) {
+                    Log.d(Constants.TAG, "AppActivityService::onAccessibilityEvent. Window stack changed. Pass event to Automation thread.");
 
-                Intent intent = new Intent(Broadcasters.WINDOW_STACK_CHANGED);
-                sendBroadcast(intent);
+                    Intent intent = new Intent(Broadcasters.WINDOW_STACK_CHANGED);
+                    sendBroadcast(intent);
+                }
             }
         }
 
-        Log.e(Constants.TAG, "AppActivityService::onAccessibilityEvent. Exit.");
+        Log.v(Constants.TAG, "AppActivityService::onAccessibilityEvent. Exit.");
     }
 
 
@@ -64,6 +66,5 @@ public class AppActivityService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
-
     }
 }

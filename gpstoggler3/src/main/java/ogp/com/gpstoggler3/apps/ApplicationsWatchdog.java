@@ -8,8 +8,6 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 
-import com.jaredrummler.android.processes.ProcessManager;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -37,6 +35,7 @@ public class ApplicationsWatchdog extends Thread {
     private TogglerServiceInterface togglerServiceInterface = null;
     private Handler handler = new Handler();
     private SortComparator comparator = new SortComparator();
+    private RootProcessManager rootProcessManager;
 
 
     private class SortComparator implements Comparator<AppStore> {
@@ -93,6 +92,7 @@ public class ApplicationsWatchdog extends Thread {
         this.context = context;
         this.togglerServiceInterface = togglerServiceInterface;
         this.activityManager = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
+        this.rootProcessManager = new RootProcessManager(context);
 
         active = true;
         start();
@@ -127,6 +127,8 @@ public class ApplicationsWatchdog extends Thread {
 
     public void finish() {
         Log.v(Constants.TAG, "ApplicationsWatchdog. Finalized...");
+
+        rootProcessManager.finish();
 
         active = false;
 
@@ -270,9 +272,9 @@ public class ApplicationsWatchdog extends Thread {
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
         boolean forceForeground = !Settings.getMultiWindowAware();
 
-        List<ProcessManager.AndroidAppProcess> list = ProcessManager.getRunningAppProcesses();
+        List<RootProcessManager.AndroidAppProcess> list = rootProcessManager.enumerate(watchedApps);
 
-        for (ProcessManager.AndroidAppProcess iterator : list) {
+        for (RootProcessManager.AndroidAppProcess iterator : list) {
             if (forceForeground && !iterator.isForeground()) {
                 continue;
             }

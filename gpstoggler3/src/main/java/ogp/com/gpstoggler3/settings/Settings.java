@@ -17,7 +17,7 @@ public class Settings {
     private static final String APP_LIST = "activated_apps";
 
     // From ActivitySettings
-    private static final String MONITOR_DECLINED = "use_monitor_app";
+    private static final String USE_MONITOR_APP = "use_monitor_app";
     private static final String MULTIWINDOW_AWARE = "multiwindow_aware";
     private static final String BACK_KEY_DELAY = "back_key_delay";
     private static final String DOUBLE_CLICK_DELAY = "widget_double_click";
@@ -170,14 +170,14 @@ public class Settings {
     }
 
 
-    public static boolean isMonitorDeclined() {
-        return settings.getBoolean(MONITOR_DECLINED, false);
+    public static boolean isMonitorAppUsed() {
+        return settings.getBoolean(USE_MONITOR_APP, false);
     }
 
 
     public static void declineMonitor() {
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(MONITOR_DECLINED, true);
+        editor.putBoolean(USE_MONITOR_APP, false);
         editor.apply();
     }
 

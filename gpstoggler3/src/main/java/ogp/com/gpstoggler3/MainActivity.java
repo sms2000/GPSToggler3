@@ -261,7 +261,12 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
                 if (TogglerService.startServiceAndBind(MainActivity.this, serviceConnection)) {
                     Log.i(Constants.TAG, "MainActivity::connect2Services::run. Binding in process.");
+
+
+
+                    /*
                     decideOnMonitor();
+                    */
                 } else {
                     Log.e(Constants.TAG, "MainActivity::connect2Services::run. Failed to bind.");
                     progress.dismiss();
@@ -274,8 +279,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     }
 
 
+    /*
     private void decideOnMonitor() {
-        if (Settings.isMonitorDeclined()) {
+        if (Settings.isMonitorAppUsed()) {
             Log.v(Constants.TAG, "MainActivity::decideOnMonitor. Monitor installation declined. Not asking anymore.");
             return;
         }
@@ -318,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             }
         });
     }
-
+    */
 
     private void loadMonitor() {
         final RunMonitor runMonitor = new RunMonitor(this);

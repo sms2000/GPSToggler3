@@ -29,6 +29,14 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+
+1.0.384
+-------
+1. Android 7.0 Nougat WIP. 1st more or less working verison.
+   Android 7.0 Nougat further hardened system access. Root is not enough now and prevents Automation working properly. Partially solved. 
+
+2. Not using 'AndroidProcesses' anymore due to Nougat issues.
+
 1.0.371
 -------
 1. WIP: Accessibility service automatic engage with root. 

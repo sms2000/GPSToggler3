@@ -1,17 +1,23 @@
 package ogp.com.gpstoggler3.su;
 
 import android.content.Context;
-import android.provider.DocumentsContract;
+import android.os.Build;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.security.Security;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -25,6 +31,56 @@ public class RootCaller {
 
 
     public enum RootStatus {NO_ROOT, ROOT_FAILED, ROOT_GRANTED}
+
+
+    public static class RootExecutor {
+        private static final String COMMAND_ANSWER_END = ">###<";
+        private static final String COMMAND_TAIL = ";echo '\n" + COMMAND_ANSWER_END + "'\n";
+        private Process chperm;
+        private BufferedReader reader;
+        private BufferedWriter writer;
+
+        public RootExecutor(Process chperm) {
+            this.chperm = chperm;
+            this.reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
+            this.writer = new BufferedWriter(new OutputStreamWriter(chperm.getOutputStream()));
+        }
+
+
+        public List<String> executeOnRoot (String command) {
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Entry...");
+
+            List<String> output = new ArrayList<>();
+
+            try {
+                command += COMMAND_TAIL;
+
+                writer.write(command, 0, command.length());
+                writer.flush();
+
+                String string = "";
+                while (true) {
+                    string = reader.readLine();
+                    if (null == string) {
+                        continue;
+                    } else if (string.contains(COMMAND_ANSWER_END)) {
+                        break;
+                    }
+
+                    output.add(string);
+                }
+
+
+                Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", output.size()));
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exception: ", e);
+            }
+
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exit.");
+            return output;
+        }
+    }
+
 
 
     public static RootStatus ifRootAvailable() {
@@ -69,13 +125,11 @@ public class RootCaller {
 
         Log.v(Constants.TAG, String.format("RootCaller::setSecureSettings. Entry (packageName: %s)...", packageName));
 
-        RootStatus success = RootStatus.ROOT_FAILED;
-
         Log.i(Constants.TAG, "RootCaller::setSecureSettings. Hacking Android. Attempt to set 'android.permission.WRITE_SECURE_SETTINGS'...");
 
         int stage = 0;
         String command = String.format("pm grant %s android.permission.WRITE_SECURE_SETTINGS", packageName);
-        success = executeSystemCommand(command, ++stage);
+        RootStatus success = executeSystemCommand(command, ++stage);
 
         if (RootStatus.ROOT_GRANTED == success) {
             command = String.format("pm grant %s android.permission.BIND_ACCESSIBILITY_SERVICE", packageName);
@@ -88,6 +142,10 @@ public class RootCaller {
 
         if (RootStatus.ROOT_GRANTED == success) {
             String services = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (null == services) {
+                services = "";
+            }
+
             if (!services.contains(appServiceName)) {
                 if (!services.isEmpty()) {
                     services += ":";
@@ -144,7 +202,7 @@ public class RootCaller {
     }
 
 
-    static ArrayList<String> executeOnRoot(String command) {
+    public static ArrayList<String> executeOnRoot(String command) {
         Process chperm = null;
 
         try {
@@ -163,6 +221,27 @@ public class RootCaller {
             if (null != chperm) {
                 chperm.destroy();
             }
+        }
+    }
+
+
+    public static RootExecutor createRootProcess() {
+        Process chperm = null;
+
+        try {
+            chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
+
+            return new RootExecutor(chperm);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+
+    public static void terminateRootProcess(RootExecutor rootExecutor) {
+        try {
+            rootExecutor.chperm.destroy();
+        } catch (Throwable ignored) {
         }
     }
 
