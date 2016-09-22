@@ -1,1 +1,1 @@
-include ':gpstoggler3', ':gpstoggler3monitor'
+include ':gpstoggler3monitor', ':gpstoggler3'

@@ -5,6 +5,8 @@ import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
+import ogp.com.gpstoggler3.settings.Settings;
+
 
 public class GPSToggler3Application extends Application {
     private static GPSToggler3Application globalApp;
@@ -14,6 +16,8 @@ public class GPSToggler3Application extends Application {
     @Override
     public void onCreate() {
         Log.v(Constants.TAG, "GPSToggler3Application::onCreate. Entry...");
+
+        Settings.allocate(this);
 
         globalApp = this;
         super.onCreate();

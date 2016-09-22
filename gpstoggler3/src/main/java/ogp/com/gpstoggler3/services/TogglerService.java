@@ -142,18 +142,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         public ListWatched listActivatedApps() {
             return TogglerService.this.listActivatedApps();
         }
-
-
-        @Override
-        public boolean isRootGranted() {
-            return TogglerService.this.isRootGranted();
-        }
-
-
-        @Override
-        public void setRootGranted(boolean rootGranted) {
-            TogglerService.this.setRootGranted(rootGranted);
-        }
     };
 
 
@@ -406,24 +394,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         return status;
     }
 
-    @Override
-    public boolean isRootGranted() {
-        Log.v(Constants.TAG, "TogglerService::isRootGranted. Entry...");
-
-        boolean ret = Settings.isRootGranted();
-
-        Log.v(Constants.TAG, "TogglerService::isRootGranted. Exit.");
-        return ret;
-    }
-
-    @Override
-    public void setRootGranted(boolean rootGranted) {
-        Log.v(Constants.TAG, "TogglerService::setRootGranted. Entry...");
-
-        Settings.setRootGranted(rootGranted);
-
-        Log.v(Constants.TAG, "TogglerService::setRootGranted. Entry...");
-    }
 
     @Override
     public void toggleGpsState() {
@@ -474,14 +444,20 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     public static void startServiceForever(Context context) {
         Log.v(Constants.TAG, "TogglerService::startServiceForever. Entry...");
 
-        Log.i(Constants.TAG, "TogglerService::startServiceForever. Starting service unstoppable...");
+        if (Settings.isRootGranted()) {
+            Log.i(Constants.TAG, "TogglerService::startServiceForever. Starting service unstoppable...");
 
-        String className = AppActivityService.class.getCanonicalName();
-        String packageName = context.getPackageName();
-        RootCaller.setSecureSettings(context, packageName, className);
+            String className = AppActivityService.class.getCanonicalName();
+            String packageName = context.getPackageName();
+            RootCaller.setSecureSettings(context, packageName, className);
 
-        Intent intent = new Intent(context.getApplicationContext(), TogglerService.class);
-        context.getApplicationContext().startService(intent);
+            Intent intent = new Intent(context.getApplicationContext(), TogglerService.class);
+            context.getApplicationContext().startService(intent);
+
+            Log.i(Constants.TAG, "TogglerService::startServiceForever. Service has been started.");
+        } else {
+            Log.w(Constants.TAG, "TogglerService::startServiceForever. Service is not started due to 'root' access not granted yet.");
+        }
 
         Log.v(Constants.TAG, "TogglerService::startServiceForever. Exit.");
     }

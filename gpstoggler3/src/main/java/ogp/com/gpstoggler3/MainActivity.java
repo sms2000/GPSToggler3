@@ -1,6 +1,5 @@
 package ogp.com.gpstoggler3;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -25,8 +24,6 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -51,17 +48,17 @@ import java.util.Date;
 import java.util.List;
 
 import ogp.com.gpstoggler3.apps.AppAdapter;
-import ogp.com.gpstoggler3.global.GPSToggler3Application;
-import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.broadcasters.Broadcasters;
+import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.global.GPSToggler3Application;
+import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.services.AppActivityService;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
-import ogp.com.gpstoggler3.broadcasters.Broadcasters;
-import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.status.GPSStatus;
 import ogp.com.gpstoggler3.su.RootCaller;
 import ogp.com.gpstoggler3.su.RunMonitor;

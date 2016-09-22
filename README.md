@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.393
+-------
+1. Gradle project fixes.
+
+
 1.0.384
 -------
 1. Android 7.0 Nougat WIP. 1st more or less working verison.

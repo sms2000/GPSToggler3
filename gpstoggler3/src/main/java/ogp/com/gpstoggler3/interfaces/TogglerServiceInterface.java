@@ -18,6 +18,4 @@ public interface TogglerServiceInterface {
     void storeAutomationState(boolean watcher);
     GPSStatus onGps();
     void toggleGpsState();
-    boolean isRootGranted();
-    void setRootGranted(boolean rootGranted);
 }

@@ -76,13 +76,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     @Override
     protected void onPause() {
-        Log.v(Constants.TAG, "SettingsActivity::onPause. Entry...");
-
-        Settings.reloadSettings();
+        Log.v(Constants.TAG, "SettingsActivity::onPause (not used). Entry...");
 
         super.onPause();
 
-        Log.v(Constants.TAG, "SettingsActivity::onPause. Exit.");
+        Log.v(Constants.TAG, "SettingsActivity::onPause (not used). Exit.");
     }
 
 

@@ -29,16 +29,10 @@ public class Settings {
     private static final String FIELD_SEPARATOR = "_#_";
 
     private static Settings settingsSingleton = null;
-
     private static SharedPreferences settings;
-    private static boolean multiWindowAware = false;
-    private static boolean automation;
-    private static boolean rootGranted;
-    private static int doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
-    private static int preventLongBackKeyPressDelay = DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
 
 
-    public static Settings allocate(Context context) {
+    public static void allocate(Context context) {
         if (null == settingsSingleton) {
             synchronized (context.getApplicationContext()) {
                 if (null == settingsSingleton) {
@@ -46,8 +40,6 @@ public class Settings {
                 }
             }
         }
-
-        return settingsSingleton;
     }
 
 
@@ -57,51 +49,33 @@ public class Settings {
         String prefFile = String.format(PREFERENCES, context.getPackageName());
         settings = context.getSharedPreferences(prefFile, 0);
 
-        try {
-            automation = settings.getBoolean(AUTOMATION, false);
-        } catch (Exception ignored) {
-            automation = false;
-        }
-
-        try {
-            rootGranted = settings.getBoolean(ROOT_GRANTED, false);
-        } catch (Exception ignored) {
-            rootGranted = false;
-        }
-
-        reloadSettingsInternal();
-
         Log.v(Constants.TAG, "Settings::<init>. Exit.");
     }
 
 
-    public static void reloadSettings() {
-        Log.v(Constants.TAG, "Settings::reloadSettings. Entry...");
-
-        settingsSingleton.reloadSettingsInternal();
-
-        Log.v(Constants.TAG, "Settings::reloadSettings. Exit.");
-    }
-
-
     public static boolean loadAutomationState() {
-        return automation;
+        try {
+            return settings.getBoolean(AUTOMATION, false);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
 
     public static boolean isRootGranted() {
-        return rootGranted;
+        try {
+            return settings.getBoolean(ROOT_GRANTED, false);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
 
     public static void setRootGranted(boolean rootGranted) {
         Log.v(Constants.TAG, "Settings::setRootGranted. Entry...");
 
-        Settings.rootGranted = rootGranted;
-
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean(ROOT_GRANTED, rootGranted);
-
         editor.apply();
 
         Log.v(Constants.TAG, "Settings::setRootGranted. Exit.");
@@ -111,11 +85,9 @@ public class Settings {
     public static void storeAutomationState(boolean automation) {
         Log.v(Constants.TAG, "Settings::storeAutomationState. Entry...");
 
-        Settings.automation = automation;
-
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(AUTOMATION, automation);
 
+        editor.putBoolean(AUTOMATION, automation);
         editor.apply();
 
         Log.v(Constants.TAG, "Settings::storeAutomationState. Exit.");
@@ -166,7 +138,11 @@ public class Settings {
 
 
     public static int getDoubleClickDelay() {
-        return doubleClickDelay;
+        try {
+            return settings.getInt(DOUBLE_CLICK_DELAY, DEF_DOUBLE_CLICK_DELAY);
+        } catch (Exception ignored) {
+            return DEF_DOUBLE_CLICK_DELAY;
+        }
     }
 
 
@@ -183,36 +159,20 @@ public class Settings {
 
 
     public static boolean getMultiWindowAware() {
-        return multiWindowAware;
+        try {
+            return settings.getBoolean(MULTIWINDOW_AWARE, false);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
 
     public static int getLongBackKeyPressDelay() {
-        return preventLongBackKeyPressDelay;
-    }
-
-
-    private void reloadSettingsInternal() {
-        Log.v(Constants.TAG, "Settings::reloadSettingsInternal. Entry...");
-
         try {
-            multiWindowAware = settings.getBoolean(MULTIWINDOW_AWARE, false);
+            return settings.getInt(BACK_KEY_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
         } catch (Exception ignored) {
-            multiWindowAware = false;
+            return DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
         }
 
-        try {
-            preventLongBackKeyPressDelay = settings.getInt(BACK_KEY_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
-        } catch (Exception ignored) {
-            preventLongBackKeyPressDelay = DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
-        }
-
-        try {
-            doubleClickDelay = settings.getInt(DOUBLE_CLICK_DELAY, DEF_DOUBLE_CLICK_DELAY);
-        } catch (Exception ignored) {
-            doubleClickDelay = DEF_DOUBLE_CLICK_DELAY;
-        }
-
-        Log.v(Constants.TAG, "Settings::reloadSettingsInternal. Exit.");
     }
 }
