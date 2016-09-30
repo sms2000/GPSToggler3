@@ -1,23 +1,17 @@
 package ogp.com.gpstoggler3.su;
 
 import android.content.Context;
-import android.os.Build;
 import android.provider.Settings;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
 
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -28,7 +22,7 @@ public class RootCaller {
     private static final String[] SU_PATHES = {"/system/xbin/which", "/system/bin/which"};
 
     private static boolean securitySettingsSet = false;
-
+    private static RootExecutor rootExecutor = null;
 
     public enum RootStatus {NO_ROOT, ROOT_FAILED, ROOT_GRANTED}
 
@@ -40,7 +34,7 @@ public class RootCaller {
         private BufferedReader reader;
         private BufferedWriter writer;
 
-        public RootExecutor(Process chperm) {
+        RootExecutor(Process chperm) {
             this.chperm = chperm;
             this.reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(chperm.getOutputStream()));
@@ -58,9 +52,8 @@ public class RootCaller {
                 writer.write(command, 0, command.length());
                 writer.flush();
 
-                String string = "";
                 while (true) {
-                    string = reader.readLine();
+                    String string = reader.readLine();
                     if (null == string) {
                         continue;
                     } else if (string.contains(COMMAND_ANSWER_END)) {
@@ -72,8 +65,12 @@ public class RootCaller {
 
 
                 Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", output.size()));
+            } catch (IOException e) {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. IOException with: " + e.getMessage());
+                output = null;
             } catch (Exception e) {
                 Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exception: ", e);
+                output = null;
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exit.");
@@ -165,6 +162,12 @@ public class RootCaller {
             success = executeSystemCommand("settings put secure accessibility_enabled 1", ++stage);
         }
 
+        if (RootStatus.ROOT_GRANTED == success) {
+            Log.i(Constants.TAG, "RootCaller::setSecureSettings. All the systemizing tasks executed successfully.");
+        } else {
+            Log.e(Constants.TAG, "RootCaller::setSecureSettings. Some of the systemizing tasks failed.");
+        }
+
         Log.v(Constants.TAG, "RootCaller::setSecureSettings. Exit [2].");
         return success;
     }
@@ -202,74 +205,78 @@ public class RootCaller {
     }
 
 
-    public static ArrayList<String> executeOnRoot(String command) {
-        Process chperm = null;
+    static List<String> executeOnRoot(String command) {
+        Log.v(Constants.TAG, "RootCaller::executeOnRoot. Entry...");
 
-        try {
-            chperm = Runtime.getRuntime().exec(new String[]{CMD_SU, CMD_EXEC, command});
-            BufferedReader in = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
-            ArrayList<String> returned = new ArrayList<>();
-
-            for (String answer = in.readLine(); null != answer; answer = in.readLine()) {
-                returned.add(answer);
+        List<String> output = null;
+        RootExecutor executor = createRootProcess();
+        if (null != executor) {
+            output = executor.executeOnRoot(command);
+            if (null != output) {
+                Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned %d string(s).", command, output.size()));
+            } else {
+                Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned no strings.", command));
             }
-
-            return returned;
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (null != chperm) {
-                chperm.destroy();
-            }
+        } else {
+            Log.e(Constants.TAG, String.format("RootCaller::executeOnRoot. Failed to execute command [%s]. No 'root' process available.", command));
         }
+
+        Log.v(Constants.TAG, "RootCaller::executeOnRoot. Exit.");
+        return output;
     }
 
 
     public static RootExecutor createRootProcess() {
-        Process chperm = null;
-
-        try {
-            chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
-
-            return new RootExecutor(chperm);
-        } catch (IOException e) {
-            return null;
+        if (null == rootExecutor) {
+            try {
+                Process chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
+                return new RootExecutor(chperm);
+            } catch (IOException ignored) {
+                return null;
+            }
         }
+
+        return rootExecutor;
     }
 
 
-    public static void terminateRootProcess(RootExecutor rootExecutor) {
+/*
+    public static void terminateRootProcess() {
         try {
             rootExecutor.chperm.destroy();
         } catch (Throwable ignored) {
         }
     }
+*/
 
 
     private static RootStatus executeSystemCommand(String command, int stage) {
         RootStatus success = RootStatus.ROOT_GRANTED;
 
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ignore) {
-        }
-
         Log.e(Constants.TAG, String.format("RootCaller::setSecureSettings. Hacking Android. Attempt to set '%s'...", command));
 
         List<String> returned = executeOnRoot(command);
+        boolean emptyResult = true;
 
         if (null != returned && 0 < returned.size()) {
-            String logS = String.format(Locale.US, "----- Result of stage %d ----", stage);
-
-            Log.d(Constants.TAG, logS);
             for (String line : returned) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                if (emptyResult) {
+                    Log.d(Constants.TAG, String.format(Locale.US, "----- Result of stage %d ----", stage));
+                    emptyResult = false;
+                }
+
                 Log.i(Constants.TAG, line);
             }
-            Log.d(Constants.TAG, logS);
+        }
 
-            success = RootStatus.ROOT_FAILED;
-        } else {
+        if (emptyResult) {
             Log.d(Constants.TAG, String.format(Locale.US, "----- Empty result of stage %d (expected) ----", stage));
+        } else {
+            success = RootStatus.ROOT_FAILED;
         }
 
         return success;

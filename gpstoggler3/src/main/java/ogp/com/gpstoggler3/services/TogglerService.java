@@ -623,7 +623,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
                 if (previousUpdate != lastNewAppList) {
                     pushAppsDelayed();
-
                 }
 
                 Log.v(Constants.TAG, "TogglerService::enumerateInstalledAppsInThread::run. Exit.");

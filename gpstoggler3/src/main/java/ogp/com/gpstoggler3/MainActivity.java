@@ -35,6 +35,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.appindexing.Action;
@@ -254,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             public void run() {
                 Log.v(Constants.TAG, "MainActivity::connect2Services::run. Entry...");
 
+                RunMonitor.readMonitorApk(MainActivity.this);
                 systemize();
 
                 if (TogglerService.startServiceAndBind(MainActivity.this, serviceConnection)) {
@@ -441,9 +443,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
 
     @Override
-    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (Constants.SETTINGS_REQUEST_CODE == requestCode &&
-            Constants.SETTINGS_KILLED == resultCode) {
+                Constants.SETTINGS_KILLED == resultCode) {
             Log.d(Constants.TAG, "MainActivity::onActivityResult. Recognized 'long back press' from sub-activity. Killing the 'MainActivity' to prevent process extermination...");
             finish();
         }
@@ -663,9 +665,11 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     app.setLookup(appSelected.containsPackage(app.packageName));
                 }
 
-                adapter.clear();
-                adapter.addAll(appList);
-                listApps.setAdapter(adapter);
+
+                if (adapter.updateCollection(appList)) {
+                    listApps.setAdapter(adapter);
+                }
+
                 Log.d(Constants.TAG, String.format("MainActivity::enumerateInstalledApps. Found [%d] watched apps.", appSelected.size()));
             } catch (Exception e) {
                 Log.e(Constants.TAG, "MainActivity::enumerateInstalledApps. Exception [2]: ", e);
@@ -961,18 +965,16 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         dialog.setMessage(R.string.no_root);
         dialog.setPositiveButton(R.string.ok,
                 new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int id) {
+                    public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
-                        MainActivity.this.finish();
+                        finishApplication(0);
                         Log.d(Constants.TAG, "MainActivity::noRoot. Pressed <OK>.");
                     }
                 });
 
         dialog.setNegativeButton(R.string.as_is,
                 new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int id) {
+                    public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                         Log.d(Constants.TAG, "MainActivity::noRoot. Pressed <As Is>.");
                     }
@@ -981,6 +983,16 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         dialog.show();
 
         Log.v(Constants.TAG, "MainActivity::noRoot. Exit.");
+    }
+
+
+    private void finishApplication(int messageId) {
+        if (0 < messageId) {
+            Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
+        }
+
+        finish();
+        Log.v(Constants.TAG, "MainActivity::finishApplication. Finished.");
     }
 
 
@@ -1021,7 +1033,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     public void onClick(DialogInterface dialog,
                                         int id) {
                         dialog.cancel();
-                        MainActivity.this.finish();
+                        finishApplication(0);
                         Log.d(Constants.TAG, "MainActivity::systemizeFailed. Pressed <OK>.");
                     }
                 });
@@ -1029,6 +1041,25 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         dialog.show();
 
         Log.v(Constants.TAG, "MainActivity::systemizeFailed. Exit.");
+    }
+
+
+    private void setSecureSettings() {
+        Log.v(Constants.TAG, "MainActivity::setSecureSettings. Entry...");
+
+        if (!secureSettingsSet) {
+            if (NO_ROOT == RootCaller.setSecureSettings(MainActivity.this, packageName, AppActivityService.class.getCanonicalName())) {
+                setRootGranted(false);
+                noRoot();
+            } else if (RootCaller.checkSecureSettings()) {
+                setRootGranted(true);
+                secureSettingsSet = true;
+            } else {
+                systemizeFailed();
+            }
+        }
+
+        Log.v(Constants.TAG, "MainActivity::setSecureSettings. Exit.");
     }
 
 
@@ -1049,22 +1080,22 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (!secureSettingsSet) {
-                                    if (NO_ROOT == RootCaller.setSecureSettings(MainActivity.this, packageName, AppActivityService.class.getCanonicalName())) {
-                                        setRootGranted(false);
-                                        noRoot();
-                                    }
+                                Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <Yes>.");
 
+                                RootCaller.RootExecutor rootExecutor = RootCaller.createRootProcess();
+                                if (null != rootExecutor) {
+                                    List<String> output = rootExecutor.executeOnRoot("ls /");
+                                    if (null != output) {
+                                        Log.i(Constants.TAG, "MainActivity::obtainRoot. 'root' obtained.");
+                                        Settings.setRootGranted(true);
 
-                                    if (RootCaller.checkSecureSettings()) {
-                                        setRootGranted(true);
-                                        secureSettingsSet = true;
-                                    } else {
-                                        systemizeFailed();
+                                        setSecureSettings();
+                                        return;
                                     }
                                 }
 
-                                Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <Yes>.");
+                                Log.e(Constants.TAG, "MainActivity::obtainRoot. 'root' denied or not available.");
+                                finishApplication(R.string.root_denied);
                             }
                         });
                     }
@@ -1075,7 +1106,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     public void onClick(DialogInterface dialog,
                                         int id) {
                         dialog.cancel();
-                        MainActivity.this.finish();
+                        finishApplication(R.string.user_not_willing_root);
                         Log.d(Constants.TAG, "MainActivity::obtainRoot. Pressed <No>.");
                     }
                 });

@@ -2,6 +2,7 @@ package ogp.com.gpstoggler3.apps;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.global.Constants;
@@ -57,6 +60,38 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         setImageDrawable(icon, appStore);
         appLookup.setChecked(appStore.getLookup());
         return convertView;
+    }
+
+
+    public boolean updateCollection(ListAppStore appList) {
+        Log.v(Constants.TAG, "AppAdapter::updateCollection. Entry...");
+
+        boolean updateRequired = false;
+
+        if (getCount() != appList.size()) {
+            updateRequired = true;
+            Log.i(Constants.TAG, "AppAdapter::updateCollection. Update required: different length of apps.");
+        } else {
+            for (int i = 0; i < getCount(); i++) {
+                AppStore existedApp = getItem(i);
+                AppStore newApp = appList.get(i);
+                if (!existedApp.packageName.equals(newApp.packageName)) {
+                    updateRequired = true;
+                    Log.i(Constants.TAG, "AppAdapter::updateCollection. Update required: different list of apps.");
+                    break;
+                }
+            }
+        }
+
+        if (updateRequired) {
+            clear();
+            addAll(appList);
+        } else {
+            Log.i(Constants.TAG, "AppAdapter::updateCollection. Update not required: same list of apps.");
+        }
+
+        Log.v(Constants.TAG, "AppAdapter::updateCollection. Exit.");
+        return updateRequired;
     }
 
 

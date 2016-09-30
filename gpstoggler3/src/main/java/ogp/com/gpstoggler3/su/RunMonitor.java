@@ -24,7 +24,8 @@ public class RunMonitor {
     private static final String MONITOR_APK = "gpstoggler3monitor.apk";
     private static final String SUCCESS = "Success";
     private static final String MONITOR_ACTIVITY = ".TransparentActivity";
-    private static final int BLOCK_SIZE = 64 * 1024;
+    private static final int MIN_MONITOR_SIZE = 4 * 1024;
+    private static final int MAX_MONITOR_SIZE = 32 * 1024 * 1024;
 
     private Context context;
 
@@ -36,6 +37,50 @@ public class RunMonitor {
 
     public boolean installMonitor() {
         return installMonitor(false);
+    }
+
+
+    public static byte[] readMonitorApk(Context context) {
+        Log.v(Constants.TAG, "RunMonitor::readMonitorApk. Entry...");
+
+        AssetManager am = context.getAssets();
+        InputStream inputStream = null;
+
+        try {
+            inputStream = am.open(MONITOR_APK);
+
+            for (int bufLen = MIN_MONITOR_SIZE; bufLen <= MAX_MONITOR_SIZE; bufLen <<= 1) {
+                byte[] buf = new byte[bufLen + 1];
+                int read = inputStream.read(buf);
+                if (read == bufLen + 1) {
+                    Log.w(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read partially, %d bytes only.", read));
+
+                    inputStream.reset();
+                } else {
+                    Log.i(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read, %d bytes.", read));
+                    byte[] buf2 = new byte[read];
+                    System.arraycopy(buf, 0, buf2, 0, read);
+
+                    Log.v(Constants.TAG, "RunMonitor::readMonitorApk. Exit [1].");
+                    return buf2;
+                }
+            }
+
+            Log.e(Constants.TAG, "RunMonitor::readMonitorApk. Failed to read the APK file. Too large APK or generic read fault.");
+            Log.v(Constants.TAG, "RunMonitor::readMonitorApk. Exit [2].");
+            return null;
+        } catch (IOException e) {
+            Log.e(Constants.TAG, "RunMonitor::readMonitorApk. Exit [Error 1]. Exception: ", e);
+            Log.v(Constants.TAG, "RunMonitor::readMonitorApk. Exit [3].");
+            return null;
+        } finally {
+            try {
+                if (null != inputStream) {
+                    inputStream.close();
+                }
+            } catch (IOException ignored) {
+            }
+        }
     }
 
 
@@ -78,50 +123,51 @@ public class RunMonitor {
 
         // 3. Instal if needed
         if (needInstall) {
-            AssetManager am = context.getAssets();
-            String sdPath = Environment.getExternalStorageDirectory().getPath();
-            String copiedPath = sdPath + "/" + MONITOR_APK;
-            File copyFile = new File(copiedPath);
+            byte[] buffer = readMonitorApk(context);
+            if (null != buffer) {
+                String sdPath = Environment.getExternalStorageDirectory().getPath();
+                String copiedPath = sdPath + "/" + MONITOR_APK;
+                OutputStream outputStream = null;
 
-            try {
-                InputStream inputStream = am.open(MONITOR_APK);
-                OutputStream outputStream = new FileOutputStream(copiedPath);
+                try {
+                    outputStream = new FileOutputStream(copiedPath);
+                    outputStream.write(buffer, 0, buffer.length);
 
-                byte buf[] = new byte[BLOCK_SIZE];
-
-                int read;
-                while ((read = inputStream.read(buf)) > 0) {
-                    outputStream.write(buf, 0, read);
-                }
-
-                outputStream.close();
-                inputStream.close();
-
-                Log.d(Constants.TAG, String.format("RunMonitor::installMonitor. APK copied with %d bytes.", read));
-            } catch (IOException e) {
-                Log.v(Constants.TAG, "RunMonitor::installMonitor. Exit [Error 1]. Exception: ", e);
-                return false;
-            }
-
-
-            List<String> returned = RootCaller.executeOnRoot("pm install -r -d " + copiedPath);
-            if (null != returned && returned.size() > 0 && returned.get(0).startsWith(SUCCESS)) {
-                Log.i(Constants.TAG, "RunMonitor::installMonitor. Monitor APK installed from: " + copiedPath);
-            } else {
-                Log.e(Constants.TAG, "RunMonitor::installMonitor. Failed to install Monitor APK from: " + copiedPath);
-
-                if (null != returned) {
-                    for (String line : returned) {
-                        Log.v(Constants.TAG, ">>> " + line);
+                    Log.d(Constants.TAG, String.format("RunMonitor::installMonitor. APK copied with %d bytes.", buffer.length));
+                } catch (IOException e) {
+                    Log.v(Constants.TAG, "RunMonitor::installMonitor. Exit [Error 1]. Exception: ", e);
+                    return false;
+                } finally {
+                    try {
+                        if (null != outputStream) {
+                            outputStream.close();
+                        }
+                    } catch (IOException ignored) {
                     }
                 }
 
-                Log.v(Constants.TAG, "===================================");
+
+                List<String> returned = RootCaller.executeOnRoot("pm install -r -d " + copiedPath);
+                if (null != returned && returned.size() > 0 && returned.get(0).startsWith(SUCCESS)) {
+                    Log.i(Constants.TAG, "RunMonitor::installMonitor. Monitor APK installed from: " + copiedPath);
+                } else {
+                    Log.e(Constants.TAG, "RunMonitor::installMonitor. Failed to install Monitor APK from: " + copiedPath);
+
+                    if (null != returned) {
+                        for (String line : returned) {
+                            Log.v(Constants.TAG, ">>> " + line);
+                        }
+                    }
+
+                    Log.v(Constants.TAG, "===================================");
+                }
+
+                File copyFile = new File(copiedPath);
+                boolean deleted = copyFile.delete();
+                Log.d(Constants.TAG, "RunMonitor::installMonitor. APK " + (deleted ? "deleted." : "failed to delete."));
+            } else {
+                Log.e(Constants.TAG, "RunMonitor::installMonitor. Failed to read APK.");
             }
-
-
-            boolean deleted = copyFile.delete();
-            Log.d(Constants.TAG, "RunMonitor::installMonitor. APK " + (deleted ? "deleted." : "failed to delete."));
         }
 
         Log.v(Constants.TAG, "RunMonitor::installMonitor. Exit [2].");

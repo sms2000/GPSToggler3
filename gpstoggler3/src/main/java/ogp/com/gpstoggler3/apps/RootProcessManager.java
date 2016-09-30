@@ -1,6 +1,5 @@
 package ogp.com.gpstoggler3.apps;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.su.RootCaller;
 
 
-public class RootProcessManager {
+class RootProcessManager {
     private static final String CMD_LIST_PIDS = "ls /proc";
     private static final String CMD_GET_CMDLINE = "cat /proc/%s/cmdline";
     private static final String CMD_GET_STAT = "cat /proc/%s/stat";
@@ -18,14 +17,12 @@ public class RootProcessManager {
     private RootCaller.RootExecutor rootExecutor;
 
 
-    public static class AndroidAppProcess {
-        private int pid;
+    static class AndroidAppProcess {
         private String packageName;
         private boolean foreground;
 
 
-        AndroidAppProcess(int pid, String packageName, boolean foreground) {
-            this.pid = pid;
+        AndroidAppProcess(String packageName, boolean foreground) {
             this.packageName = packageName;
             this.foreground = foreground;
         }
@@ -36,27 +33,18 @@ public class RootProcessManager {
         }
 
 
-        public boolean isForeground() {
+        boolean isForeground() {
             return foreground;
-        }
-
-
-        private void initPid(int pid) {
         }
     }
 
 
-    public RootProcessManager(Context context) {
+    RootProcessManager() {
         rootExecutor = RootCaller.createRootProcess();
     }
 
 
-    public void finish() {
-        RootCaller.terminateRootProcess(rootExecutor);
-    }
-
-
-    public List<AndroidAppProcess> enumerate(ListWatched watchedApps) {
+    List<AndroidAppProcess> enumerate(ListWatched watchedApps) {
         Log.v(Constants.TAG, "RootProcessManager::enumerate. Entry...");
 
         long timeNow = System.currentTimeMillis();
@@ -88,7 +76,7 @@ public class RootProcessManager {
                         String appState = cmdlineResult.get(0).trim().split("\\s+")[2];
 
                         if (appState.equals("R") || appState.equals("S")) {
-                            AndroidAppProcess process = new AndroidAppProcess(Integer.decode(sPid), appPackageName, appState.equals("R"));
+                            AndroidAppProcess process = new AndroidAppProcess(appPackageName, appState.equals("R"));
                             apps.add(process);
                         }
 
@@ -99,10 +87,10 @@ public class RootProcessManager {
                 } catch (Exception ignored) {
                 }
             }
+
+            Log.e(Constants.TAG, String.format("RootProcessManager::enumerate. %d/%d apps enumerated at %d ms.", pids.size(), apps.size(), System.currentTimeMillis() - timeNow));
         }
 
-
-        Log.e(Constants.TAG, String.format("RootProcessManager::enumerate. %d/%d apps enumerated at %d ms.", pids.size(), apps.size(), System.currentTimeMillis() - timeNow));
         Log.v(Constants.TAG, "RootProcessManager::enumerate. Exit.");
         return apps;
     }

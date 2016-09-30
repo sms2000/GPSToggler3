@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.402
+-------
+1. Fixed various 'root' issues.
+
+
 1.0.393
 -------
 1. Gradle project fixes.

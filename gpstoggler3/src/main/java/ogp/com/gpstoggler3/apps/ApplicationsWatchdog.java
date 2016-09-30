@@ -92,7 +92,7 @@ public class ApplicationsWatchdog extends Thread {
         this.context = context;
         this.togglerServiceInterface = togglerServiceInterface;
         this.activityManager = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
-        this.rootProcessManager = new RootProcessManager(context);
+        this.rootProcessManager = null;
 
         active = true;
         start();
@@ -127,8 +127,6 @@ public class ApplicationsWatchdog extends Thread {
 
     public void finish() {
         Log.v(Constants.TAG, "ApplicationsWatchdog. Finalized...");
-
-        rootProcessManager.finish();
 
         active = false;
 
@@ -268,6 +266,16 @@ public class ApplicationsWatchdog extends Thread {
 
 
     private void verifyGPSSoftwareRunning21() {
+        if (!Settings.isRootGranted()) {
+            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. No 'root' granted yet.");
+            return;
+        }
+
+        if (null == rootProcessManager) {
+            rootProcessManager = new RootProcessManager();
+            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. 'root' granted and RootProcessManager created.");
+        }
+
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
         boolean forceForeground = !Settings.getMultiWindowAware();
@@ -294,9 +302,8 @@ public class ApplicationsWatchdog extends Thread {
         }
 
 
-        boolean equal;
         synchronized (lastActivatedApps) {
-            equal = activatedApps.size() == lastActivatedApps.size();
+            boolean equal = activatedApps.size() == lastActivatedApps.size();
             if (equal) {
                 for (int i = 0; i < activatedApps.size(); i++) {
                     if (!activatedApps.get(i).equals(lastActivatedApps.get(i))) {
