@@ -947,6 +947,11 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     noRoot();
                 }
             } else {
+                RootCaller.RootExecutor rootExecutor = RootCaller.createRootProcess();
+                if (null != rootExecutor) {
+                    RootCaller.terminateRootProcess(rootExecutor);
+                }
+
                 Log.v(Constants.TAG, "MainActivity::systemize. Yes, the 'root' was obtained earlier. May continue.");
             }
         }

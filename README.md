@@ -30,6 +30,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.409
+-------
+1. Accessibility processing improved.
+2. Application reenumerated and the list updated only if required.
+
+
 1.0.402
 -------
 1. Fixed various 'root' issues.

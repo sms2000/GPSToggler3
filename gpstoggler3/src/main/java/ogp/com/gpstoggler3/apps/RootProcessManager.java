@@ -88,7 +88,7 @@ class RootProcessManager {
                 }
             }
 
-            Log.e(Constants.TAG, String.format("RootProcessManager::enumerate. %d/%d apps enumerated at %d ms.", pids.size(), apps.size(), System.currentTimeMillis() - timeNow));
+            Log.i(Constants.TAG, String.format("RootProcessManager::enumerate. %d/%d apps enumerated at %d ms.", pids.size(), apps.size(), System.currentTimeMillis() - timeNow));
         }
 
         Log.v(Constants.TAG, "RootProcessManager::enumerate. Exit.");

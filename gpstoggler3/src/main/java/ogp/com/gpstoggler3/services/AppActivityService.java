@@ -30,6 +30,7 @@ public class AppActivityService extends AccessibilityService {
         }
 
         setServiceInfo(serviceInfo);
+        Log.i(Constants.TAG, "AppActivityService::onServiceConnected. 'setServiceInfo' called.");
 
         Log.v(Constants.TAG, "AppActivityService::onServiceConnected. Exit.");
     }
@@ -47,6 +48,8 @@ public class AppActivityService extends AccessibilityService {
 
                     Intent intent = new Intent(Broadcasters.WINDOW_STACK_CHANGED);
                     sendBroadcast(intent);
+
+                    Log.i(Constants.TAG, "AppActivityService::onAccessibilityEvent. Accessibility broadcast called.");
                 }
             }
         }

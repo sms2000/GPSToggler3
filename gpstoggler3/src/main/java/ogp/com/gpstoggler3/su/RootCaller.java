@@ -41,12 +41,14 @@ public class RootCaller {
         }
 
 
-        public List<String> executeOnRoot (String command) {
+        public synchronized List<String> executeOnRoot (String command) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Entry...");
+            Log.d(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Running command: " + command);
 
             List<String> output = new ArrayList<>();
 
             try {
+                int realLines = 0;
                 command += COMMAND_TAIL;
 
                 writer.write(command, 0, command.length());
@@ -61,10 +63,12 @@ public class RootCaller {
                     }
 
                     output.add(string);
+                    realLines++;
                 }
 
-
-                Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", output.size()));
+                if (0 < realLines) {
+                    Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", realLines));
+                }
             } catch (IOException e) {
                 Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. IOException with: " + e.getMessage());
                 output = null;
@@ -240,14 +244,12 @@ public class RootCaller {
     }
 
 
-/*
-    public static void terminateRootProcess() {
+    public static void terminateRootProcess(RootExecutor rootExecutor) {
         try {
             rootExecutor.chperm.destroy();
         } catch (Throwable ignored) {
         }
     }
-*/
 
 
     private static RootStatus executeSystemCommand(String command, int stage) {
