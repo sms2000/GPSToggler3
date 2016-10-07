@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.532
+-------
+1. WIP version. Planned to move all the /proc activity into the native code.
+
+
 1.0.409
 -------
 1. Accessibility processing improved.

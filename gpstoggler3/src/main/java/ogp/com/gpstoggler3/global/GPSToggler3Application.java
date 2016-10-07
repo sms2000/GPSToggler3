@@ -1,15 +1,19 @@
 package ogp.com.gpstoggler3.global;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.settings.Settings;
+import ogp.com.gpstoggler3.su.RootCommander;
 
 
 public class GPSToggler3Application extends Application {
+    @SuppressLint("StaticFieldLeak")
     private static GPSToggler3Application globalApp;
+    @SuppressLint("StaticFieldLeak")
     private static Activity mainActivity;
 
 
@@ -21,6 +25,8 @@ public class GPSToggler3Application extends Application {
 
         globalApp = this;
         super.onCreate();
+
+        RootCommander.initialize(this);
 
         Log.i(Constants.TAG, String.format("GPSToggler3Application::onCreate. Package: %s.", getPackageName()));
         Log.v(Constants.TAG, "GPSToggler3Application::onCreate. Exit.");

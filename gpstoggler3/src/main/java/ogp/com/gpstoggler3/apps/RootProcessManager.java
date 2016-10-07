@@ -13,7 +13,11 @@ class RootProcessManager {
     private static final String CMD_LIST_PIDS = "ls /proc";
     private static final String CMD_GET_CMDLINE = "cat /proc/%s/cmdline";
     private static final String CMD_GET_STAT = "cat /proc/%s/stat";
+    private static final String CMD_GET_CGROUP = "cat /proc/%s/cgroup";
+    private static final int POLICY_INDEX = 40;
+    private static final String POLICY_FOREGROUND = "0";
 
+    private static boolean noCGroup = false;
     private RootCaller.RootExecutor rootExecutor;
 
 
@@ -50,8 +54,9 @@ class RootProcessManager {
         long timeNow = System.currentTimeMillis();
 
         List<AndroidAppProcess> apps = new ArrayList<>();
+        /*
         int enumerated = watchedApps.size();
-
+        */
         String cmdlineCommand = CMD_LIST_PIDS;
         List<String> pids = rootExecutor.executeOnRoot(cmdlineCommand);
 
@@ -70,19 +75,36 @@ class RootProcessManager {
                         continue;
                     }
 
-                    if (watchedApps.containsPackage(appPackageName)) {
-                        cmdlineCommand = String.format(CMD_GET_STAT, sPid);
-                        cmdlineResult = rootExecutor.executeOnRoot(cmdlineCommand);
-                        String appState = cmdlineResult.get(0).trim().split("\\s+")[2];
+                    boolean foreground = true;
 
-                        if (appState.equals("R") || appState.equals("S")) {
-                            AndroidAppProcess process = new AndroidAppProcess(appPackageName, appState.equals("R"));
-                            apps.add(process);
+                    if (watchedApps.containsPackage(appPackageName)) {
+                        if (!noCGroup) {
+                            cmdlineCommand = String.format(CMD_GET_CGROUP, sPid);
+                            cmdlineResult = rootExecutor.executeOnRoot(cmdlineCommand);
+                            String appState = cmdlineResult.get(0).trim();
+
+                            if (appState.isEmpty()) {
+                                noCGroup = true;
+                            } else {
+                                foreground = !appState.contains("bg_non_interactive");
+                            }
                         }
 
+                        if (noCGroup) {
+                            cmdlineCommand = String.format(CMD_GET_STAT, sPid);
+                            cmdlineResult = rootExecutor.executeOnRoot(cmdlineCommand);
+                            String[] appState = cmdlineResult.get(0).trim().split("\\s+");
+                            foreground = appState[POLICY_INDEX].equals(POLICY_FOREGROUND);
+                        }
+
+                        AndroidAppProcess process = new AndroidAppProcess(appPackageName, foreground);
+                        apps.add(process);
+
+                        /*
                         if (apps.size() >= enumerated) {
                             break;
                         }
+                        */
                     }
                 } catch (Exception ignored) {
                 }

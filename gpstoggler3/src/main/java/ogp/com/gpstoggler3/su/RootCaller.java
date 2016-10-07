@@ -80,6 +80,47 @@ public class RootCaller {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exit.");
             return output;
         }
+
+
+        public synchronized List<String> executeCommander (String command) {
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Entry...");
+            Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Running command: " + command);
+
+            List<String> output = new ArrayList<>();
+
+            try {
+                int realLines = 0;
+                String command2Exec = RootCommander.getCommanderPath() + " " + COMMAND_ANSWER_END + " " + command;
+
+                writer.write(command2Exec, 0, command2Exec.length());
+                writer.flush();
+
+                while (true) {
+                    String string = reader.readLine();
+                    if (null == string) {
+                        continue;
+                    } else if (string.contains(COMMAND_ANSWER_END)) {
+                        break;
+                    }
+
+                    output.add(string);
+                    realLines++;
+                }
+
+                if (0 < realLines) {
+                    Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeCommander. Output includes %d lines.", realLines));
+                }
+            } catch (IOException e) {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. IOException with: " + e.getMessage());
+                output = null;
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exception: ", e);
+                output = null;
+            }
+
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exit.");
+            return output;
+        }
     }
 
 
