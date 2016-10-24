@@ -1,17 +1,20 @@
 package ogp.com.gpstoggler3.apps;
 
 public class AppStore {
+    public enum AppState {DISABLED, FOREGROUND, BACKGROUND};
+
+
     public String friendlyName;
     public String packageName;
-    private boolean lookup;
     private boolean active;
+    private AppState appState;
 
 
     public AppStore(String appName, String appPackage) {
         this.friendlyName = appName;
         this.packageName = appPackage;
-        this.lookup = false;
         this.active = false;
+        this.appState = AppState.DISABLED;
     }
 
 
@@ -20,8 +23,8 @@ public class AppStore {
     }
 
 
-    public boolean getLookup() {
-        return lookup;
+    public AppState getAppState() {
+        return appState;
     }
 
 
@@ -30,7 +33,7 @@ public class AppStore {
     }
 
 
-    public void setLookup(boolean lookup) {
-        this.lookup = lookup;
+    public void setAppState(AppState appState) {
+        this.appState = appState;
     }
 }

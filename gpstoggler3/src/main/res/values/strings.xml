@@ -20,7 +20,8 @@
     <string name="failed_connect_to_service">Failed to connect to the service</string>
     <string name="selected_failed">Failed to load selected applications</string>
     <string name="activated_failed">Failed to load activated applications</string>
-    <string name="add_lookup">Watching for \'%s\'</string>
+    <string name="add_lookup_f">Watching for \'%s\' in foreground.</string>
+    <string name="add_lookup_b">Watching for \'%s\' in background.</string>
     <string name="remove_lookup">Removed \'%s\' from the watch</string>
     <string name="activate_lookup">Automation enabled</string>
     <string name="deactivate_lookup">Automation disabled</string>

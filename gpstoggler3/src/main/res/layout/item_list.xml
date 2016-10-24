@@ -6,7 +6,7 @@
 
 	<LinearLayout  	android:layout_width="0dp"
 		       		android:layout_height="match_parent"
-					android:layout_weight="75"
+					android:layout_weight="60"
 					android:orientation="vertical">
 
 		<TextView	android:id="@+id/appName"
@@ -22,7 +22,9 @@
 		           	android:text="@string/Package" />
 	</LinearLayout>
 
-	<CheckBox 	android:layout_width="wrap_content"
+	<ogp.com.gpstoggler3.controls.ThreeStateSwitch
+				android:layout_width="0dp"
+                android:layout_weight="20"
 				android:layout_height="match_parent"
 				android:id="@+id/appLookup" />
 

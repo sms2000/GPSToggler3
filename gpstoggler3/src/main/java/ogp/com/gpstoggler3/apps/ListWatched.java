@@ -103,6 +103,11 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     }
 
 
+    public boolean isPackageBackground(String packageName) {
+        return false; // TODO: implement!
+    }
+
+
     private boolean packageExists(String packageName) {
         for (AppStore app : this) {
             if (app.packageName.equals(packageName)) {
@@ -118,3 +123,4 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
         return packageExists(appStore.packageName);
     }
 }
+

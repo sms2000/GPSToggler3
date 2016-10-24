@@ -30,6 +30,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.630
+-------
+1. WIP. '/proc' activity has been developed.
+2. WIP. Per-process fiore- and background activation implemented.
+
+
 1.0.532
 -------
 1. WIP version. Planned to move all the /proc activity into the native code.

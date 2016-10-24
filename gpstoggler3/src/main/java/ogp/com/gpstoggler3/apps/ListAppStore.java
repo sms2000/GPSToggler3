@@ -63,7 +63,7 @@ public class ListAppStore extends ArrayList<AppStore> implements Parcelable {
                 ////////////Log.v(TogglerService.TAG, String.format("ListAppStore::readFromParcel. Read package [%s]", packageName));
 
                 AppStore app = new AppStore(friendlyName, packageName);
-                app.setLookup(1 == in.readInt());
+                app.setAppState(AppStore.AppState.values()[in.readInt()]);
                 app.setActive(1 == in.readInt());
 
                 add(app);
@@ -88,7 +88,7 @@ public class ListAppStore extends ArrayList<AppStore> implements Parcelable {
             dest.writeString(app.friendlyName);
             dest.writeString(app.packageName);
 
-            dest.writeInt(app.getLookup() ? 1 : 0);
+            dest.writeInt(app.getAppState().ordinal());
             dest.writeInt(app.getActive() ? 1 : 0);
             counted++;
         }

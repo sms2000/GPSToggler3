@@ -225,8 +225,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Settings.allocate(this);
 
-        serverThread = new WorkerThread(this);
-        appDatabaseProcessor = new AppDatabaseProcessor(this);
+        serverThread = new WorkerThread();
+        appDatabaseProcessor = new AppDatabaseProcessor();
         appEnumerator = new AppEnumerator(this);
 
         gpsActuator = GPSActuatorFactory.GetActuator(this);
@@ -470,6 +470,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Log.i(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind...");
         Intent intent = new Intent(context, TogglerService.class);
+
+        try {
+            context.unbindService(serviceConnection);
+        } catch (IllegalArgumentException ignored) {
+        }
+
         if (context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT)) {
             success = true;
             Log.i(Constants.TAG, "TogglerService::startServiceAndBind. Attempt to bind succeeded.");
@@ -492,7 +498,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             intent.setClassName(Broadcasters.HD_MONITOR_PACKAGE, Broadcasters.HD_MONITOR_ACTIVITY);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-        } catch (ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException | IllegalArgumentException e) {
             Log.w(Constants.TAG, "TogglerService::initiateMonitor. No Monitor application installed apparently. Autonomous mode doesn't guarantee permanent existence.");
         } catch (Exception e) {
             Log.e(Constants.TAG, "TogglerService::initiateMonitor. Exception: ", e);

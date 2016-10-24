@@ -7,6 +7,7 @@ import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.settings.Settings;
+import ogp.com.gpstoggler3.su.RootCaller;
 import ogp.com.gpstoggler3.su.RootCommander;
 
 
@@ -27,6 +28,19 @@ public class GPSToggler3Application extends Application {
         super.onCreate();
 
         RootCommander.initialize(this);
+
+        RootCaller.RootExecutor executor = RootCaller.createRootProcess();
+        if (null != executor) {
+            String output = executor.executeCommander("read_proc", 300);
+
+            if (null != output) {
+                Log.v(Constants.TAG, ">>>>>>>>>>> " + output);
+            } else {
+                Log.v(Constants.TAG, ">>>>>>>>>>> <no output>");
+            }
+
+            Log.v(Constants.TAG, "--------------------");
+        }
 
         Log.i(Constants.TAG, String.format("GPSToggler3Application::onCreate. Package: %s.", getPackageName()));
         Log.v(Constants.TAG, "GPSToggler3Application::onCreate. Exit.");

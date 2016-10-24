@@ -8,15 +8,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import ogp.com.gpstoggler3.R;
+import ogp.com.gpstoggler3.controls.ThreeStateSwitch;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.resources.IconStorage;
@@ -35,8 +33,9 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
     }
 
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         final AppStore appStore = getItem(position);
 
         if (convertView == null) {
@@ -46,19 +45,20 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         TextView appName = (TextView) convertView.findViewById(R.id.appName);
         TextView appPackage = (TextView) convertView.findViewById(R.id.appPackage);
         ImageView icon = (ImageView) convertView.findViewById(R.id.appImage);
-        final CheckBox appLookup = (CheckBox) convertView.findViewById(R.id.appLookup);
+        final ThreeStateSwitch appLookup = (ThreeStateSwitch) convertView.findViewById(R.id.appLookup);
 
         appLookup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onClickAppLookup(appStore, appLookup.isChecked());
+                onClickAppLookup(appStore, appLookup.getState());
             }
         });
 
+        assert appStore != null;
         appName.setText(appStore.friendlyName);
         appPackage.setText(appStore.packageName);
         setImageDrawable(icon, appStore);
-        appLookup.setChecked(appStore.getLookup());
+        appLookup.setState(appStore.getAppState());
         return convertView;
     }
 
@@ -75,6 +75,7 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
             for (int i = 0; i < getCount(); i++) {
                 AppStore existedApp = getItem(i);
                 AppStore newApp = appList.get(i);
+                assert existedApp != null;
                 if (!existedApp.packageName.equals(newApp.packageName)) {
                     updateRequired = true;
                     Log.i(Constants.TAG, "AppAdapter::updateCollection. Update required: different list of apps.");
@@ -102,6 +103,7 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         for (int i = 0; i < getCount(); i++) {
             AppStore appStore = getItem(i);
 
+            assert appStore != null;
             if (null != listActivated && listActivated.containsPackage(appStore.packageName)) {
                 activated++;
                 appStore.setActive(true);
@@ -117,18 +119,18 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
     }
 
 
-    private void onClickAppLookup(AppStore appStore, boolean checked) {
-        appStore.setLookup(checked);
+    private void onClickAppLookup(AppStore appStore, AppStore.AppState state) {
+        appStore.setAppState(state);
         notifyDataSetChanged();
 
-        appAdapterInterface.onClickAppLookup(appStore, checked);
+        appAdapterInterface.onClickAppLookup(appStore, state);
     }
 
 
     private void setImageDrawable(ImageView icon, AppStore app) {
         Drawable drawable;
 
-        if (!app.getLookup()) {
+        if (AppStore.AppState.DISABLED == app.getAppState()) {
             drawable = IconStorage.getDisabled();
         } else if (app.getActive()) {
             drawable = IconStorage.getActive();

@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private Handler handler = new Handler();
     private String packageName;
     private ProgressDialog progress;
-    private WorkerThread activityThread = new WorkerThread(this);
+    private WorkerThread activityThread = new WorkerThread();
     private GoogleApiClient client;
     private long backPressedTime = 0;
 
@@ -577,19 +577,19 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
 
     @Override
-    public void onClickAppLookup(final AppStore appStore, final boolean enabled) {
+    public void onClickAppLookup(final AppStore appStore, final AppStore.AppState appState) {
         Log.v(Constants.TAG, "MainActivity::onClickAppLookup. Entry...");
 
         activityThread.post(new Runnable() {
             @Override
             public void run() {
-                appStore.setLookup(enabled);
+                appStore.setAppState(appState);
 
                 ListWatched appList = new ListWatched();
                 for (int i = 0; i < adapter.getCount(); i++) {
                     AppStore app = adapter.getItem(i);
                     assert app != null;
-                    if (app.getLookup()) {
+                    if (app.getAppState() != AppStore.AppState.DISABLED) {
                         appList.add(new AppStore(app.friendlyName, app.packageName));
                     }
                 }
@@ -604,8 +604,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     }
 
 
-                    addLogMessage(String.format(getString(enabled ? R.string.add_lookup : R.string.remove_lookup),
-                            appStore.friendlyName));
+                    int strIndex = appState == AppStore.AppState.DISABLED ? R.string.remove_lookup : (appState == AppStore.AppState.FOREGROUND ? R.string.add_lookup_f : R.string.add_lookup_b);
+                    addLogMessage(String.format(getString(strIndex), appStore.friendlyName));
                 }
             }
         });
@@ -662,7 +662,16 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 appSelected = togglerBinder.listWatchedApps();
 
                 for (AppStore app : appList) {
-                    app.setLookup(appSelected.containsPackage(app.packageName));
+                    AppStore.AppState state = AppStore.AppState.DISABLED;
+                    if (appSelected.containsPackage(app.packageName)) {
+                        state = AppStore.AppState.BACKGROUND;
+                        if (appSelected.isPackageBackground(app.packageName)) {
+                            state = AppStore.AppState.BACKGROUND;
+                        }
+                    }
+
+
+                    app.setAppState(state);
                 }
 
 

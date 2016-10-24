@@ -13,11 +13,11 @@ public class AppDatabaseProcessor {
     private WorkerThread storeThread = null;
 
 
-    public AppDatabaseProcessor(Context context) {
+    public AppDatabaseProcessor() {
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Entry...");
 
         listApps = Settings.loadWatchedApps();
-        storeThread = new WorkerThread(context);
+        storeThread = new WorkerThread();
 
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Exit.");
     }

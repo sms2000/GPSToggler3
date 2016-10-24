@@ -11,6 +11,9 @@ public:
     ~CReadProcDirectory();
 
     virtual bool execute (std::string &output);
+
+private:
+    bool readFile (const char *pcszFilePath, char *pszData, int nMaxData);
 };
 
 #endif //GPSTOGGLER3_READPROCDIRECTORY_H

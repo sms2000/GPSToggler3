@@ -9,39 +9,86 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.servlets.ExecuteWithTimeout;
 
 
 public class RootCaller {
     private final static String CMD_SU = "su";
-    private final static String CMD_EXEC = "-c";
     private static final String[] SU_PATHES = {"/system/xbin/which", "/system/bin/which"};
 
     private static boolean securitySettingsSet = false;
     private static RootExecutor rootExecutor = null;
+    private static int createdCounter = 0;
 
     public enum RootStatus {NO_ROOT, ROOT_FAILED, ROOT_GRANTED}
 
 
-    public static class RootExecutor {
-        private static final String COMMAND_ANSWER_END = ">###<";
-        private static final String COMMAND_TAIL = ";echo '\n" + COMMAND_ANSWER_END + "'\n";
+    public static class RootExecutor extends ExecuteWithTimeout {
+        private static String COMMAND_ANSWER_END = "%d_FINISH_%d";
+        private static String COMMAND_TAIL;
         private Process chperm;
         private BufferedReader reader;
         private BufferedWriter writer;
 
-        RootExecutor(Process chperm) {
-            this.chperm = chperm;
-            this.reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
-            this.writer = new BufferedWriter(new OutputStreamWriter(chperm.getOutputStream()));
+        private static class ExecuteOnRoot extends ExecuteParams {
+            private String command;
+
+            public ExecuteOnRoot(final String command) {
+                this.command = command;
+            }
         }
 
 
-        public synchronized List<String> executeOnRoot (String command) {
+        static {
+            long random = Math.abs(new Random().nextInt());
+            COMMAND_ANSWER_END = String.format(Locale.US, COMMAND_ANSWER_END, random, random);
+            COMMAND_TAIL = ";echo '\n" + COMMAND_ANSWER_END + "'\n";
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::<static>. Final random string: " + COMMAND_ANSWER_END);
+        }
+
+        RootExecutor() {
+            super();
+
+            initialize();
+        }
+
+
+        private void initialize() {
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::initialize. Entry...");
+
+            try {
+                chperm.destroy();
+            } catch (Exception ignored) {
+            }
+
+            chperm = null;
+
+            try {
+                chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
+            } catch (IOException ignored) {
+            }
+
+            if (null != chperm) {
+                reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
+                writer = new BufferedWriter(new OutputStreamWriter(chperm.getOutputStream()));
+                Log.i(Constants.TAG, "RootCaller::RootExecutor::initialize. Created a root process.");
+            } else {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::initialize. Failed to create a root process.");
+            }
+
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::initialize. Exit.");
+        }
+
+        public synchronized List<String> executeOnRoot(String command) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Entry...");
             Log.d(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Running command: " + command);
 
@@ -58,7 +105,7 @@ public class RootCaller {
                     String string = reader.readLine();
                     if (null == string) {
                         continue;
-                    } else if (string.contains(COMMAND_ANSWER_END)) {
+                    } else if (string.equals(COMMAND_ANSWER_END)) {
                         break;
                     }
 
@@ -82,47 +129,90 @@ public class RootCaller {
         }
 
 
-        public synchronized List<String> executeCommander (String command) {
+        public synchronized String executeCommander(String command, int timeoutMS) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Entry...");
             Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Running command: " + command);
 
-            List<String> output = new ArrayList<>();
 
-            try {
-                int realLines = 0;
-                String command2Exec = RootCommander.getCommanderPath() + " " + COMMAND_ANSWER_END + " " + command;
+            String command2Exec = RootCommander.getCommanderPath() + " " + COMMAND_ANSWER_END + " " + command + "\n";
 
-                writer.write(command2Exec, 0, command2Exec.length());
-                writer.flush();
-
-                while (true) {
-                    String string = reader.readLine();
-                    if (null == string) {
-                        continue;
-                    } else if (string.contains(COMMAND_ANSWER_END)) {
-                        break;
-                    }
-
-                    output.add(string);
-                    realLines++;
+            ExecuteOnRoot executeOnRoot = new ExecuteOnRoot(command2Exec);
+            Object result = execute(executeOnRoot, timeoutMS);
+            String output = null;
+            if (null != result) {
+                if (result instanceof String) {
+                    output = (String)result;
+                    Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Proper result returned.");
+                } else {
+                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Wrong type of result: " + result.getClass().getCanonicalName());
                 }
-
-                if (0 < realLines) {
-                    Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeCommander. Output includes %d lines.", realLines));
-                }
-            } catch (IOException e) {
-                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. IOException with: " + e.getMessage());
-                output = null;
-            } catch (Exception e) {
-                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exception: ", e);
-                output = null;
+            } else {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. 'null' returned. Timeout?");
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exit.");
             return output;
         }
-    }
 
+
+        @Override
+        public Object executeWithResult(final ExecuteParams params) throws InvocationTargetException {
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeWithResult. Entry...");
+
+            String result = "";
+
+            if (params instanceof ExecuteOnRoot) {
+                ExecuteOnRoot executeOnRoot = (ExecuteOnRoot)params;
+
+                try {
+                    int realLines = 0;
+                    String command = executeOnRoot.command;
+
+                    writer.write(command, 0, command.length());
+                    writer.flush();
+
+                    while (true) {
+                        String string = reader.readLine();
+                        if (null == string) {
+                            continue;
+                        } else if (string.equals(COMMAND_ANSWER_END)) {
+                            break;
+                        }
+
+                        result += string + "\n";
+                        realLines++;
+                    }
+
+                    if (0 < realLines) {
+                        Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", realLines));
+                    }
+                } catch (IOException e) {
+                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. IOException with: " + e.getMessage());
+                    result = null;
+                } catch (Exception e) {
+                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exception: ", e);
+                    result = null;
+                }
+            } else {
+                executedError(new InvalidParameterException());
+                result = null;
+            }
+
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executeWithResult. Exit.");
+            return result;
+        }
+
+
+        @Override
+        public void executedError(Exception e) {
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executedError. Entry...");
+
+            Log.w(Constants.TAG, String.format("RootCaller::RootExecutor::executedError. Exception happenned [%s]. Reinitialize 'root' process.", e.getMessage()));
+            initialize();
+
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::executedError. Exit.");
+        }
+    }
 
 
     public static RootStatus ifRootAvailable() {
@@ -271,13 +361,19 @@ public class RootCaller {
     }
 
 
-    public static RootExecutor createRootProcess() {
+    public static synchronized RootExecutor createRootProcess() {
         if (null == rootExecutor) {
             try {
-                Process chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
-                return new RootExecutor(chperm);
-            } catch (IOException ignored) {
-                return null;
+                rootExecutor = new RootExecutor();
+
+                if (++createdCounter == 1) {
+                    Log.w(Constants.TAG, "RootCaller::createRootProcess. New root executor created. First of the kind.");
+                } else {
+                    Log.w(Constants.TAG, String.format("RootCaller::createRootProcess. New root executor created. Instance counter: %d.", createdCounter));
+                }
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "RootCaller::createRootProcess. Exception: ", e);
+                rootExecutor = null;
             }
         }
 
