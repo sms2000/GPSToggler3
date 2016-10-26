@@ -12,7 +12,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorTransparent">
+        android:background="@color/colorTransparentGrey">
 
         <ImageView
             android:id="@+id/gpsPic"
@@ -26,7 +26,7 @@
             android:layout_marginTop="@dimen/activity_vertical_small_margin"
             android:contentDescription="@+id/widget_full_description"
             android:src="@drawable/disabled"
-            android:background="@color/colorTransparent"/>
+            android:background="@color/colorTransparentGrey"/>
 
         <TextView
             android:id="@+id/gpsStatus"
@@ -43,14 +43,14 @@
             android:paddingRight="@dimen/activity_horizontal_small_margin"
             android:lines="3"
             android:text="@string/no_timestamp"
-            android:background="@color/colorTransparent"
+            android:background="@color/colorTransparentGrey"
             android:textColor="@color/colorWhite" />
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorTransparent">
+        android:background="@color/colorTransparentGrey">
 
         <ListView
             android:id="@+id/listApps"
@@ -60,6 +60,6 @@
             android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
             android:layout_marginRight="@dimen/activity_horizontal_small_margin"
             android:layout_marginTop="@dimen/activity_vertical_small_margin"
-            android:background="@color/colorTransparent"/>
+            android:background="@color/colorTransparentGrey"/>
     </LinearLayout>
 </LinearLayout>

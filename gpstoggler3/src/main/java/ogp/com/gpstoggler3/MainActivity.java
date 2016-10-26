@@ -590,7 +590,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                     AppStore app = adapter.getItem(i);
                     assert app != null;
                     if (app.getAppState() != AppStore.AppState.DISABLED) {
-                        appList.add(new AppStore(app.friendlyName, app.packageName));
+                        appList.add(app);
                     }
                 }
 
@@ -664,12 +664,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 for (AppStore app : appList) {
                     AppStore.AppState state = AppStore.AppState.DISABLED;
                     if (appSelected.containsPackage(app.packageName)) {
-                        state = AppStore.AppState.BACKGROUND;
-                        if (appSelected.isPackageBackground(app.packageName)) {
-                            state = AppStore.AppState.BACKGROUND;
-                        }
+                        state = appSelected.getState(app.packageName);
                     }
-
 
                     app.setAppState(state);
                 }

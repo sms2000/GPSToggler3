@@ -14,7 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.R;
-import ogp.com.gpstoggler3.controls.ThreeStateSwitch;
+import ogp.com.gpstoggler3.controls.TriStateSwitch;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.resources.IconStorage;
@@ -45,11 +45,11 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         TextView appName = (TextView) convertView.findViewById(R.id.appName);
         TextView appPackage = (TextView) convertView.findViewById(R.id.appPackage);
         ImageView icon = (ImageView) convertView.findViewById(R.id.appImage);
-        final ThreeStateSwitch appLookup = (ThreeStateSwitch) convertView.findViewById(R.id.appLookup);
+        final TriStateSwitch appLookup = (TriStateSwitch) convertView.findViewById(R.id.appLookup);
 
-        appLookup.setOnClickListener(new View.OnClickListener() {
+        appLookup.setFlashListener(new TriStateSwitch.TriStateListener() {
             @Override
-            public void onClick(View view) {
+            public void onStateChanged(AppStore.AppState appState) {
                 onClickAppLookup(appStore, appLookup.getState());
             }
         });

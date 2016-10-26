@@ -61,9 +61,13 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
                     continue;
                 }
 
+                AppStore.AppState state = AppStore.AppState.values()[in.readInt()];
+
                 Log.v(Constants.TAG, String.format("ListWatched::readFromParcel. Read package [%s]", packageName));
 
-                add(new AppStore(friendlyName, packageName));
+                AppStore appStore = new AppStore(friendlyName, packageName);
+                appStore.setAppState(state);
+                add(appStore);
                 counted++;
             } catch (Exception e) {
                 Log.d(Constants.TAG, "ListWatched::readFromParcel. Exception [2]: ", e);
@@ -84,6 +88,7 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
         for (AppStore app : this) {
             dest.writeString(app.packageName);
             dest.writeString(app.friendlyName);
+            dest.writeInt(app.getAppState().ordinal());
             Log.v(Constants.TAG, String.format("ListWatched::writeToParcel. Written [%s] package.", app.packageName));
             counted++;
         }
@@ -103,8 +108,13 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     }
 
 
-    public boolean isPackageBackground(String packageName) {
-        return false; // TODO: implement!
+    public AppStore.AppState getState(String packageName) {
+        for (AppStore app : this) {
+            if (app.packageName.equals(packageName)) {
+                return app.getAppState();
+            }
+        }
+        return AppStore.AppState.DISABLED;
     }
 
 

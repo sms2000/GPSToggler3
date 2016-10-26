@@ -100,7 +100,7 @@ public class Settings {
         String serialized = "";
 
         for (AppStore app : listApps) {
-            String appData = app.friendlyName + FIELD_SEPARATOR + app.packageName + APPS_SEPARATOR;
+            String appData = app.friendlyName + FIELD_SEPARATOR + app.packageName + FIELD_SEPARATOR + app.getAppState().name() + APPS_SEPARATOR;
             serialized += appData;
         }
 
@@ -125,7 +125,17 @@ public class Settings {
             for (String app : apps) {
                 String[] splitted = app.split(FIELD_SEPARATOR);
                 if (2 <= splitted.length) {
-                    listApps.add(new AppStore(splitted[0], splitted[1]));
+                    AppStore appStore = new AppStore(splitted[0], splitted[1]);
+
+                    if (3 <= splitted.length) {
+                        try {
+                            AppStore.AppState state = AppStore.AppState.valueOf(splitted[2]);
+                            appStore.setAppState(state);
+                        } catch (Exception ignored) {
+                        }
+                    }
+
+                    listApps.add(appStore);
                 }
             }
         }

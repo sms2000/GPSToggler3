@@ -30,6 +30,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.0.638
+-------
+1. Pure native applictions recognition tool implemented.
+2. WIP for a better interface.
+
 1.0.630
 -------
 1. WIP. '/proc' activity has been developed.

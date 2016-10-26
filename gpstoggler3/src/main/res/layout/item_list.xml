@@ -22,7 +22,7 @@
 		           	android:text="@string/Package" />
 	</LinearLayout>
 
-	<ogp.com.gpstoggler3.controls.ThreeStateSwitch
+	<ogp.com.gpstoggler3.controls.TriStateSwitch
 				android:layout_width="0dp"
                 android:layout_weight="20"
 				android:layout_height="match_parent"

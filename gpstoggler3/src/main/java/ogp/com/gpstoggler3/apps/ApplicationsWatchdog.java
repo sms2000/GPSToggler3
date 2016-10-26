@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,7 @@ import ogp.com.gpstoggler3.interfaces.TogglerServiceInterface;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.su.RootCaller;
 
 
 public class ApplicationsWatchdog extends Thread {
@@ -24,6 +26,10 @@ public class ApplicationsWatchdog extends Thread {
     private static final long DELAYED_ACTIVATION = 250;     // Activate thread after xxx ms
 
     private static final ListWatched lastActivatedApps = new ListWatched();
+    private static final String EXECUTOR_COMMAND = "read_proc";
+    private static final int EXECUTOR_TIMEOUT = 1000;        // One second in ms
+    private static final String APPS_SEPARATOR = ",";
+    private static final byte FOREGROUND = 'F';
 
     private boolean initialPost = false;
     private Context context;
@@ -35,7 +41,8 @@ public class ApplicationsWatchdog extends Thread {
     private TogglerServiceInterface togglerServiceInterface = null;
     private Handler handler = new Handler();
     private SortComparator comparator = new SortComparator();
-    private RootProcessManager rootProcessManager;
+    //  private RootProcessManager rootProcessManager;
+    private RootCaller.RootExecutor rootExecutor;
 
 
     private class SortComparator implements Comparator<AppStore> {
@@ -92,7 +99,8 @@ public class ApplicationsWatchdog extends Thread {
         this.context = context;
         this.togglerServiceInterface = togglerServiceInterface;
         this.activityManager = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
-        this.rootProcessManager = null;
+//      this.rootProcessManager = null;
+        this.rootExecutor = null;
 
         active = true;
         start();
@@ -204,18 +212,18 @@ public class ApplicationsWatchdog extends Thread {
     synchronized private void verifyGPSSoftwareRunning() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        int importance = Settings.getMultiWindowAware() ?
-                ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE : ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 
         List<ActivityManager.RunningAppProcessInfo> list = activityManager.getRunningAppProcesses();
 
         for (ActivityManager.RunningAppProcessInfo iterator : list) {
-            if (importance >= iterator.importance) {
-                for (AppStore iterator2 : watchedApps) {
-                    if (iterator.processName.equals(iterator2.packageName)) {
-                        activatedApps.add(iterator2);
-                        Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS status active due to running process: " + iterator.processName);
+            for (AppStore iterator2 : watchedApps) {
+                if (iterator.processName.equals(iterator2.packageName)) {
+                    if (iterator.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && iterator2.getAppState() == AppStore.AppState.FOREGROUND) {
+                        continue;
                     }
+
+                    activatedApps.add(iterator2);
+                    Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning. GPS status active due to running process: " + iterator.processName);
                 }
             }
         }
@@ -271,28 +279,39 @@ public class ApplicationsWatchdog extends Thread {
             return;
         }
 
-        if (null == rootProcessManager) {
-            rootProcessManager = new RootProcessManager();
-            Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. 'root' granted and RootProcessManager created.");
-        }
-
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
-        boolean forceForeground = !Settings.getMultiWindowAware();
+        List<RootProcessManager.AndroidAppProcess> list;
 
-        List<RootProcessManager.AndroidAppProcess> list = rootProcessManager.enumerate(watchedApps);
-
-        for (RootProcessManager.AndroidAppProcess iterator : list) {
-            if (forceForeground && !iterator.isForeground()) {
-                continue;
+        if (null == rootExecutor) {
+            rootExecutor = RootCaller.createRootProcess();
+            if (null != rootExecutor) {
+                Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. 'root' granted and RootExecutor created.");
+            } else {
+                Log.e(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. Failed to create 'RootExecutor'.");
+                return;
             }
+        }
 
-            for (AppStore iterator2 : watchedApps) {
-                if (iterator.getPackageName().equals(iterator2.packageName)) {
-                    activatedApps.add(iterator2);
-                    Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS status active due to running process: " + iterator2);
+        String output = rootExecutor.executeCommander(EXECUTOR_COMMAND, EXECUTOR_TIMEOUT);
+        if (null != output) {
+            list = parseExecutorOutput(output);
+
+            for (RootProcessManager.AndroidAppProcess iterator : list) {
+                for (AppStore iterator2 : watchedApps) {
+                    if (iterator.getPackageName().equals(iterator2.packageName)) {
+                        if (!iterator.isForeground() && iterator2.getAppState() == AppStore.AppState.FOREGROUND) {
+                            continue;
+                        }
+
+                        activatedApps.add(iterator2);
+                        Log.v(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. GPS status active due to running process: " + iterator2);
+                    }
                 }
             }
+        } else {
+            Log.d(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. No suitable applications found.");
+            return;
         }
 
 
@@ -337,5 +356,24 @@ public class ApplicationsWatchdog extends Thread {
             Log.d(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Total processes: %d, watched processes: %d, activated: %d/%d.",
                     list.size(), togglerServiceInterface.listActivatedApps().size(), lastActivatedApps.size(), activatedApps.size()));
         }
+    }
+
+
+    private List<RootProcessManager.AndroidAppProcess> parseExecutorOutput(String output) {
+        String[] apps = output.split(APPS_SEPARATOR);
+        List<RootProcessManager.AndroidAppProcess> list = new ArrayList<>();
+
+        for (String app : apps) {
+            if (app.length() < 2) {
+                continue;
+            }
+
+            String packageName = app.substring(1, app.length());
+            boolean foreground = app.getBytes()[0] == FOREGROUND;
+            RootProcessManager.AndroidAppProcess process = new RootProcessManager.AndroidAppProcess(packageName, foreground);
+            list.add(process);
+        }
+
+        return list;
     }
 }

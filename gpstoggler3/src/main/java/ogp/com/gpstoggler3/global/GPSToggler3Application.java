@@ -29,19 +29,6 @@ public class GPSToggler3Application extends Application {
 
         RootCommander.initialize(this);
 
-        RootCaller.RootExecutor executor = RootCaller.createRootProcess();
-        if (null != executor) {
-            String output = executor.executeCommander("read_proc", 300);
-
-            if (null != output) {
-                Log.v(Constants.TAG, ">>>>>>>>>>> " + output);
-            } else {
-                Log.v(Constants.TAG, ">>>>>>>>>>> <no output>");
-            }
-
-            Log.v(Constants.TAG, "--------------------");
-        }
-
         Log.i(Constants.TAG, String.format("GPSToggler3Application::onCreate. Package: %s.", getPackageName()));
         Log.v(Constants.TAG, "GPSToggler3Application::onCreate. Exit.");
     }

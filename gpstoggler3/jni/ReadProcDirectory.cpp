@@ -77,7 +77,7 @@ bool CReadProcDirectory::execute (std::string &output) {
             if (useCGroup) {
                 sprintf (appData, "%s/%s/%s", PROC_DIR, pDirEntry->d_name, CGROUP);
                 if (readFile (appData, appStat, MAXFILEDATA)) {     // Find application 'cgroup'.
-                    if (NULL == strstr (appStat, LOOK_BG_NON_INTERACTIVE)) {
+                    if (NULL != strstr (appStat, LOOK_BG_NON_INTERACTIVE)) {
                         bForeground = false;
                     }
                 } else {
