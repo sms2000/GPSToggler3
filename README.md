@@ -30,7 +30,7 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
-1.0.638
+1.0.640
 -------
 1. Pure native applictions recognition tool implemented.
 2. WIP for a better interface.
