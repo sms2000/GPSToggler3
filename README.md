@@ -17,6 +17,7 @@ It requires the 'su' privilegies only during the very first run (reboot is still
 
 Utilizes parts of 'AndroidProcesses' library code courtesy Jared Rummler from
 https://github.com/jaredrummler/AndroidProcesses
+(Starting 1.0.640 the 'AndroidProcess' library is not used anymore).
 
 
 ANTIVIRUS REPORTS MALICIOUS SOFTWARE
@@ -38,7 +39,7 @@ Versions:
 1.0.630
 -------
 1. WIP. '/proc' activity has been developed.
-2. WIP. Per-process fiore- and background activation implemented.
+2. WIP. Per-process fore- and background activation implemented.
 
 
 1.0.532
