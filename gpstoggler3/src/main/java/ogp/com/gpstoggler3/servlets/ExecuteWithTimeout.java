@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.results.RPCResult;
 
 
 public class ExecuteWithTimeout extends WorkerThread {
@@ -22,7 +23,7 @@ public class ExecuteWithTimeout extends WorkerThread {
     public static abstract class ExecuteParams {
     }
 
-    public static class ExecuteMethod extends ExecuteParams {
+    private static class ExecuteMethod extends ExecuteParams {
         private Object instance;
         private Method method;
         private Object[] arguments;
@@ -39,24 +40,28 @@ public class ExecuteWithTimeout extends WorkerThread {
         super();
     }
 
-    public Object execute(final ExecuteParams params, int rpcTimeout) {
+    public RPCResult execute(final ExecuteParams params, int rpcTimeout) {
         Log.v(Constants.TAG, "ExecuteWithTimeout::execute. Entry...");
 
-        Callable<Object> rpcTask = new Callable<Object>() {
+        Callable<RPCResult> rpcTask = new Callable<RPCResult>() {
             @Override
-            public Object call() throws Exception {
+            public RPCResult call() throws Exception {
                 Log.d(Constants.TAG, "ExecuteWithTimeout::execute::call. Entry...");
 
-                Object returned = executeWithResult(params);
-                Log.i(Constants.TAG, "ExecuteWithTimeout::execute::call. Succeeded executing [" + params.getClass() + "]. Returned: " + returned.toString());
+                RPCResult returned = executeWithResult(params);
+                if (!returned.isError()) {
+                    Log.d(Constants.TAG, "ExecuteWithTimeout::execute::call. Succeeded executing [" + params.getClass() + "]. Returned: " + returned.toString());
+                } else {
+                    Log.e(Constants.TAG, "ExecuteWithTimeout::execute::call. Exception when executing [" + params.getClass() + "].");
+                }
 
                 Log.v(Constants.TAG, "ExecuteWithTimeout::execute::call. Exit.");
                 return returned;
             }
         };
 
-        Object result = null;
-        Future<Object> future = executorService.submit(rpcTask);
+        RPCResult result = null;
+        Future<RPCResult> future = executorService.submit(rpcTask);
 
         Exception exception = null;
 
@@ -64,12 +69,13 @@ public class ExecuteWithTimeout extends WorkerThread {
             Log.i(Constants.TAG, "ExecuteWithTimeout::execute. Waiting for 'get' with timeout...");
 
             result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
+
             Log.d(Constants.TAG, "ExecuteWithTimeout::execute. Success.");
         } catch (TimeoutException e) {
-            exception = e;
+            exception = new TimeoutException("Timeout reached");
             Log.w(Constants.TAG, "ExecuteWithTimeout::execute. TimeoutException accounted!");
         } catch (InterruptedException e) {
-            exception = e;
+            exception = new InterruptedException("Interrupted...");
             Log.e(Constants.TAG, "ExecuteWithTimeout::execute. InterruptedException accounted!");
         } catch (ExecutionException e) {
             exception = e;
@@ -77,7 +83,10 @@ public class ExecuteWithTimeout extends WorkerThread {
         }
 
         if (null != exception) {
-            result = exception;
+            executorService.shutdownNow();
+            executorService = Executors.newSingleThreadExecutor();
+
+            result = new RPCResult(exception);
             executedError(exception);
         }
 
@@ -86,23 +95,28 @@ public class ExecuteWithTimeout extends WorkerThread {
     }
 
 
-    public Object executeWithResult(final ExecuteParams params) throws InvocationTargetException {
+    public RPCResult executeWithResult(final ExecuteParams params) throws InvocationTargetException {
         Log.v(Constants.TAG, "ExecuteWithTimeout::executeWithResult. Entry...");
 
-        Object result = null;
+        RPCResult result;
 
         if (params instanceof ExecuteMethod) {
             ExecuteMethod executedMethod = (ExecuteMethod)params;
             try {
-                result = executedMethod.method.invoke(executedMethod.instance, executedMethod.arguments);
+                Object output = executedMethod.method.invoke(executedMethod.instance, executedMethod.arguments);
+                result = new RPCResult(output);
                 Log.d(Constants.TAG, "ExecuteWithTimeout::executeWithResult. Succeeded. Result: " + result.toString());
             } catch (IllegalAccessException e) {
                 Log.e(Constants.TAG, "ExecuteWithTimeout::executeWithResult. Exception: ", e);
-                executedError(e);
+                result = new RPCResult(e);
             }
         } else {
-            executedError(new InvalidParameterException());
-            result = null;
+            Exception e = new InvalidParameterException();
+            result = new RPCResult(e);
+        }
+
+        if (result.isError()) {
+            executedError(result.getError());
         }
 
         Log.v(Constants.TAG, "ExecuteWithTimeout::executeWithResult. Exit.");

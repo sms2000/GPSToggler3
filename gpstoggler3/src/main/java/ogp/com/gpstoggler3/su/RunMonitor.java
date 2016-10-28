@@ -13,8 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -53,11 +53,11 @@ public class RunMonitor {
                 byte[] buf = new byte[bufLen + 1];
                 int read = inputStream.read(buf);
                 if (read == bufLen + 1) {
-                    Log.w(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read partially, %d bytes only.", read));
+                    Log.v(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read partially, %d bytes only.", read));
 
                     inputStream.reset();
                 } else {
-                    Log.i(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read, %d bytes.", read));
+                    Log.d(Constants.TAG, String.format("RunMonitor::readMonitorApk. APK has been read, %d bytes.", read));
                     byte[] buf2 = new byte[read];
                     System.arraycopy(buf, 0, buf2, 0, read);
 
@@ -147,15 +147,15 @@ public class RunMonitor {
                 }
 
 
-                List<String> returned = RootCaller.executeOnRoot("pm install -r -d " + copiedPath);
-                if (null != returned && returned.size() > 0 && returned.get(0).startsWith(SUCCESS)) {
+                RPCResult returned = RootCaller.executeOnRoot("pm install -r -d " + copiedPath);
+                if (!returned.isError() && 0 < returned.size() && ((String)returned.get(0)).startsWith(SUCCESS)) {
                     Log.i(Constants.TAG, "RunMonitor::installMonitor. Monitor APK installed from: " + copiedPath);
                 } else {
                     Log.e(Constants.TAG, "RunMonitor::installMonitor. Failed to install Monitor APK from: " + copiedPath);
 
-                    if (null != returned) {
-                        for (String line : returned) {
-                            Log.v(Constants.TAG, ">>> " + line);
+                    if (!returned.isError()) {
+                        for (Object lineO : returned.getList()) {
+                            Log.v(Constants.TAG, ">>> " + lineO);
                         }
                     }
 
@@ -179,18 +179,18 @@ public class RunMonitor {
         Log.v(Constants.TAG, String.format("RunMonitor::uninstallMonitor. Entry%s...", totally ? " (totally)" : "(reinstall)"));
 
         String command = String.format("pm uninstall%s %s", totally ? "" : "-k", MONITOR_PACKAGE);
-        List<String> returned = RootCaller.executeOnRoot(command);
+        RPCResult returned = RootCaller.executeOnRoot(command);
         boolean success = false;
 
-        if (null != returned && returned.size() > 0 && returned.get(0).startsWith(SUCCESS)) {
+        if (!returned.isError() && 0 < returned.size() && ((String)returned.get(0)).startsWith(SUCCESS)) {
             Log.i(Constants.TAG, "RunMonitor::installMonitor. Monitor APK [" + MONITOR_PACKAGE + "%s] uninstalled.");
             success = true;
         } else {
             Log.e(Constants.TAG, "RunMonitor::installMonitor. Failed to uninstall Monitor APK [" + MONITOR_PACKAGE + "].");
 
-            if (null != returned) {
-                for (String line : returned) {
-                    Log.v(Constants.TAG, ">>> " + line);
+            if (!returned.isError()) {
+                for (Object lineO : returned.getList()) {
+                    Log.v(Constants.TAG, ">>> " + lineO);
                 }
             }
 

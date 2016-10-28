@@ -56,6 +56,7 @@ import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.global.GPSToggler3Application;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.services.AppActivityService;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
@@ -1094,8 +1095,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
                                 RootCaller.RootExecutor rootExecutor = RootCaller.createRootProcess();
                                 if (null != rootExecutor) {
-                                    List<String> output = rootExecutor.executeOnRoot("ls /");
-                                    if (null != output) {
+                                    RPCResult output = rootExecutor.executeOnRoot("ls /");
+                                    if (!output.isError()) {
                                         Log.i(Constants.TAG, "MainActivity::obtainRoot. 'root' obtained.");
                                         Settings.setRootGranted(true);
 

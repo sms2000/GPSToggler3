@@ -123,6 +123,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference("widget_double_click"));
+            bindPreferenceSummaryToValue(findPreference("root_timeout_delay"));
+            bindPreferenceSummaryToValue(findPreference("on_polling_delay"));
+            bindPreferenceSummaryToValue(findPreference("off_polling_delay"));
         }
 
         @Override

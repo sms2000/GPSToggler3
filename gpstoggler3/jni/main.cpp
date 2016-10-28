@@ -18,8 +18,6 @@
 int main (int argc, char *argv[]) {
     LOGV("Native::main. Entry...");
 
-    int ret = EXIT_SUCCESS;
-
     LOGI("Native::main. Number of parameters beyond the own path is %d", argc - 1);
     for (int i = 1; i < argc; i++) {
     	LOGI("Native::main. Argument %d is %s", i, argv[i]);
@@ -30,7 +28,8 @@ int main (int argc, char *argv[]) {
         if (NULL != pCommand) {
             std::string output;
             if (pCommand->execute(output)) {
-            	LOGI("Native::main. Command [%s] executed. Output: %s.", argv[2], output.c_str());
+            	LOGI("Native::main. Command [%s] executed.", argv[2]);
+            	LOGV("Native::main. Output: %s.", output.c_str());
             	print_string(output.c_str());
             } else {
             	LOGE("Native::main. Command [%s] failed.", argv[2]);
@@ -48,7 +47,7 @@ int main (int argc, char *argv[]) {
     }
 
     LOGV("Native::main. Exit.");
-    return ret;
+    return 0;
 }
 
 
@@ -58,5 +57,5 @@ void print_string(const char *pszString) {
 
 
 void print_error(int error_value) {
-    printf("Error %d\n", error_value);
+    printf("ERROR %d\n", error_value);
 }

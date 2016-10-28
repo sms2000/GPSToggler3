@@ -18,12 +18,17 @@ public class Settings {
 
     // From ActivitySettings
     private static final String USE_MONITOR_APP = "use_monitor_app";
-    private static final String MULTIWINDOW_AWARE = "multiwindow_aware";
     private static final String BACK_KEY_DELAY = "back_key_delay";
+    private static final String ROOT_TIMEOUT_DELAY = "root_timeout_delay";
     private static final String DOUBLE_CLICK_DELAY = "widget_double_click";
+    private static final String ON_POLLING_DELAY = "on_polling_delay";
+    private static final String OFF_POLLING_DELAY = "off_polling_delay";
 
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
+    private static final int DEF_ROOT_TIMEOUT_DELAY = 1000;
+    private static final int DEF_ON_POLLING_DELAY = 10000;
+    private static final int DEF_OFF_POLLING_DELAY = 30000;
 
     private static final String APPS_SEPARATOR = "_##_";
     private static final String FIELD_SEPARATOR = "_#_";
@@ -168,21 +173,38 @@ public class Settings {
     }
 
 
-    public static boolean getMultiWindowAware() {
-        try {
-            return settings.getBoolean(MULTIWINDOW_AWARE, false);
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
-
     public static int getLongBackKeyPressDelay() {
         try {
             return settings.getInt(BACK_KEY_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
         } catch (Exception ignored) {
             return DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
         }
+    }
 
+
+    public static int getRootTimeoutDelay() {
+        try {
+            return settings.getInt(ROOT_TIMEOUT_DELAY, DEF_ROOT_TIMEOUT_DELAY);
+        } catch (Exception ignored) {
+            return DEF_ROOT_TIMEOUT_DELAY;
+        }
+    }
+
+
+    public static int getOnPollingDelay() {
+        try {
+            return settings.getInt(ON_POLLING_DELAY, DEF_ON_POLLING_DELAY);
+        } catch (Exception ignored) {
+            return DEF_ON_POLLING_DELAY;
+        }
+    }
+
+
+    public static int getOffPollingDelay() {
+        try {
+            return settings.getInt(OFF_POLLING_DELAY, DEF_OFF_POLLING_DELAY);
+        } catch (Exception ignored) {
+            return DEF_OFF_POLLING_DELAY;
+        }
     }
 }

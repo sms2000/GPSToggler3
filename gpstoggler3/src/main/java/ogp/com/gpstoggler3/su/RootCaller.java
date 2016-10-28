@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +17,12 @@ import java.util.Locale;
 import java.util.Random;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.servlets.ExecuteWithTimeout;
 
 
 public class RootCaller {
-    private final static String CMD_SU = "su";
+    private static final String CMD_SU = "su";
     private static final String[] SU_PATHES = {"/system/xbin/which", "/system/bin/which"};
 
     private static boolean securitySettingsSet = false;
@@ -36,13 +36,14 @@ public class RootCaller {
         private static String COMMAND_ANSWER_END = "%d_FINISH_%d";
         private static String COMMAND_TAIL;
         private Process chperm;
-        private BufferedReader reader;
-        private BufferedWriter writer;
+        private BufferedReader reader = null;
+        private BufferedWriter writer = null;
+
 
         private static class ExecuteOnRoot extends ExecuteParams {
             private String command;
 
-            public ExecuteOnRoot(final String command) {
+            ExecuteOnRoot(final String command) {
                 this.command = command;
             }
         }
@@ -52,76 +53,55 @@ public class RootCaller {
             long random = Math.abs(new Random().nextInt());
             COMMAND_ANSWER_END = String.format(Locale.US, COMMAND_ANSWER_END, random, random);
             COMMAND_TAIL = ";echo '\n" + COMMAND_ANSWER_END + "'\n";
-            Log.v(Constants.TAG, "RootCaller::RootExecutor::<static>. Final random string: " + COMMAND_ANSWER_END);
+            Log.i(Constants.TAG, "RootCaller::RootExecutor::<static>. Final random string: " + COMMAND_ANSWER_END);
         }
 
         RootExecutor() {
             super();
 
-            initialize();
+            Log.v(Constants.TAG, "RootCaller::RootExecutor::<init>. Entry/Exit.");
         }
 
 
-        private void initialize() {
+        private synchronized void initialize() {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::initialize. Entry...");
 
             try {
-                chperm.destroy();
-            } catch (Exception ignored) {
-            }
-
-            chperm = null;
-
-            try {
-                chperm = Runtime.getRuntime().exec(new String[]{CMD_SU});
-            } catch (IOException ignored) {
-            }
-
-            if (null != chperm) {
+                chperm = Runtime.getRuntime().exec(CMD_SU);
                 reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
                 writer = new BufferedWriter(new OutputStreamWriter(chperm.getOutputStream()));
+
                 Log.i(Constants.TAG, "RootCaller::RootExecutor::initialize. Created a root process.");
-            } else {
+            } catch (Exception ignored) {
+                chperm = null;
                 Log.e(Constants.TAG, "RootCaller::RootExecutor::initialize. Failed to create a root process.");
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::initialize. Exit.");
         }
 
-        public synchronized List<String> executeOnRoot(String command) {
+
+        private void destroyProcess() {
+            try {
+                chperm.destroy();
+            } catch (Exception ignored) {
+            }
+
+            chperm = null;
+        }
+
+        public RPCResult executeOnRoot(String command) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Entry...");
             Log.d(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Running command: " + command);
 
-            List<String> output = new ArrayList<>();
+            RPCResult output;
 
             try {
-                int realLines = 0;
                 command += COMMAND_TAIL;
-
-                writer.write(command, 0, command.length());
-                writer.flush();
-
-                while (true) {
-                    String string = reader.readLine();
-                    if (null == string) {
-                        continue;
-                    } else if (string.equals(COMMAND_ANSWER_END)) {
-                        break;
-                    }
-
-                    output.add(string);
-                    realLines++;
-                }
-
-                if (0 < realLines) {
-                    Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", realLines));
-                }
-            } catch (IOException e) {
-                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. IOException with: " + e.getMessage());
-                output = null;
+                output = sinkRootCommand(command);
             } catch (Exception e) {
                 Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exception: ", e);
-                output = null;
+                output = new RPCResult(e);
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exit.");
@@ -129,73 +109,36 @@ public class RootCaller {
         }
 
 
-        public synchronized String executeCommander(String command, int timeoutMS) {
+        public RPCResult executeCommander(String command, int timeoutMS) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Entry...");
             Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Running command: " + command);
 
-
             String command2Exec = RootCommander.getCommanderPath() + " " + COMMAND_ANSWER_END + " " + command + "\n";
-
             ExecuteOnRoot executeOnRoot = new ExecuteOnRoot(command2Exec);
-            Object result = execute(executeOnRoot, timeoutMS);
-            String output = null;
-            if (null != result) {
-                if (result instanceof String) {
-                    output = (String)result;
-                    Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Proper result returned.");
-                } else {
-                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Wrong type of result: " + result.getClass().getCanonicalName());
-                }
+
+            RPCResult result = execute(executeOnRoot, timeoutMS);
+            if (!result.isError()) {
+                Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Proper result returned.");
             } else {
-                Log.e(Constants.TAG, "RootCaller::RootExecutor::executeCommander. 'null' returned. Timeout?");
+                Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Ecxception returned. Timeout?");
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exit.");
-            return output;
+            return result;
         }
 
 
         @Override
-        public Object executeWithResult(final ExecuteParams params) throws InvocationTargetException {
+        public RPCResult executeWithResult(final ExecuteParams params) throws InvocationTargetException {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeWithResult. Entry...");
 
-            String result = "";
-
+            RPCResult result;
             if (params instanceof ExecuteOnRoot) {
-                ExecuteOnRoot executeOnRoot = (ExecuteOnRoot)params;
-
-                try {
-                    int realLines = 0;
-                    String command = executeOnRoot.command;
-
-                    writer.write(command, 0, command.length());
-                    writer.flush();
-
-                    while (true) {
-                        String string = reader.readLine();
-                        if (null == string) {
-                            continue;
-                        } else if (string.equals(COMMAND_ANSWER_END)) {
-                            break;
-                        }
-
-                        result += string + "\n";
-                        realLines++;
-                    }
-
-                    if (0 < realLines) {
-                        Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::executeOnRoot. Output includes %d lines.", realLines));
-                    }
-                } catch (IOException e) {
-                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. IOException with: " + e.getMessage());
-                    result = null;
-                } catch (Exception e) {
-                    Log.e(Constants.TAG, "RootCaller::RootExecutor::executeOnRoot. Exception: ", e);
-                    result = null;
-                }
+                ExecuteOnRoot executeOnRoot = (ExecuteOnRoot) params;
+                result = sinkRootCommand(executeOnRoot.command);
             } else {
-                executedError(new InvalidParameterException());
-                result = null;
+                executedError(new InvalidParameterException("Bad parameters: " + params.getClass().getName()));
+                result = new RPCResult(new InvalidParameterException(String.format("'%s' instead of 'ExecuteOnRoot'", params.getClass().getName())));
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeWithResult. Exit.");
@@ -208,9 +151,55 @@ public class RootCaller {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executedError. Entry...");
 
             Log.w(Constants.TAG, String.format("RootCaller::RootExecutor::executedError. Exception happenned [%s]. Reinitialize 'root' process.", e.getMessage()));
-            initialize();
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executedError. Exit.");
+        }
+
+
+        private synchronized RPCResult sinkRootCommand(String command) {
+            RPCResult result;
+            List<String> received = new ArrayList<>();
+
+            try {
+                boolean initNow = true;
+
+                try {
+                    chperm.exitValue();
+                } catch (IllegalThreadStateException ignored) {
+                    initNow = false;
+                } catch (Exception ignored) {
+                }
+
+                if (initNow) {
+                    initialize();
+                }
+
+                writer.write(command, 0, command.length());
+                writer.flush();
+
+                while (true) {
+                    String string = reader.readLine();
+                    if (null == string) {
+                        continue;
+                    } else if (string.equals(COMMAND_ANSWER_END)) {
+                        break;
+                    }
+
+                    received.add(string);
+                }
+
+                Log.d(Constants.TAG, String.format("RootCaller::RootExecutor::sinkRootCommand. Output includes %d line(s).", received.size()));
+                result = new RPCResult(received);
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "RootCaller::RootExecutor::sinkRootCommand. Exception with: " + e.getMessage());
+                e.printStackTrace();
+
+                destroyProcess();
+                executedError(new InvalidParameterException(e.getMessage()));
+                result = new RPCResult(e);
+            }
+
+            return result;
         }
     }
 
@@ -256,8 +245,6 @@ public class RootCaller {
         securitySettingsSet = true;
 
         Log.v(Constants.TAG, String.format("RootCaller::setSecureSettings. Entry (packageName: %s)...", packageName));
-
-        Log.i(Constants.TAG, "RootCaller::setSecureSettings. Hacking Android. Attempt to set 'android.permission.WRITE_SECURE_SETTINGS'...");
 
         int stage = 0;
         String command = String.format("pm grant %s android.permission.WRITE_SECURE_SETTINGS", packageName);
@@ -312,25 +299,29 @@ public class RootCaller {
         Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Entry...");
         Log.d(Constants.TAG, "RootCaller::checkSecureSettings. Checking if Location access granted?");
 
-        List<String> returned = executeOnRoot("settings list secure");
-        if (null == returned) {
+        RPCResult returned = executeOnRoot("settings list secure");
+        if (returned.isError()) {
             Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [1].");
             return false;
         }
 
         boolean success = false;
 
-        for (String answer : returned) {
-            if (answer.startsWith("location_providers_allowed=")) {
-                if (answer.matches("^.*?(gps|wifi|network).*$")) {
-                    Log.i(Constants.TAG, "RootCaller::checkSecureSettings. Yes, the location access granted.");
-                    success = true;
-                } else {
-                    Log.e(Constants.TAG, "RootCaller::checkSecureSettings. No, the location access denied.");
-                }
+        for (Object answerO : returned.getList()) {
+            if (answerO instanceof String) {
+                String answerS = (String) answerO;
 
-                Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [2].");
-                return success;
+                if (answerS.startsWith("location_providers_allowed=")) {
+                    if (answerS.matches("^.*?(gps|wifi|network).*$")) {
+                        Log.i(Constants.TAG, "RootCaller::checkSecureSettings. Yes, the location access granted.");
+                        success = true;
+                    } else {
+                        Log.e(Constants.TAG, "RootCaller::checkSecureSettings. No, the location access denied.");
+                    }
+
+                    Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [2].");
+                    return success;
+                }
             }
         }
 
@@ -340,14 +331,14 @@ public class RootCaller {
     }
 
 
-    static List<String> executeOnRoot(String command) {
+    static RPCResult executeOnRoot(String command) {
         Log.v(Constants.TAG, "RootCaller::executeOnRoot. Entry...");
 
-        List<String> output = null;
+        RPCResult output = null;
         RootExecutor executor = createRootProcess();
         if (null != executor) {
             output = executor.executeOnRoot(command);
-            if (null != output) {
+            if (!output.isError()) {
                 Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned %d string(s).", command, output.size()));
             } else {
                 Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned no strings.", command));
@@ -392,23 +383,27 @@ public class RootCaller {
     private static RootStatus executeSystemCommand(String command, int stage) {
         RootStatus success = RootStatus.ROOT_GRANTED;
 
-        Log.e(Constants.TAG, String.format("RootCaller::setSecureSettings. Hacking Android. Attempt to set '%s'...", command));
+        Log.i(Constants.TAG, String.format("RootCaller::executeSystemCommand. Hacking Android. Attempt to set '%s'...", command));
 
-        List<String> returned = executeOnRoot(command);
+        RPCResult returned = executeOnRoot(command);
         boolean emptyResult = true;
 
-        if (null != returned && 0 < returned.size()) {
-            for (String line : returned) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
+        if (!returned.isError() && 0 < returned.size()) {
+            for (Object lineO : returned.getList()) {
+                if (lineO instanceof String) {
+                    String lineS = (String) lineO;
 
-                if (emptyResult) {
-                    Log.d(Constants.TAG, String.format(Locale.US, "----- Result of stage %d ----", stage));
-                    emptyResult = false;
-                }
+                    if (lineS.trim().isEmpty()) {
+                        continue;
+                    }
 
-                Log.i(Constants.TAG, line);
+                    if (emptyResult) {
+                        Log.d(Constants.TAG, String.format(Locale.US, "----- Result of stage %d ----", stage));
+                        emptyResult = false;
+                    }
+
+                    Log.i(Constants.TAG, lineS);
+                }
             }
         }
 

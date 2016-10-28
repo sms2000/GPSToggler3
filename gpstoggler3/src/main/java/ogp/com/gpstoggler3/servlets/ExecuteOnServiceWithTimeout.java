@@ -10,6 +10,7 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 import ogp.com.gpstoggler3.ITogglerService;
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.global.Constants;
 
@@ -64,10 +65,10 @@ public class ExecuteOnServiceWithTimeout extends ExecuteWithTimeout {
 
 
     @Override
-    public Object executeWithResult(final ExecuteParams params) {
+    public RPCResult executeWithResult(final ExecuteParams params) {
         Log.v(Constants.TAG, "ExecuteOnServiceWithTimeout::executeWithResult. Entry...");
 
-        Object result = null;
+        RPCResult result = null;
 
         if (params instanceof ExecuteOnService) {
             Method method = ((ExecuteOnService)params).method;
@@ -109,12 +110,13 @@ public class ExecuteOnServiceWithTimeout extends ExecuteWithTimeout {
                     try {
                         Log.i(Constants.TAG, String.format("ExecuteOnServiceWithTimeout::executeWithResult. Invoking [1] '%s'...", method.getName()));
 
-                        result = method.invoke(togglerBinder);
+                        Object output = method.invoke(togglerBinder);
+                        result = new RPCResult(output);
 
-                        if (null != result) {
+                        if (!result.isError()) {
                             Log.i(Constants.TAG, "ExecuteOnServiceWithTimeout::executeWithResult. Exchange succeeded [1].");
                         } else {
-                            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::executeWithResult. Exchange failed with 'null' result [1].");
+                            Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::executeWithResult. Exchange failed with Exception.");
                         }
                     } catch (Exception e) {
                         Log.e(Constants.TAG, "ExecuteOnServiceWithTimeout::executeWithResult. Exchange error! [1]. Reconnecting...");

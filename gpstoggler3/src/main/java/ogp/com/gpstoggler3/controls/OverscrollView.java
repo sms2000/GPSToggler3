@@ -62,7 +62,7 @@ public class OverscrollView extends ListView {
                 Intent intent = new Intent(Broadcasters.ENUMERATE_INSTALLED_APPS);
                 context.sendBroadcast(intent);
 
-                Log.e(Constants.TAG, "OverscrollView::onOverScrolled. Event!");
+                Log.i(Constants.TAG, "OverscrollView::onOverScrolled. Event!");
             }
 
         }

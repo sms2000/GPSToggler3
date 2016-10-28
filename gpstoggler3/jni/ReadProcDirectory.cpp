@@ -48,6 +48,7 @@ bool CReadProcDirectory::execute (std::string &output) {
     char appStat[MAXFILEDATA +  1];
     bool success = false;
     bool useCGroup = true;
+    int counted = 0;
 
     output = "";
 
@@ -58,7 +59,7 @@ bool CReadProcDirectory::execute (std::string &output) {
                 continue;
             }
 
-            LOGV("CReadProcDirectory::execute. Found name: %s.", pDirEntry->d_name);
+            //LOGV("CReadProcDirectory::execute. Found name: %s.", pDirEntry->d_name);
 
             sprintf (appData, "%s/%s/%s", PROC_DIR, pDirEntry->d_name, CMDLINE);
             if (!readFile (appData, appCmd, MAXFILEDATA)) {         // Find application package
@@ -70,7 +71,7 @@ bool CReadProcDirectory::execute (std::string &output) {
                 continue;
             }
 
-            LOGW("Package name: %s", appCmd);
+            //LOGV("Package name: %s", appCmd);
 
             bool bForeground = true;
 
@@ -103,6 +104,7 @@ bool CReadProcDirectory::execute (std::string &output) {
 
             sprintf (appData, "%c%s,", bForeground ? FOREGROUND : BACKGROUND, appCmd);
             output += appData;
+            counted++;
         }
 
         closedir(pDir);
@@ -111,6 +113,7 @@ bool CReadProcDirectory::execute (std::string &output) {
         LOGE("CReadProcDirectory::execute. Failed to open '/proc' directory.");
     }
 
+    LOGD("CReadProcDirectory::execute. Encountered %d application(s).", counted);
     LOGV("CReadProcDirectory::execute. Exit: %s.", output.c_str());
     return success;
 }

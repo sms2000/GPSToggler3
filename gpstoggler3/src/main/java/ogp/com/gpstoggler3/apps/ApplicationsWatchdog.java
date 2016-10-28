@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ogp.com.gpstoggler3.interfaces.TogglerServiceInterface;
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
@@ -21,14 +22,10 @@ import ogp.com.gpstoggler3.su.RootCaller;
 
 
 public class ApplicationsWatchdog extends Thread {
-    private static final long TIMEOUT_SCREEN_OFF = 30000;   // Polling time (ms) when screen off
-    private static final long TIMEOUT_SCREEN_ON = 10000;    // Polling time (ms) when screen on
     private static final long DELAYED_ACTIVATION = 250;     // Activate thread after xxx ms
 
     private static final ListWatched lastActivatedApps = new ListWatched();
     private static final String EXECUTOR_COMMAND = "read_proc";
-    private static final int EXECUTOR_TIMEOUT = 1000;        // One second in ms
-    private static final String APPS_SEPARATOR = ",";
     private static final byte FOREGROUND = 'F';
 
     private boolean initialPost = false;
@@ -41,7 +38,6 @@ public class ApplicationsWatchdog extends Thread {
     private TogglerServiceInterface togglerServiceInterface = null;
     private Handler handler = new Handler();
     private SortComparator comparator = new SortComparator();
-    //  private RootProcessManager rootProcessManager;
     private RootCaller.RootExecutor rootExecutor;
 
 
@@ -99,7 +95,6 @@ public class ApplicationsWatchdog extends Thread {
         this.context = context;
         this.togglerServiceInterface = togglerServiceInterface;
         this.activityManager = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
-//      this.rootProcessManager = null;
         this.rootExecutor = null;
 
         active = true;
@@ -121,7 +116,7 @@ public class ApplicationsWatchdog extends Thread {
     public void activateNow() {
         Log.v(Constants.TAG, "ApplicationsWatchdog::activateNow. Entry...");
 
-        Log.e(Constants.TAG, "ApplicationsWatchdog::activateNow. Interrupt!");
+        Log.i(Constants.TAG, "ApplicationsWatchdog::activateNow. Manual activation interrupting the watchdog wait.");
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -168,9 +163,9 @@ public class ApplicationsWatchdog extends Thread {
 
             try {
                 if (null == screenOn || screenOn) {
-                    Thread.sleep(TIMEOUT_SCREEN_ON);
+                    Thread.sleep(Settings.getOnPollingDelay());
                 } else {
-                    Thread.sleep(TIMEOUT_SCREEN_OFF);
+                    Thread.sleep(Settings.getOffPollingDelay());
                 }
             } catch (InterruptedException e) {
                 Log.d(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
@@ -286,15 +281,15 @@ public class ApplicationsWatchdog extends Thread {
         if (null == rootExecutor) {
             rootExecutor = RootCaller.createRootProcess();
             if (null != rootExecutor) {
-                Log.i(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. 'root' granted and RootExecutor created.");
+                Log.w(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. 'root' granted and RootExecutor created.");
             } else {
                 Log.e(Constants.TAG, "ApplicationsWatchdog::verifyGPSSoftwareRunning21. Failed to create 'RootExecutor'.");
                 return;
             }
         }
 
-        String output = rootExecutor.executeCommander(EXECUTOR_COMMAND, EXECUTOR_TIMEOUT);
-        if (null != output) {
+        RPCResult output = rootExecutor.executeCommander(EXECUTOR_COMMAND, Settings.getRootTimeoutDelay());
+        if (!output.isError()) {
             list = parseExecutorOutput(output);
 
             for (RootProcessManager.AndroidAppProcess iterator : list) {
@@ -345,7 +340,7 @@ public class ApplicationsWatchdog extends Thread {
                     lastActivatedApps.addAll(activatedApps);
 
                     for (AppStore app : lastActivatedApps) {
-                        Log.w(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
+                        Log.v(Constants.TAG, String.format("ApplicationsWatchdog::verifyGPSSoftwareRunning21. Active application: %s.", app.packageName));
                     }
                 }
 
@@ -359,19 +354,23 @@ public class ApplicationsWatchdog extends Thread {
     }
 
 
-    private List<RootProcessManager.AndroidAppProcess> parseExecutorOutput(String output) {
-        String[] apps = output.split(APPS_SEPARATOR);
+    private List<RootProcessManager.AndroidAppProcess> parseExecutorOutput(RPCResult result) {
         List<RootProcessManager.AndroidAppProcess> list = new ArrayList<>();
 
-        for (String app : apps) {
-            if (app.length() < 2) {
-                continue;
-            }
+        if (result.isList()) {
+            for (Object appO : result.getList()) {
+                if (appO instanceof String) {
+                    String appS = (String)appO;
+                    if (appS.length() < 2) {
+                        continue;
+                    }
 
-            String packageName = app.substring(1, app.length());
-            boolean foreground = app.getBytes()[0] == FOREGROUND;
-            RootProcessManager.AndroidAppProcess process = new RootProcessManager.AndroidAppProcess(packageName, foreground);
-            list.add(process);
+                    String packageName = appS.substring(1, appS.length());
+                    boolean foreground = appS.getBytes()[0] == FOREGROUND;
+                    RootProcessManager.AndroidAppProcess process = new RootProcessManager.AndroidAppProcess(packageName, foreground);
+                    list.add(process);
+                }
+            }
         }
 
         return list;

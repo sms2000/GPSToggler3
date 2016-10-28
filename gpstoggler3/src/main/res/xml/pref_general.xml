@@ -1,12 +1,4 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="multiwindow_aware"
-        android:summary="@string/pref_description_multiwindow_aware"
-        android:title="@string/pref_title_multiwindow_aware" />
-
-
     <ListPreference
         android:defaultValue="250"
         android:entries="@array/pref_widget_double_click_titles"
@@ -15,5 +7,32 @@
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
         android:title="@string/pref_title_widget_double_click" />
+
+    <ListPreference
+        android:defaultValue="1000"
+        android:entries="@array/pref_root_timeout_delay_titles"
+        android:entryValues="@array/pref_root_timeout_delay_values"
+        android:key="root_timeout_delay"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_root_timeout_delay" />
+
+    <ListPreference
+        android:defaultValue="10000"
+        android:entries="@array/pref_on_polling_delay_titles"
+        android:entryValues="@array/pref_on_polling_delay_values"
+        android:key="on_polling_delay"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_on_polling_delay" />
+
+    <ListPreference
+        android:defaultValue="30000"
+        android:entries="@array/pref_off_polling_delay_titles"
+        android:entryValues="@array/pref_off_polling_delay_values"
+        android:key="off_polling_delay"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_off_polling_delay" />
 
 </PreferenceScreen>

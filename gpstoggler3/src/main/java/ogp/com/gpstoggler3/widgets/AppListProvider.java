@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.ITogglerService;
+import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.servlets.ExecuteOnServiceWithTimeout;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
@@ -46,22 +47,22 @@ public class AppListProvider implements RemoteViewsFactory {
 
         listItemList.clear();
 
-        ListWatched list = null;
+        RPCResult result = null;
         boolean success = false;
 
         try {
             ExecuteOnServiceWithTimeout.ExecuteOnService executeMethod = new ExecuteOnServiceWithTimeout.ExecuteOnService(ITogglerService.class.getMethod(RPC_METHOD));
 
-            list = (ListWatched)executor.execute(executeMethod, RPC_TIMEOUT);
-            success = true;
+            result = executor.execute(executeMethod, RPC_TIMEOUT);
+            success = !result.isError();
         } catch (Exception e) {
             Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [1].");
         }
 
         if (success) {
-            for (int i = 0; null != list && i < list.size(); i++) {
+            for (int i = 0; i < result.size(); i++) {
                 try {
-                    AppStore app = list.get(i);
+                    AppStore app = (AppStore)result.get(i);
                     listItemList.add(app.friendlyName);
                 } catch (Exception e) {
                     Log.e(Constants.TAG, "AppListProvider::onDataSetChanged. Error with 'ExecuteOnServiceWithTimeout::execute' returning not expected type [2].");
@@ -75,9 +76,9 @@ public class AppListProvider implements RemoteViewsFactory {
                 String noActiveApps = context.getResources().getString(R.string.no_active_apps_found);
                 listItemList.add(noActiveApps);
 
-                Log.w(Constants.TAG, "AppListProvider::onDataSetChanged. No apps loaded.");
+                Log.i(Constants.TAG, "AppListProvider::onDataSetChanged. No apps loaded.");
             } else {
-                Log.w(Constants.TAG, String.format("AppListProvider::onDataSetChanged. Loaded %d app(s).", listItemList.size()));
+                Log.i(Constants.TAG, String.format("AppListProvider::onDataSetChanged. Loaded %d app(s).", listItemList.size()));
             }
         }
 
