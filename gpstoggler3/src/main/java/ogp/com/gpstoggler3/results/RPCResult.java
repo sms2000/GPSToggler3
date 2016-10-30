@@ -37,7 +37,7 @@ public class RPCResult {
     }
 
     public boolean isList() {
-        return (null != error) && (result instanceof List);
+        return (null == error) && (result instanceof List);
     }
 
     public Exception getError() {

@@ -30,12 +30,17 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+1.0.664
+-------
+1. Two weird bugs fixed.
+
+
 1.0.663
 -------
 1. WIP for a better GUI. 
 2. WIP for more options.
-2. 'su' support improved.
-3. Bugs fixed.
+3. 'su' support improved.
+4. Bugs fixed.
 
 
 1.0.640

@@ -18,9 +18,9 @@
 int main (int argc, char *argv[]) {
     LOGV("Native::main. Entry...");
 
-    LOGI("Native::main. Number of parameters beyond the own path is %d", argc - 1);
+    LOGD("Native::main. Number of parameters beyond the own path is %d", argc - 1);
     for (int i = 1; i < argc; i++) {
-    	LOGI("Native::main. Argument %d is %s", i, argv[i]);
+    	LOGD("Native::main. Argument %d is %s", i, argv[i]);
     }
 
     if (argc > 2) {
@@ -42,8 +42,8 @@ int main (int argc, char *argv[]) {
     }
 
     if (argc > 1) {
-        LOGI("Native::main. Finalazing...");
         print_string(argv[1]);
+        LOGI("Native::main. Finished.");
     }
 
     LOGV("Native::main. Exit.");

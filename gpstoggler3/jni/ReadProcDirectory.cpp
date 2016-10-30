@@ -102,7 +102,7 @@ bool CReadProcDirectory::execute (std::string &output) {
                 }
             }
 
-            sprintf (appData, "%c%s,", bForeground ? FOREGROUND : BACKGROUND, appCmd);
+            sprintf (appData, "%c%s\n", bForeground ? FOREGROUND : BACKGROUND, appCmd);
             output += appData;
             counted++;
         }
