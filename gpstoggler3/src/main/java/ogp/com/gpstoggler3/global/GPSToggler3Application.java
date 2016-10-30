@@ -7,7 +7,6 @@ import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.settings.Settings;
-import ogp.com.gpstoggler3.su.RootCaller;
 import ogp.com.gpstoggler3.su.RootCommander;
 
 

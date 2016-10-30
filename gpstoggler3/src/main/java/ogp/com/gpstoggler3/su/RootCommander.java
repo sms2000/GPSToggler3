@@ -27,7 +27,7 @@ public class RootCommander {
     }
 
 
-    public static String getCommanderPath() {
+    static String getCommanderPath() {
         return commanderPath;
     }
 

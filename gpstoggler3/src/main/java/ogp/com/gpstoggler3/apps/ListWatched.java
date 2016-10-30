@@ -129,7 +129,7 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     }
 
 
-    public boolean packageExists(AppStore appStore) {
+    boolean packageExists(AppStore appStore) {
         return packageExists(appStore.packageName);
     }
 }

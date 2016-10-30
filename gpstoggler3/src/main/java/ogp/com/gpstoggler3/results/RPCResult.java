@@ -1,6 +1,5 @@
 package ogp.com.gpstoggler3.results;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RPCResult {
@@ -13,10 +12,11 @@ public class RPCResult {
     }
 
 
+    /*
     public RPCResult(String string) {
         String[] split = string.split("\n");
 
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String line : split) {
             result.add(line);
         }
@@ -24,7 +24,7 @@ public class RPCResult {
         this.result = result;
         error = null;
     }
-
+    */
 
     public RPCResult(Object result) {
         this.result = result;

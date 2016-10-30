@@ -1,7 +1,7 @@
 package ogp.com.gpstoggler3.apps;
 
 public class AppStore {
-    public enum AppState {DISABLED, FOREGROUND, BACKGROUND};
+    public enum AppState {DISABLED, FOREGROUND, BACKGROUND}
 
 
     public String friendlyName;

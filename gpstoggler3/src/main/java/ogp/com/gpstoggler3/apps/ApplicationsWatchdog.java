@@ -23,10 +23,11 @@ import ogp.com.gpstoggler3.su.RootCaller;
 
 public class ApplicationsWatchdog extends Thread {
     private static final long DELAYED_ACTIVATION = 250;     // Activate thread after xxx ms
+    private static final byte FOREGROUND = 'F';
+    private static final long MIN_RUNTIME_MS = 10;
 
     private static final ListWatched lastActivatedApps = new ListWatched();
     private static final String EXECUTOR_COMMAND = "read_proc";
-    private static final byte FOREGROUND = 'F';
 
     private boolean initialPost = false;
     private Context context;
@@ -151,10 +152,16 @@ public class ApplicationsWatchdog extends Thread {
 
         while (active) {
             if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
+                long timeDelta = System.currentTimeMillis();
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     verifyGPSSoftwareRunning21();
                 } else {
                     verifyGPSSoftwareRunning();
+                }
+
+                timeDelta = System.currentTimeMillis() - timeDelta;
+                if (MIN_RUNTIME_MS <= timeDelta) {
+                    Log.i(Constants.TAG, String.format("ApplicationsWatchdog::run. Spen %d msec enumerating running applications.", timeDelta));
                 }
             } else {
                 Log.v(Constants.TAG, "ApplicationsWatchdog::run. Idle...");

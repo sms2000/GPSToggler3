@@ -1,12 +1,10 @@
 package ogp.com.gpstoggler3.widgets;
 
-
 import android.content.Context;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService.RemoteViewsFactory;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.ITogglerService;
@@ -14,9 +12,7 @@ import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.servlets.ExecuteOnServiceWithTimeout;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
-import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
-import ogp.com.gpstoggler3.servlets.ExecuteWithTimeout;
 
 
 public class AppListProvider implements RemoteViewsFactory {

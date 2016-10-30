@@ -1,6 +1,5 @@
 package ogp.com.gpstoggler3.apps;
 
-import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
