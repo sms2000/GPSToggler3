@@ -19,7 +19,7 @@
         android:name=".global.GPSToggler3Application"
         android:allowBackup="true"
         android:fullBackupContent="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/active"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
