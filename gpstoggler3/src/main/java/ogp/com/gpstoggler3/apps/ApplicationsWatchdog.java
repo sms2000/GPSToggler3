@@ -22,9 +22,9 @@ import ogp.com.gpstoggler3.su.RootCaller;
 
 
 public class ApplicationsWatchdog extends Thread {
-    private static final long DELAYED_ACTIVATION = 250;     // Activate thread after xxx ms
+    private static final long DELAYED_ACTIVATION = 1000;     // Activate thread after 1 sec
     private static final byte FOREGROUND = 'F';
-    private static final long MIN_RUNTIME_MS = 10;
+    private static final long MIN_RUNTIME_MS = 1;
 
     private static final ListWatched lastActivatedApps = new ListWatched();
     private static final String EXECUTOR_COMMAND = "read_proc";
@@ -161,7 +161,9 @@ public class ApplicationsWatchdog extends Thread {
 
                 timeDelta = System.currentTimeMillis() - timeDelta;
                 if (MIN_RUNTIME_MS <= timeDelta) {
-                    Log.i(Constants.TAG, String.format("ApplicationsWatchdog::run. Spen %d msec enumerating running applications.", timeDelta));
+                    Log.i(Constants.TAG, String.format("ApplicationsWatchdog::run. Enumerating running applications took %d msec.", timeDelta));
+                } else {
+                    Log.i(Constants.TAG, "ApplicationsWatchdog::run. Enumerating running applications took less than 1 msec.");
                 }
             } else {
                 Log.v(Constants.TAG, "ApplicationsWatchdog::run. Idle...");
@@ -175,7 +177,7 @@ public class ApplicationsWatchdog extends Thread {
                     Thread.sleep(Settings.getOffPollingDelay());
                 }
             } catch (InterruptedException e) {
-                Log.d(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
+                Log.v(Constants.TAG, "ApplicationsWatchdog::run. Exception in 'sleep'. Interrupted?");
             }
         }
 

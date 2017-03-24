@@ -30,6 +30,13 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+1.0.678
+-------
+1. Minor fixes.
+2. Latest Android Studio 2.3 and Gradle 3.4.1 adopted.
+
+
+
 1.0.664
 -------
 1. Two weird bugs fixed.
