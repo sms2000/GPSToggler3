@@ -30,6 +30,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+
+1.1.685
+-------
+1. [WIP] Google Drive cloud support.
+
+
 1.0.678
 -------
 1. Minor fixes.

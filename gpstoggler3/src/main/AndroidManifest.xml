@@ -5,6 +5,7 @@
     <permission android:name="ogp.com.gpstoggler3.GPS_ACCESS" />
     <permission android:name="ogp.com.gpstoggler3.RESURRECT" />
 
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_CONTENT_PROVIDERS_EXTERNALLY" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />

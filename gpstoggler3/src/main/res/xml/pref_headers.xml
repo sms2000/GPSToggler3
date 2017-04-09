@@ -12,4 +12,9 @@
         android:icon="@drawable/ic_group_add_black_24dp"
         android:title="@string/pref_header_lifespan" />
 
+    <header
+        android:fragment="ogp.com.gpstoggler3.SettingsActivity$CloudPreferenceFragment"
+        android:icon="@drawable/ic_group_add_black_24dp"
+        android:title="@string/pref_header_cloud" />
+
 </preference-headers>

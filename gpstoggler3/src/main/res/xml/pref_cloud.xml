@@ -1,0 +1,24 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
+         dismiss it. -->
+    <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
+
+
+    <!-- This preference simply launches an intent when selected. Use this UI sparingly, per
+         design guidelines. -->
+
+    <Preference android:title="@string/button_store"
+        android:key="@string/button_store"
+        android:summary="@string/button_load_summary"/>
+
+    <Preference android:title="@string/button_load"
+        android:key="@string/button_load"
+        android:summary="@string/button_load_summary"/>
+
+    <Preference android:title="@string/button_google_drive_account"
+        android:key="@string/button_google_drive_account"
+        android:summary="@string/google_drive_account_not_selected" />
+
+
+</PreferenceScreen>

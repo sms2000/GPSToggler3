@@ -181,4 +181,13 @@
         <item>300000</item>
         <item>3600000</item>
     </string-array>
+
+    <string name="pref_header_cloud">In-cloud data store</string>
+    <string name="button_store">Store in Google Drive</string>
+    <string name="button_store_summary">Stores the Preferences in Google Drive</string>
+    <string name="button_load">Load from Google Drive</string>
+    <string name="button_load_summary">Loads the Preferences from Google Drive</string>
+    <string name="error_cannot_resolve_account">Cannot resolve Google Drive account</string>
+    <string name="button_google_drive_account">Google Drive account</string>
+    <string name="google_drive_account_not_selected">No account selected. Please choose one.</string>
 </resources>

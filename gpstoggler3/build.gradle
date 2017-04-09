@@ -34,7 +34,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 25
         versionCode code
-        versionName "1.0." + code
+        versionName "1.1." + code
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -77,6 +77,14 @@ dependencies {
     compile 'com.google.firebase:firebase-appindexing:10.2.1'
     compile 'com.android.support:support-v4:25.3.0'
     compile 'com.android.support:support-vector-drawable:25.3.0'
+    compile 'com.google.android.gms:play-services-drive:10.2.1'
+    compile 'com.google.android.gms:play-services-plus:10.2.1'
+    compile 'com.google.android.gms:play-services-auth:10.2.1'
+    compile 'com.google.api-client:google-api-client:1.22.0'
+    compile 'com.google.apis:google-api-services-tasks:v1-rev35-1.19.0' exclude module: 'httpclient'
+    compile 'com.google.api-client:google-api-client-android:1.19.0' exclude module: 'httpclient'
+    compile 'com.google.http-client:google-http-client-gson:1.19.0' exclude module: 'httpclient'
+    compile 'com.google.android.gms:play-services-identity:10.2.1'
 }
 
 def getNdkDir() {

@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private WorkerThread activityThread = new WorkerThread();
     private GoogleApiClient client;
     private long backPressedTime = 0;
+    private static boolean debugMode = false;
 
 
     private BroadcastReceiver gpsStateChangedReceiver = new BroadcastReceiver() {
@@ -204,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         super.onCreate(savedInstanceState);
 
         Log.v(Constants.TAG, "MainActivity::onCreate. Entry...");
+        debugMode = 0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE);
 
         GPSToggler3Application.setMainActivity(this);
 
@@ -950,7 +953,9 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 if (ROOT_GRANTED == RootCaller.ifRootAvailable()) {
                     obtainRoot();
                 } else {
-                    noRoot();
+                    if (!debugMode) {
+                        noRoot();
+                    }
                 }
             } else {
                 RootCaller.RootExecutor rootExecutor = RootCaller.createRootProcess();
@@ -1061,7 +1066,13 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         if (!secureSettingsSet) {
             if (NO_ROOT == RootCaller.setSecureSettings(MainActivity.this, packageName, AppActivityService.class.getCanonicalName())) {
                 setRootGranted(false);
-                noRoot();
+
+                if (debugMode) {
+                    setRootGranted(true);
+                    secureSettingsSet = true;
+                } else {
+                    noRoot();
+                }
             } else if (RootCaller.checkSecureSettings()) {
                 setRootGranted(true);
                 secureSettingsSet = true;

@@ -2,8 +2,10 @@ package ogp.com.gpstoggler3.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
@@ -170,6 +172,22 @@ public class Settings {
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean(USE_MONITOR_APP, false);
         editor.apply();
+    }
+
+
+    public static void preserveAccountName(String pref_key, String accName) {
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(pref_key, accName);
+        editor.apply();
+    }
+
+
+    public static String retriveAccountName(String pref_key) {
+        try {
+            return settings.getString(pref_key, "");
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
 
