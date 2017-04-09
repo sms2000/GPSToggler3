@@ -1,5 +1,5 @@
 ==========
-THIS CODE IS 'UNRESTRICTED PUBLIC DOMAIN UNGER GPLL' LICENCED except 3rd party code of 'AndroidProcesses' library with Apache license.
+THIS CODE IS 'UNRESTRICTED PUBLIC DOMAIN UNDER GPLL' LICENCED except 3rd party code of 'AndroidProcesses' library with Apache license.
 
 Let me know if you consider your rights violated.
 
@@ -13,7 +13,7 @@ GPSToggler 3 - the latest reincarnation of the old trusty GPSTogger
 ===================================================================
 
 GPS toggle widget for Android rooted devices. It works even for those ROMs and kernels, other software failed.
-It requires the 'su' privilegies only during the very first run (reboot is still required). 
+It requires the 'su' privileges (no reboot is required anymore).
 
 Utilizes parts of 'AndroidProcesses' library code courtesy Jared Rummler from
 https://github.com/jaredrummler/AndroidProcesses
