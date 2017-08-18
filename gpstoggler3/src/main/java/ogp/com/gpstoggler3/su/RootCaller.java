@@ -340,6 +340,12 @@ public class RootCaller {
             output = executor.executeOnRoot(command);
             if (!output.isError()) {
                 Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned %d string(s).", command, output.size()));
+
+                if (output.size() > 0) {
+                    for (int i = 0; i < output.size(); i++) {
+                        Log.v(Constants.TAG, String.format("RootCaller::executeOnRoot. Output (%d): '%s'.", i + 1, output.get(i)));
+                    }
+                }
             } else {
                 Log.d(Constants.TAG, String.format("RootCaller::executeOnRoot. Executed command [%s]. Returned no strings.", command));
             }
