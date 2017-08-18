@@ -343,7 +343,7 @@ public class RootCaller {
 
                 if (output.size() > 0) {
                     for (int i = 0; i < output.size(); i++) {
-                        Log.v(Constants.TAG, String.format("RootCaller::executeOnRoot. Output (%d): '%s'.", i + 1, output.get(i)));
+                        Log.v(Constants.TAG, String.format("RootCaller::executeOnRoot. Output (%d): >>> '%s'.", i + 1, output.get(i)));
                     }
                 }
             } else {
