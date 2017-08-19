@@ -5,7 +5,7 @@ Let me know if you consider your rights violated.
 
 * GPLL is the 'General Pet Lovers Licence' - the non-restricting license promoting the self control for humans.
 If you a pet lover, pet adopter, veterinary personel or in any other way helping cats, dogs and other pets to survice you are free to use this code.
-If you are a per hater or harmed any pet in any way you are also free to use this code yet you have to bear shame on you forever. *
+If you are a per hater or harmed any pet in any way you are also free to use this code yet you have to bear shame on you forever.
 
 
 
@@ -16,7 +16,8 @@ GPS toggle widget for Android rooted devices. It works even for those ROMs and k
 It requires the 'su' privileges (no reboot is required anymore).
 
 Utilizes parts of 'AndroidProcesses' library code courtesy Jared Rummler from
-https://github.com/jaredrummler/AndroidProcesses
+https://github.com/jaredrummler/AndroidProcesses 
+
 (Starting 1.0.640 the 'AndroidProcess' library is not used anymore).
 
 
@@ -30,6 +31,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 
 Versions:
 =========
+
+1.2.704
+-------
+1. Look up for 'su' changed for better compatibility.
+2. On/Off GPS toggler made compatible with limited 'settings' utility.
+
 
 1.1.685
 -------

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -23,7 +24,6 @@ import ogp.com.gpstoggler3.servlets.ExecuteWithTimeout;
 
 public class RootCaller {
     private static final String CMD_SU = "su";
-    private static final String[] SU_PATHES = {"/system/xbin/which", "/system/bin/which"};
 
     private static boolean securitySettingsSet = false;
     private static RootExecutor rootExecutor = null;
@@ -208,28 +208,13 @@ public class RootCaller {
         Log.v(Constants.TAG, "MainActivity::ifRootAvailable. Entry...");
 
         RootStatus success = RootStatus.NO_ROOT;
-        java.lang.Process chperm = null;
 
-        for (String whichPath : SU_PATHES) {
-            try {
-                chperm = Runtime.getRuntime().exec(new String[]{whichPath, CMD_SU});
-                BufferedReader in = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
-                if (in.readLine() != null) {
-                    success = RootStatus.ROOT_GRANTED;
-                    Log.i(Constants.TAG, "MainActivity::ifRootAvailable. 'Root' exists.");
-                    break;
-                }
-
-                Log.i(Constants.TAG, "MainActivity::ifRootAvailable. 'Root' doesn't exist.");
-            } catch (IOException e) {
-                Log.e(Constants.TAG, "MainActivity::ifRootAvailable. No 'root' available.");
-            } catch (Throwable t) {
-                Log.e(Constants.TAG, "MainActivity::ifRootAvailable. Exception: ", t);
-            } finally {
-                if (chperm != null) {
-                    chperm.destroy();
-                }
-            }
+        String rootPath = findSuInSystem(new File("/system/"));
+        if (null != rootPath) {
+            success = RootStatus.ROOT_GRANTED;
+            Log.i(Constants.TAG, String.format("MainActivity::ifRootAvailable. 'Root' exists at [%s].", rootPath));
+        } else {
+            Log.e(Constants.TAG, "MainActivity::ifRootAvailable. No 'root' available.");
         }
 
         Log.v(Constants.TAG, "MainActivity::ifRootAvailable. Exit.");
@@ -299,7 +284,7 @@ public class RootCaller {
         Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Entry...");
         Log.d(Constants.TAG, "RootCaller::checkSecureSettings. Checking if Location access granted?");
 
-        RPCResult returned = executeOnRoot("settings list secure");
+        RPCResult returned = executeOnRoot("settings get secure location_providers_allowed");
         if (returned.isError()) {
             Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [1].");
             return false;
@@ -311,17 +296,15 @@ public class RootCaller {
             if (answerO instanceof String) {
                 String answerS = (String) answerO;
 
-                if (answerS.startsWith("location_providers_allowed=")) {
-                    if (answerS.matches("^.*?(gps|wifi|network).*$")) {
-                        Log.i(Constants.TAG, "RootCaller::checkSecureSettings. Yes, the location access granted.");
-                        success = true;
-                    } else {
-                        Log.e(Constants.TAG, "RootCaller::checkSecureSettings. No, the location access denied.");
-                    }
-
-                    Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [2].");
-                    return success;
+                if (answerS.matches("^.*?(gps|wifi|network).*$")) {
+                    Log.i(Constants.TAG, "RootCaller::checkSecureSettings. Yes, the location access granted.");
+                    success = true;
+                } else {
+                    Log.e(Constants.TAG, "RootCaller::checkSecureSettings. No, the location access denied.");
                 }
+
+                Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [2].");
+                return success;
             }
         }
 
@@ -329,6 +312,20 @@ public class RootCaller {
         Log.v(Constants.TAG, "RootCaller::checkSecureSettings. Exit [3].");
         return false;
     }
+
+
+    public static void toggleGps(boolean gpsOn) {
+        Log.v(Constants.TAG, String.format("RootCaller::toggleGps. Entry for [%s]...", gpsOn ? "ON" : "OFF"));
+
+        RPCResult returned = executeOnRoot(gpsOn ? "settings put secure location_providers_allowed gps,network" : "settings put secure location_providers_allowed network");
+        if (returned.isError()) {
+            Log.e(Constants.TAG, "RootCaller::toggleGps. Failed.");
+        } else {
+            Log.i(Constants.TAG, "RootCaller::toggleGps. Succeeded.");
+        }
+
+        Log.v(Constants.TAG, "RootCaller::toggleGps. Exit.");
+    };
 
 
     static RPCResult executeOnRoot(String command) {
@@ -420,5 +417,27 @@ public class RootCaller {
         }
 
         return success;
+    }
+
+
+    private static String findSuInSystem(File rootDir) {
+        File listFile[] = rootDir.listFiles();
+
+        if (listFile != null) {
+            for (File aListFile : listFile) {
+                if (aListFile.isDirectory()) {
+                    String path = findSuInSystem(aListFile);
+                    if (null != path) {
+                        return path;
+                    }
+                } else {
+                    if (aListFile.getName().equals(CMD_SU)) {
+                        return aListFile.getAbsolutePath();
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

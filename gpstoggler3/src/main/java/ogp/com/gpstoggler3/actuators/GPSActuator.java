@@ -9,10 +9,12 @@ import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
+import ogp.com.gpstoggler3.su.RootCaller;
 
 
 class GPSActuator implements GPSActuatorInterface {
     private Context context;
+    private static boolean deadEnd = false;
 
     GPSActuator(Context context) {
         this.context = context;
@@ -34,25 +36,38 @@ class GPSActuator implements GPSActuatorInterface {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     public void turnGpsOn() {
-        try {
-            Settings.Secure.putInt(context.getContentResolver(),
-                    Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
-        } catch (Exception e) {
-            Log.e(Constants.TAG, "GPSActuator::turnGpsOn. Exception: ", e);
+        if (!deadEnd) {
+            try {
+                Settings.Secure.putInt(context.getContentResolver(),
+                        Settings.Secure.LOCATION_MODE,
+                        Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
+                return;
+            } catch (Exception e) {
+                deadEnd = true;
+                Log.e(Constants.TAG, "GPSActuator::turnGpsOn. Exception: ", e);
+            }
         }
+
+
+        RootCaller.toggleGps(true);
     }
 
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     public void turnGpsOff() {
-        try {
-            Settings.Secure.putInt(context.getContentResolver(),
+        if (!deadEnd) {
+            try {
+                Settings.Secure.putInt(context.getContentResolver(),
                         Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_BATTERY_SAVING);
-        } catch (Exception e) {
-            Log.e(Constants.TAG, "GPSActuator::turnGpsOff. Exception: ", e);
+                        Settings.Secure.LOCATION_MODE_BATTERY_SAVING);
+                return;
+            } catch (Exception e) {
+                deadEnd = true;
+                Log.e(Constants.TAG, "GPSActuator::turnGpsOff. Exception: ", e);
+            }
         }
+
+        RootCaller.toggleGps(false);
     }
 }
