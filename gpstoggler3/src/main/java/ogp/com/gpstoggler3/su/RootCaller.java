@@ -7,7 +7,6 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +23,7 @@ import ogp.com.gpstoggler3.servlets.ExecuteWithTimeout;
 
 public class RootCaller {
     private static final String CMD_SU = "su";
+    private static final String SU_LOOKUP = "su -v";
 
     private static boolean securitySettingsSet = false;
     private static RootExecutor rootExecutor = null;
@@ -209,11 +209,18 @@ public class RootCaller {
 
         RootStatus success = RootStatus.NO_ROOT;
 
-        String rootPath = findSuInSystem(new File("/system/"));
-        if (null != rootPath) {
-            success = RootStatus.ROOT_GRANTED;
-            Log.i(Constants.TAG, String.format("MainActivity::ifRootAvailable. 'Root' exists at [%s].", rootPath));
-        } else {
+        try {
+            Process chperm = Runtime.getRuntime().exec(SU_LOOKUP);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(chperm.getInputStream()));
+
+            String string = reader.readLine();
+            if (null != string && !string.isEmpty()) {
+                success = RootStatus.ROOT_GRANTED;
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (RootStatus.NO_ROOT == success) {
             Log.e(Constants.TAG, "MainActivity::ifRootAvailable. No 'root' available.");
         }
 
@@ -325,7 +332,7 @@ public class RootCaller {
         }
 
         Log.v(Constants.TAG, "RootCaller::toggleGps. Exit.");
-    };
+    }
 
 
     static RPCResult executeOnRoot(String command) {
@@ -418,26 +425,5 @@ public class RootCaller {
 
         return success;
     }
-
-
-    private static String findSuInSystem(File rootDir) {
-        File listFile[] = rootDir.listFiles();
-
-        if (listFile != null) {
-            for (File aListFile : listFile) {
-                if (aListFile.isDirectory()) {
-                    String path = findSuInSystem(aListFile);
-                    if (null != path) {
-                        return path;
-                    }
-                } else {
-                    if (aListFile.getName().equals(CMD_SU)) {
-                        return aListFile.getAbsolutePath();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 }
+

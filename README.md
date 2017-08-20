@@ -32,6 +32,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.2.707
+-------
+1. 'su' detection is don from 'su' itself by calling it with '-v' mandatory option.
+
+
 1.2.704
 -------
 1. Look up for 'su' changed for better compatibility.
