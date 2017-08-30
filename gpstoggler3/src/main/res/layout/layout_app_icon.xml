@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/gpsPic"
+        android:id="@+id/appPic"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_marginBottom="5dp"

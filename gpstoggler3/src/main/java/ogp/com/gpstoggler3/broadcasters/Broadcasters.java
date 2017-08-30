@@ -21,4 +21,6 @@ public class Broadcasters {
     public static final String HD_MONITOR_SERVICE = "ogp.com.gpstoggler3monitor.MonitorService";
 
     public static final String WINDOW_STACK_CHANGED = "ogp.com.gpstoggler3.WINDOW_STACK_CHANGED";
+
+    public static final String APP_SELECTED = "ogp.com.gpstoggler3.broadcasters.APP_SELECTED";
 }

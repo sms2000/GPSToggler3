@@ -32,6 +32,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.2.727
+-------
+
+1. (WIP) Application selector.
+2. Updated to API 26, latest components.
+
 1.2.707
 -------
 1. 'su' detection is don from 'su' itself by calling it with '-v' mandatory option.

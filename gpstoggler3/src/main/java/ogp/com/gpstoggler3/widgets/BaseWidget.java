@@ -17,9 +17,9 @@ import ogp.com.gpstoggler3.global.Constants;
 
 
 public abstract class BaseWidget extends AppWidgetProvider {
-    ITogglerService togglerBinder = null;
-    private TogglerServiceConnection serviceConnection = new TogglerServiceConnection();
-    private Context appContext = null;
+    protected ITogglerService togglerBinder = null;
+    protected TogglerServiceConnection serviceConnection = new TogglerServiceConnection();
+    protected Context appContext = null;
 
 
     private class TogglerServiceConnection implements ServiceConnection {
@@ -102,7 +102,7 @@ public abstract class BaseWidget extends AppWidgetProvider {
     }
 
 
-    private void bindIfNot(Context context) {
+    protected void bindIfNot(Context context) {
         Log.v(Constants.TAG, "BaseWidget::bindIfNot. Entry...");
 
         if (null == togglerBinder) {

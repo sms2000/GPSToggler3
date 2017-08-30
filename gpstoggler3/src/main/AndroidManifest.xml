@@ -50,8 +50,8 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -78,16 +78,14 @@
             android:name=".services.TogglerService"
             android:enabled="true"
             android:exported="true"
-            android:stopWithTask="false"
-            android:permission="ogp.com.gpstoggler3.GPS_ACCESS" />
-
+            android:permission="ogp.com.gpstoggler3.GPS_ACCESS"
+            android:stopWithTask="false" />
         <service
             android:name=".services.WidgetsService"
-            android:exported="false"
-            android:stopWithTask="false"
             android:enabled="true"
-            android:permission="android.permission.BIND_REMOTEVIEWS"  />
-
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:stopWithTask="false" />
         <service
             android:name=".services.AppActivityService"
             android:label="@string/appactivity_service_label"
@@ -95,6 +93,7 @@
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
+
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/appactivityservice" />
@@ -124,11 +123,28 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_full" />
         </receiver>
+        <receiver
+            android:name=".widgets.AppStartWidget"
+            android:label="@string/app_icon">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
+                <action android:name="ogp.com.gpstoggler3.broadcasters.APP_SELECTED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_icon" />
+        </receiver>
 
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <activity
+            android:name=".AppSelectActivity"
+            android:label="@string/title_activity_app_select"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
