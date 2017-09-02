@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 
 public class AppStore {
-    public enum AppState {DISABLED, FOREGROUND, BACKGROUND}
+    public enum AppState {DISABLED, FOREGROUND, BACKGROUND, STARTABLE}
 
 
     public String friendlyName;

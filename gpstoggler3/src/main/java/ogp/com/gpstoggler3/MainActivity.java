@@ -509,17 +509,15 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
         setContentView(orientationLandscape ? R.layout.activity_l : R.layout.activity_p);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        listApps = findViewById(R.id.listApps);
+        logScroll = findViewById(R.id.scrollLog);
+        logView = findViewById(R.id.textLog);
 
-        listApps = (ListView) findViewById(R.id.listApps);
-
-        logScroll = (ScrollView) findViewById(R.id.scrollLog);
-        logView = (TextView) findViewById(R.id.textLog);
-
-        modeButton = (ToggleButton) findViewById(R.id.toggleAutomatic);
-        gpsButton = (ToggleButton) findViewById(R.id.toggleGPS);
+        modeButton = findViewById(R.id.toggleAutomatic);
+        gpsButton = findViewById(R.id.toggleGPS);
 
         gpsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -565,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         });
 
         listApps.setAdapter(adapter);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
