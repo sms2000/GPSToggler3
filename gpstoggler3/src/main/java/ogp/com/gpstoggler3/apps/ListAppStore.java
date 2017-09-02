@@ -1,5 +1,6 @@
 package ogp.com.gpstoggler3.apps;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -7,6 +8,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.settings.Settings;
 
 public class ListAppStore extends ArrayList<AppStore> implements Parcelable {
     public static final Parcelable.Creator<ListAppStore> CREATOR = new Parcelable.Creator<ListAppStore>() {
@@ -21,8 +23,12 @@ public class ListAppStore extends ArrayList<AppStore> implements Parcelable {
     };
 
 
-    public ListAppStore() {
+    private Context context;
+
+    public ListAppStore(Context context) {
         super();
+
+        this.context = context;
     }
 
 
@@ -62,7 +68,7 @@ public class ListAppStore extends ArrayList<AppStore> implements Parcelable {
                 String packageName = in.readString();
                 ////////////Log.v(TogglerService.TAG, String.format("ListAppStore::readFromParcel. Read package [%s]", packageName));
 
-                AppStore app = new AppStore(friendlyName, packageName);
+                AppStore app = new AppStore(friendlyName, packageName, Settings.getPackageIcon(context, packageName));
                 app.setAppState(AppStore.AppState.values()[in.readInt()]);
                 app.setActive(1 == in.readInt());
 

@@ -1,5 +1,8 @@
 package ogp.com.gpstoggler3.apps;
 
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
+
 public class AppStore {
     public enum AppState {DISABLED, FOREGROUND, BACKGROUND}
 
@@ -8,9 +11,11 @@ public class AppStore {
     public String packageName;
     private boolean active;
     private AppState appState;
+    private Drawable appIcon;
 
 
-    public AppStore(String appName, String appPackage) {
+    public AppStore(String appName, String appPackage, Drawable appIcon) {
+        this.appIcon = appIcon;
         this.friendlyName = appName;
         this.packageName = appPackage;
         this.active = false;
@@ -35,5 +40,10 @@ public class AppStore {
 
     public void setAppState(AppState appState) {
         this.appState = appState;
+    }
+
+
+    public Drawable getAppIcon() {
+        return appIcon;
     }
 }

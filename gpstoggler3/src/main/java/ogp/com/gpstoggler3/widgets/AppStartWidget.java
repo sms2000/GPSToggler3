@@ -6,16 +6,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.RemoteException;
-import android.support.v4.content.ContextCompat;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.settings.Settings;
 
 
 public class AppStartWidget extends BaseWidget {
@@ -24,23 +23,24 @@ public class AppStartWidget extends BaseWidget {
         Log.v(Constants.TAG, "AppStartWidget::createWidgetView. Entry...");
 
         Context appContext = context.getApplicationContext();
-        RemoteViews updateViews = new RemoteViews(appContext.getPackageName(), R.layout.layout_app_icon);
-        Drawable drawable = ContextCompat.getDrawable(appContext, getResIdByStatus());
-        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-
-        updateViews.setImageViewBitmap(R.id.appPic, bitmap);
-
-        Intent intent = new Intent(Broadcasters.GPS_PIC_CLICK);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(appContext, 0, intent, 0);
-
-        updateViews.setOnClickPendingIntent(R.id.app_icon, pendingIntent);
-
-        Log.d(Constants.TAG, "AppStartWidget::createWidgetView. setOnClickPendingIntent invoked.");
-
-        ComponentName thisWidget = new ComponentName(context, AppStartWidget.class);
-
         AppWidgetManager manager = AppWidgetManager.getInstance(appContext);
-        manager.updateAppWidget(thisWidget, updateViews);
+
+        for (int index : appWidgetIds) {
+            RemoteViews updateViews = new RemoteViews(appContext.getPackageName(), R.layout.layout_app_icon);
+            Drawable drawable = getResIdByStatus(index);
+            Bitmap bitmap = Settings.drawableToBitmap(drawable);
+
+            updateViews.setImageViewBitmap(R.id.appPic, bitmap);
+
+            Intent intent = new Intent(Broadcasters.APP_PIC_CLICK);
+            intent.putExtra(Broadcasters.APP_PIC_CLICK_EXTRA_INDEX, index);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(appContext, 0, intent, 0);
+
+            updateViews.setOnClickPendingIntent(R.id.app_icon, pendingIntent);
+
+            Log.w(Constants.TAG, "AppStartWidget::createWidgetView. setOnClickPendingIntent invoked.");
+            manager.updateAppWidget(index, updateViews);
+        }
 
         Log.v(Constants.TAG, "AppStartWidget::createWidgetView. Exit.");
     }
@@ -58,7 +58,7 @@ public class AppStartWidget extends BaseWidget {
             return;
         }
 
-        Log.i(Constants.TAG, "BaseWidget::onReceive. Entry for action: " + action);
+        Log.w(Constants.TAG, "BaseWidget::onReceive. Entry for action: " + action);
 
         switch (action) {
             case Broadcasters.APP_SELECTED:
@@ -93,12 +93,13 @@ public class AppStartWidget extends BaseWidget {
     }
 
 
-    private int getResIdByStatus() {
-        try {
-            return R.drawable.app_select;
-        } catch (Exception e) {
-            Log.w(Constants.TAG, "AppStartWidget::createWidgetView. Not yet bound to the main service.");
-            return R.drawable.app_select;
+    private Drawable getResIdByStatus(int index) {
+        String packageName = Settings.getPackageForWidget(index);
+        Drawable drawable = Settings.getPackageIcon(appContext, packageName);
+        if (null != drawable) {
+            return drawable;
+        } else {
+            return appContext.getResources().getDrawable(R.drawable.app_new_widget);
         }
     }
 }

@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ogp.com.gpstoggler3.settings.Settings;
+
 public class AppEnumerator {
     private Context context;
 
@@ -22,7 +24,7 @@ public class AppEnumerator {
     public ListAppStore execute() {
         final PackageManager pm = context.getPackageManager();
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        ListAppStore apps = new ListAppStore();
+        ListAppStore apps = new ListAppStore(context);
         boolean empty = true;
 
         for (ApplicationInfo applicationInfo : packages) {
@@ -38,7 +40,7 @@ public class AppEnumerator {
                         if (packageInfo.requestedPermissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                             String label = (String) applicationInfo.loadLabel(pm);
 
-                            apps.add(new AppStore(label.replaceAll("\\n", " "), applicationInfo.packageName));
+                            apps.add(new AppStore(label.replaceAll("\\n", " "), applicationInfo.packageName, Settings.getPackageIcon(context, applicationInfo.packageName)));
                             empty = false;
                             break;
                         }

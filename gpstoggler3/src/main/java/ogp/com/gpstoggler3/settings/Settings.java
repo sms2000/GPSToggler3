@@ -2,10 +2,15 @@ package ogp.com.gpstoggler3.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-import ogp.com.gpstoggler3.R;
+import java.util.Locale;
+
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.global.Constants;
@@ -24,16 +29,15 @@ public class Settings {
     private static final String ROOT_TIMEOUT_DELAY = "root_timeout_delay";
     private static final String DOUBLE_CLICK_DELAY = "widget_double_click";
     private static final String ON_POLLING_DELAY = "on_polling_delay";
-    private static final String OFF_POLLING_DELAY = "off_polling_delay";
 
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
     private static final int DEF_ROOT_TIMEOUT_DELAY = 1000;
     private static final int DEF_ON_POLLING_DELAY = 10000;
-    private static final int DEF_OFF_POLLING_DELAY = 30000;
 
     private static final String APPS_SEPARATOR = "_##_";
     private static final String FIELD_SEPARATOR = "_#_";
+    private static final String WIDGET_INDEX = "winget_index_%d";
 
     private static Settings settingsSingleton = null;
     private static SharedPreferences settings;
@@ -122,7 +126,7 @@ public class Settings {
     }
 
 
-    public static ListWatched loadWatchedApps() {
+    public static ListWatched loadWatchedApps(Context context) {
         Log.v(Constants.TAG, "Settings::loadWatchedApps. Entry...");
 
         ListWatched listApps = new ListWatched();
@@ -132,7 +136,7 @@ public class Settings {
             for (String app : apps) {
                 String[] splitted = app.split(FIELD_SEPARATOR);
                 if (2 <= splitted.length) {
-                    AppStore appStore = new AppStore(splitted[0], splitted[1]);
+                    AppStore appStore = new AppStore(splitted[0], splitted[1], getPackageIcon(context, splitted[1]));
 
                     if (3 <= splitted.length) {
                         try {
@@ -151,6 +155,23 @@ public class Settings {
 
         Log.v(Constants.TAG, "Settings::loadWatchedApps. Exit.");
         return listApps;
+    }
+
+
+    public static Drawable getPackageIcon(Context context, String packageName) {
+        Drawable drawable = null;
+
+        try {
+            drawable = context.getApplicationContext().getPackageManager().getApplicationIcon(packageName);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(Constants.TAG, String.format("Settings::getPackageIcon. No icon for the package [%s].", packageName));
+        }
+
+        if (null == drawable) {
+            Log.w(Constants.TAG, String.format("Settings::getPackageIcon. No icon for the package [%s].", packageName));
+        }
+
+        return drawable;
     }
 
 
@@ -219,10 +240,37 @@ public class Settings {
 
 
     public static int getOffPollingDelay() {
+        return 0;
+    }
+
+
+    public static String getPackageForWidget(int widgetIndex) {
         try {
-            return settings.getInt(OFF_POLLING_DELAY, DEF_OFF_POLLING_DELAY);
+            return settings.getString(String.format(Locale.ENGLISH, WIDGET_INDEX, widgetIndex), null);
         } catch (Exception ignored) {
-            return DEF_OFF_POLLING_DELAY;
+            return null;
         }
+    }
+
+
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if (bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        Bitmap bitmap;
+        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 }

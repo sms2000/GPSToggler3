@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="ogp.com.gpstoggler3.AppSelectActivity"
     android:initialLayout="@layout/layout_app_icon"
     android:minHeight="16dp"
     android:minWidth="16dp"

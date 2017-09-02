@@ -7,6 +7,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.settings.Settings;
 
 public class ListWatched extends ArrayList<AppStore> implements Parcelable {
     public static final Parcelable.Creator<ListWatched> CREATOR = new Parcelable.Creator<ListWatched>() {
@@ -65,7 +66,7 @@ public class ListWatched extends ArrayList<AppStore> implements Parcelable {
 
                 Log.v(Constants.TAG, String.format("ListWatched::readFromParcel. Read package [%s]", packageName));
 
-                AppStore appStore = new AppStore(friendlyName, packageName);
+                AppStore appStore = new AppStore(friendlyName, packageName, null);
                 appStore.setAppState(state);
                 add(appStore);
                 counted++;

@@ -43,7 +43,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
 
-    private ListAppStore appList = new ListAppStore();
+    private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
     private AppEnumerator appEnumerator;
     private AppDatabaseProcessor appDatabaseProcessor = null;
@@ -163,6 +163,11 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Widget icon click...");
 
                 widgetClickProcessing();
+            } else if (action.equals(Broadcasters.APP_PIC_CLICK)) {
+                int index = intent.getIntExtra(Broadcasters.APP_PIC_CLICK_EXTRA_INDEX, 0);
+                Log.i(Constants.TAG, String.format("TogglerService::activityManagement::onReceive. App start icon click for [%d]...", index));
+
+                appStartClickProcessing(index);
             } else if (action.equals(Broadcasters.ENUMERATE_INSTALLED_APPS)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Enumerate installed apps.");
 
@@ -226,7 +231,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Settings.allocate(this);
 
         serverThread = new WorkerThread();
-        appDatabaseProcessor = new AppDatabaseProcessor();
+        appDatabaseProcessor = new AppDatabaseProcessor(this);
         appEnumerator = new AppEnumerator(this);
 
         gpsActuator = GPSActuatorFactory.GetActuator(this);
@@ -235,6 +240,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Broadcasters.GPS_PIC_CLICK);
+        intentFilter.addAction(Broadcasters.APP_PIC_CLICK);
         intentFilter.addAction(Broadcasters.ENUMERATE_INSTALLED_APPS);
         intentFilter.addAction(Broadcasters.WINDOW_STACK_CHANGED);
         registerReceiver(activityManagement, intentFilter);
@@ -323,7 +329,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     public ListAppStore listInstalledApps(long lastAppList) {
         Log.v(Constants.TAG, "TogglerService::listInstalledApps. Entry...");
 
-        ListAppStore appList = new ListAppStore();
+        ListAppStore appList = new ListAppStore(this);
 
         if (lastNewAppList > lastAppList) {
             appList.addAll(this.appList);
@@ -695,6 +701,13 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         }
 
         Log.v(Constants.TAG, "TogglerService::widgetClickProcessing. Exit.");
+    }
+
+
+    private void appStartClickProcessing(int widgetIndex) {
+        Log.v(Constants.TAG, "TogglerService::appStartClickProcessing. Entry...");
+
+        Log.v(Constants.TAG, "TogglerService::appStartClickProcessing. Exit.");
     }
 
 

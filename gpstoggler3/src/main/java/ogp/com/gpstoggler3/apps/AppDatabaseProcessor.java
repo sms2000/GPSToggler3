@@ -1,5 +1,6 @@
 package ogp.com.gpstoggler3.apps;
 
+import android.content.Context;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.global.Constants;
@@ -10,12 +11,14 @@ import ogp.com.gpstoggler3.servlets.WorkerThread;
 public class AppDatabaseProcessor {
     private ListWatched listApps;
     private WorkerThread storeThread = null;
+    private Context context;
 
 
-    public AppDatabaseProcessor() {
+    public AppDatabaseProcessor(Context context) {
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Entry...");
 
-        listApps = Settings.loadWatchedApps();
+        this.context = context;
+        listApps = Settings.loadWatchedApps(context);
         storeThread = new WorkerThread();
 
         Log.v(Constants.TAG, "AppDatabaseProcessor::<init>. Exit.");

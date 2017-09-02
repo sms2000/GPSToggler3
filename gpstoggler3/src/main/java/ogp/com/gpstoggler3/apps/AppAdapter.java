@@ -1,7 +1,10 @@
 package ogp.com.gpstoggler3.apps;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,10 +45,11 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_list, parent, false);
         }
 
-        TextView appName = (TextView) convertView.findViewById(R.id.appName);
-        TextView appPackage = (TextView) convertView.findViewById(R.id.appPackage);
-        ImageView icon = (ImageView) convertView.findViewById(R.id.appImage);
-        final TriStateSwitch appLookup = (TriStateSwitch) convertView.findViewById(R.id.appLookup);
+        final TextView appName = convertView.findViewById(R.id.appName);
+        final TextView appPackage = convertView.findViewById(R.id.appPackage);
+        final ImageView stateIcon = convertView.findViewById(R.id.appImage);
+        final TriStateSwitch appLookup = convertView.findViewById(R.id.appLookup);
+        final ImageView appIcon = convertView.findViewById(R.id.appIcon);
 
         appLookup.setFlashListener(new TriStateSwitch.TriStateListener() {
             @Override
@@ -57,8 +61,9 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         assert appStore != null;
         appName.setText(appStore.friendlyName);
         appPackage.setText(appStore.packageName);
-        setImageDrawable(icon, appStore);
+        setStateImageDrawable(stateIcon, appStore);
         appLookup.setState(appStore.getAppState());
+        setAppImageDrawable(appIcon, appStore);
         return convertView;
     }
 
@@ -127,7 +132,7 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
     }
 
 
-    private void setImageDrawable(ImageView icon, AppStore app) {
+    private void setStateImageDrawable(ImageView stateIcon, AppStore app) {
         Drawable drawable;
 
         if (AppStore.AppState.DISABLED == app.getAppState()) {
@@ -138,6 +143,11 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
             drawable = IconStorage.getInactive();
         }
 
-        icon.setImageDrawable(drawable);
+        stateIcon.setImageDrawable(drawable);
+    }
+
+
+    private void setAppImageDrawable(ImageView appIcon, AppStore app) {
+        appIcon.setImageDrawable(app.getAppIcon());
     }
 }
