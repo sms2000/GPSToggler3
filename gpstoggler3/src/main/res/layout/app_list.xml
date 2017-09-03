@@ -13,7 +13,8 @@
 		android:id="@+id/appIcon"
 		android:contentDescription="@string/descr_app_icon"/>
 
-	<LinearLayout  	android:layout_width="0dp"
+	<LinearLayout  	android:id="@+id/appIds"
+                    android:layout_width="0dp"
 		       		android:layout_height="wrap_content"
 					android:layout_weight="70"
 					android:orientation="vertical"

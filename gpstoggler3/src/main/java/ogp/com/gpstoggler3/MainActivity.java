@@ -537,16 +537,13 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
                 v.setEnabled(false);
 
-
                 final Boolean oldGpsState;
-
                 try {
                     oldGpsState = togglerBinder.onGps().gpsOn;
                 } catch (RemoteException | NullPointerException e) {
                     Log.e(Constants.TAG, "MainActivity::initializeScreen. Exception in 'onGps'.");
                     return false;
                 }
-
 
                 Log.i(Constants.TAG, String.format("MainActivity::initializeScreen. Toggling GPS state from %s to %s.", gpsState2String(oldGpsState), gpsState2String(!oldGpsState)));
 
@@ -559,7 +556,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 }, WAIT_FOR_GPS_REACTION);
 
                 toggleGpsState();
-
                 v.performClick();
                 return true;
             }

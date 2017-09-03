@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -40,10 +41,37 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.app_list, parent, false);
         }
 
+        convertView.setTag(position);
+
         final TextView appName = convertView.findViewById(R.id.appName);
         final TextView appPackage = convertView.findViewById(R.id.appPackage);
         final ImageView appIcon = convertView.findViewById(R.id.appIcon);
         final ImageView appStateIcon = convertView.findViewById(R.id.appImage);
+        final LinearLayout appIds = convertView.findViewById(R.id.appIds);
+
+        appIcon.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                AppSelectAdapter.onLongClick((View)view.getParent());
+                return true;
+            }
+        });
+
+        appStateIcon.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                AppSelectAdapter.onLongClick((View)view.getParent());
+                return true;
+            }
+        });
+
+        appIds.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                AppSelectAdapter.onLongClick((View)view.getParent());
+                return true;
+            }
+        });
 
         assert appStore != null;
         appName.setText(appStore.friendlyName);
@@ -89,5 +117,16 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
     private void setAppImageDrawable(ImageView appIcon, ImageView appStateIcon, AppStore app) {
         appIcon.setImageDrawable(app.getAppIcon());
         appStateIcon.setImageResource(app.getInWidgets() > 0 ? R.drawable.exists : R.drawable.not_exists);
+    }
+
+
+    private static void onLongClick(View view) {
+        int position = (int)view.getTag();
+
+        Log.v(Constants.TAG, String.format("AppAdapter::onLongClick. Entry for [%d]...", position));
+
+
+
+        Log.v(Constants.TAG, "AppAdapter::onLongClick. Exit.");
     }
 }
