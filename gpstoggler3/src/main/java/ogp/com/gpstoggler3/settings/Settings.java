@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
@@ -254,23 +252,33 @@ public class Settings {
 
 
     public static Bitmap drawableToBitmap(Drawable drawable) {
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if (bitmapDrawable.getBitmap() != null) {
-                return bitmapDrawable.getBitmap();
-            }
+        return null;
+    }
+
+
+    public int countWidgets (String packageName) {
+        int count = 0;
+
+        return count;
+    }
+
+
+    public static void setWidget(int index, String packageName) {
+        SharedPreferences.Editor editor = settings.edit();
+        String key = String.format(Locale.ENGLISH, WIDGET_INDEX, index);
+        editor.putString(key, packageName);
+        editor.apply();
+    }
+
+
+    public static void dropWidgets(int[] appWidgetIds) {
+        SharedPreferences.Editor editor = settings.edit();
+
+        for (int index : appWidgetIds) {
+            String key = String.format(Locale.ENGLISH, WIDGET_INDEX, index);
+            editor.remove(key);
         }
 
-        Bitmap bitmap;
-        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        } else {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
+        editor.apply();
     }
 }

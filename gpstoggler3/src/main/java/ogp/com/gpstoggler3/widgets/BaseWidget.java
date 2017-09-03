@@ -84,6 +84,11 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
                 bindIfNot(context);
                 break;
+
+
+            default:
+                super.onReceive(context, intent);
+                break;
         }
 
         Log.v(Constants.TAG, "BaseWidget::onReceive. Exit.");

@@ -16,5 +16,5 @@
         android:layout_marginRight="5dp"
         android:layout_marginTop="5dp"
         android:contentDescription="@+id/app_icon_description"
-        android:src="@drawable/disabled" />
+        android:src="@drawable/app_new_widget" />
 </LinearLayout>

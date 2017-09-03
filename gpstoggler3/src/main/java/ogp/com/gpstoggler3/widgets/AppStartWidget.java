@@ -47,6 +47,14 @@ public class AppStartWidget extends BaseWidget {
 
 
     @Override
+    public void onDeleted (Context context, int[] appWidgetIds) {
+        Settings.dropWidgets(appWidgetIds);
+
+        super.onDeleted(context, appWidgetIds);
+    }
+
+
+    @Override
     public void onReceive(Context context, Intent intent) {
         Log.v(Constants.TAG, "AppStartWidget::onReceive. Entry...");
 

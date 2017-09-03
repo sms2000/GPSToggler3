@@ -12,6 +12,7 @@ public class AppStore {
     private boolean active;
     private AppState appState;
     private Drawable appIcon;
+    private int inWidgets;
 
 
     public AppStore(String appName, String appPackage, Drawable appIcon) {
@@ -20,6 +21,7 @@ public class AppStore {
         this.packageName = appPackage;
         this.active = false;
         this.appState = AppState.DISABLED;
+        this.inWidgets = 0;
     }
 
 
@@ -45,5 +47,15 @@ public class AppStore {
 
     public Drawable getAppIcon() {
         return appIcon;
+    }
+
+
+    public void setInWidgets(int inWidgets) {
+        this.inWidgets = inWidgets;
+    }
+
+
+    public int getInWidgets() {
+        return inWidgets;
     }
 }
