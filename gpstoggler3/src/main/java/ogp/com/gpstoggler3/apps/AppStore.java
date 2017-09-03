@@ -2,6 +2,9 @@ package ogp.com.gpstoggler3.apps;
 
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
+import android.media.audiofx.BassBoost;
+
+import ogp.com.gpstoggler3.settings.Settings;
 
 public class AppStore {
     public enum AppState {DISABLED, FOREGROUND, BACKGROUND, STARTABLE}
@@ -21,7 +24,7 @@ public class AppStore {
         this.packageName = appPackage;
         this.active = false;
         this.appState = AppState.DISABLED;
-        this.inWidgets = 0;
+        this.inWidgets = Settings.countWidgets(this.packageName);
     }
 
 
@@ -47,11 +50,6 @@ public class AppStore {
 
     public Drawable getAppIcon() {
         return appIcon;
-    }
-
-
-    public void setInWidgets(int inWidgets) {
-        this.inWidgets = inWidgets;
     }
 
 

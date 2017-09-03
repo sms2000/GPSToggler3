@@ -22,11 +22,13 @@ import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.services.TogglerService;
+import ogp.com.gpstoggler3.servlets.ShyProgressDialog;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
-    private ProgressDialog progress;
+    private static final long MIN_SHOW_PROGRESS_MS = 1500;
+    private ShyProgressDialog progress;
 
     private static AppSelectAdapter adapter = null;
     private static long lastAppList = 0;
@@ -58,7 +60,6 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
                 Log.e(Constants.TAG, String.format("AppSelectActivity::onServiceConnected. Failed to connect the server. App PID = %d.", myPID));
             }
 
-            progress.dismiss();
             reloadInstalledApps();
             Log.v(Constants.TAG, "AppSelectActivity::TogglerServiceConnection::onServiceConnected. Exit.");
         }
@@ -80,6 +81,8 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
             if (intent.getAction().equals(Broadcasters.APPS_ENUMERATED)) {
                 enumerateInstalledApps();
+
+                progress.dismiss();
             }
 
             Log.v(Constants.TAG, "AppSelectActivity::serviceReceiver::OnReceive. Exit.");
@@ -100,7 +103,7 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
         Log.v(Constants.TAG, "AppSelectActivity::onCreate. Entry...");
 
         setResult(RESULT_OK);
-        progress = new ProgressDialog(this);
+        progress = new ShyProgressDialog(this, MIN_SHOW_PROGRESS_MS);
 
         progress.setTitle("");
         progress.setMessage(getString(R.string.loading_apps));

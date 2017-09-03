@@ -43,11 +43,12 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
         final TextView appName = convertView.findViewById(R.id.appName);
         final TextView appPackage = convertView.findViewById(R.id.appPackage);
         final ImageView appIcon = convertView.findViewById(R.id.appIcon);
+        final ImageView appStateIcon = convertView.findViewById(R.id.appImage);
 
         assert appStore != null;
         appName.setText(appStore.friendlyName);
         appPackage.setText(appStore.packageName);
-        setAppImageDrawable(appIcon, appStore);
+        setAppImageDrawable(appIcon, appStateIcon, appStore);
         return convertView;
     }
 
@@ -85,7 +86,8 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
     }
 
 
-    private void setAppImageDrawable(ImageView appIcon, AppStore app) {
+    private void setAppImageDrawable(ImageView appIcon, ImageView appStateIcon, AppStore app) {
         appIcon.setImageDrawable(app.getAppIcon());
+        appStateIcon.setImageResource(app.getInWidgets() > 0 ? R.drawable.exists : R.drawable.not_exists);
     }
 }

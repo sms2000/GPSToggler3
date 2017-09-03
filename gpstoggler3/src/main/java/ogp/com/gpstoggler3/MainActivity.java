@@ -60,6 +60,7 @@ import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.results.RPCResult;
 import ogp.com.gpstoggler3.services.AppActivityService;
 import ogp.com.gpstoggler3.services.TogglerService;
+import ogp.com.gpstoggler3.servlets.ShyProgressDialog;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
 import ogp.com.gpstoggler3.status.GPSStatus;
@@ -71,6 +72,7 @@ import static ogp.com.gpstoggler3.su.RootCaller.RootStatus.ROOT_GRANTED;
 
 
 public class MainActivity extends AppCompatActivity implements AppAdapterInterface {
+    private static final long MIN_SHOW_PROGRESS_MS = 1500;
     private static final long WAIT_FOR_GPS_REACTION = 1000;
     private static final int MAX_LOG_LINES = 200;
     private static final int REQ_WRITE_EXTERNAL_STORAGE = 1;
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     private ITogglerService togglerBinder = null;
     private Handler handler = new Handler();
     private String packageName;
-    private ProgressDialog progress;
+    private ShyProgressDialog progress;
     private WorkerThread activityThread = new WorkerThread();
     private GoogleApiClient client;
     private long backPressedTime = 0;
@@ -162,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
             resurrectLog();
 
-            progress.dismiss();
             reloadInstalledApps();
             Log.v(Constants.TAG, "MainActivity::TogglerServiceConnection::onServiceConnected. Exit.");
         }
@@ -195,6 +196,8 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 automationStateChanged(intent.getBooleanExtra(Broadcasters.AUTO_STATE_CHANGED_AUTOMATION, false));
             }
 
+            progress.dismiss();
+
             Log.v(Constants.TAG, "MainActivity::serviceReceiver::OnReceive. Exit.");
         }
     };
@@ -213,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
         Settings.allocate(this);
 
         packageName = getPackageName();
-        progress = new ProgressDialog(this);
+        progress = new ShyProgressDialog(this, MIN_SHOW_PROGRESS_MS);
 
         progress.setTitle("");
         progress.setMessage(getString(R.string.loading_apps));

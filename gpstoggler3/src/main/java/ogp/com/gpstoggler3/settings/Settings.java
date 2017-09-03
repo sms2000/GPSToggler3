@@ -36,6 +36,8 @@ public class Settings {
     private static final String APPS_SEPARATOR = "_##_";
     private static final String FIELD_SEPARATOR = "_#_";
     private static final String WIDGET_INDEX = "winget_index_%d";
+    private static final String MAX_WIDGET_INDEX = "widget_max_index";
+
 
     private static Settings settingsSingleton = null;
     private static SharedPreferences settings;
@@ -256,17 +258,43 @@ public class Settings {
     }
 
 
-    public int countWidgets (String packageName) {
+    public static int countWidgets (String packageName) {
         int count = 0;
+        int maxIndex = 0;
+
+        try {
+            maxIndex = settings.getInt(MAX_WIDGET_INDEX, 0);
+        } catch (Exception ignored) {
+        }
+
+        for (int i = 0; i <= maxIndex; i++) {
+            String pN = getPackageForWidget(i);
+            if (null != pN && pN.equals(packageName)) {
+                count++;
+            }
+        }
 
         return count;
     }
 
 
     public static void setWidget(int index, String packageName) {
+        int maxIndex = 0;
+
+        try {
+            maxIndex = settings.getInt(MAX_WIDGET_INDEX, 0);
+        } catch (Exception ignored) {
+        }
+
+
         SharedPreferences.Editor editor = settings.edit();
         String key = String.format(Locale.ENGLISH, WIDGET_INDEX, index);
         editor.putString(key, packageName);
+
+        if (index > maxIndex) {
+            editor.putInt(MAX_WIDGET_INDEX, index);
+        }
+
         editor.apply();
     }
 
