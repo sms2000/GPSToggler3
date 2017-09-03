@@ -1,10 +1,7 @@
 package ogp.com.gpstoggler3.apps;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;

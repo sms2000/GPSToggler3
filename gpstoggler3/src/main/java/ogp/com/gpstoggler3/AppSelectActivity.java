@@ -15,16 +15,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ListView;
 
-import ogp.com.gpstoggler3.apps.AppAdapter;
 import ogp.com.gpstoggler3.apps.AppSelectAdapter;
 import ogp.com.gpstoggler3.apps.AppStore;
 import ogp.com.gpstoggler3.apps.ListAppStore;
-import ogp.com.gpstoggler3.apps.ListWatched;
 import ogp.com.gpstoggler3.broadcasters.Broadcasters;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
+
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
     private ProgressDialog progress;

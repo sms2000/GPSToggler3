@@ -37,7 +37,7 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
         final AppStore appStore = getItem(position);
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_list, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.app_list, parent, false);
         }
 
         final TextView appName = convertView.findViewById(R.id.appName);

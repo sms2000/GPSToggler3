@@ -22,7 +22,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/toggleAutomatic"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:layout_marginLeft="@dimen/activity_horizontal_small_margin"
             android:layout_marginStart="@dimen/activity_horizontal_small_margin"
             android:textOn="@string/automaticOn"
             android:textOff="@string/automaticOff"
