@@ -195,4 +195,7 @@
     <string name="button_google_drive_account">Google Drive account</string>
     <string name="google_drive_account_not_selected">No account selected. Please choose one.</string>
     <string name="title_activity_app_select">AppSelectActivity</string>
+    <string name="package_name" />
+    <string name="position" />
+    <string name="zero_widget">The recently created widget is problematic. Recreate again.</string>
 </resources>

@@ -41,7 +41,8 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.app_list, parent, false);
         }
 
-        convertView.setTag(position);
+        convertView.setTag(R.string.position, position);
+        convertView.setTag(R.string.package_name, appStore.packageName);
 
         final TextView appName = convertView.findViewById(R.id.appName);
         final TextView appPackage = convertView.findViewById(R.id.appPackage);
@@ -52,7 +53,7 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
         appIcon.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                AppSelectAdapter.onLongClick((View)view.getParent());
+                AppSelectAdapter.this.onLongClick((View)view.getParent());
                 return true;
             }
         });
@@ -60,7 +61,7 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
         appStateIcon.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                AppSelectAdapter.onLongClick((View)view.getParent());
+                AppSelectAdapter.this.onLongClick((View)view.getParent());
                 return true;
             }
         });
@@ -68,7 +69,7 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
         appIds.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                AppSelectAdapter.onLongClick((View)view.getParent());
+                AppSelectAdapter.this.onLongClick((View)view.getParent());
                 return true;
             }
         });
@@ -120,12 +121,12 @@ public class AppSelectAdapter extends ArrayAdapter<AppStore> {
     }
 
 
-    private static void onLongClick(View view) {
-        int position = (int)view.getTag();
+    private void onLongClick(View view) {
+        int position = (int)view.getTag(R.string.position);
+        String packageName = (String)view.getTag(R.string.package_name);
+        Log.v(Constants.TAG, String.format("AppAdapter::onLongClick. Entry [%d] for [%s]...", position, packageName));
 
-        Log.v(Constants.TAG, String.format("AppAdapter::onLongClick. Entry for [%d]...", position));
-
-
+        appAdapterInterface.onClickAppLookup(getItem(position), AppStore.AppState.STARTABLE);
 
         Log.v(Constants.TAG, "AppAdapter::onLongClick. Exit.");
     }

@@ -144,7 +144,8 @@
         <activity
             android:name=".AppSelectActivity"
             android:label="@string/title_activity_app_select"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
