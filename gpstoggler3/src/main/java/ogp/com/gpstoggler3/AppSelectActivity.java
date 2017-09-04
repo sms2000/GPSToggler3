@@ -28,10 +28,12 @@ import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.ShyProgressDialog;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
+import ogp.com.gpstoggler3.widgets.AppStartWidget;
 
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
     private static final long MIN_SHOW_PROGRESS_MS = 1500;
+    private static final int NO_WIDGET = 0;
     private ShyProgressDialog progress;
 
     private static AppSelectAdapter adapter = null;
@@ -118,7 +120,7 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
 
         Intent startingIntent = getIntent();
-        widgetIndex = startingIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
+        widgetIndex = startingIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, NO_WIDGET);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Broadcasters.APPS_ENUMERATED);
@@ -140,7 +142,7 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
         super.onResume();
 
-        if (0 == widgetIndex) {
+        if (NO_WIDGET == widgetIndex) {
             Toast.makeText(this, R.string.zero_widget, Toast.LENGTH_LONG).show();
             finish();
         }
@@ -189,11 +191,17 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
                 Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...", widgetIndex, packageName));
 
+                setResult(RESULT_OK);
+                finish();
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        setResult(RESULT_OK);
-                        finish();
+                        Intent intent = new Intent(AppSelectActivity.this, AppStartWidget.class);
+                        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                        int[] ids = {widgetIndex};
+                        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+                        sendBroadcast(intent);
 
                         Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
                     }
