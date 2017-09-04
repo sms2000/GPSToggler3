@@ -1,6 +1,7 @@
 package ogp.com.gpstoggler3;
 
 import android.app.ProgressDialog;
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,12 +9,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import ogp.com.gpstoggler3.apps.AppSelectAdapter;
 import ogp.com.gpstoggler3.apps.AppStore;
@@ -24,10 +27,13 @@ import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
 import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.ShyProgressDialog;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
+import ogp.com.gpstoggler3.settings.Settings;
+import ogp.com.gpstoggler3.widgets.AppStartWidget;
 
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
     private static final long MIN_SHOW_PROGRESS_MS = 1500;
+    private static final int NO_WIDGET = 0;
     private ShyProgressDialog progress;
 
     private static AppSelectAdapter adapter = null;
@@ -37,6 +43,8 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     private WorkerThread activityThread = new WorkerThread();
     private ITogglerService togglerBinder = null;
     private AppSelectActivity.TogglerServiceConnection serviceConnection = new AppSelectActivity.TogglerServiceConnection();
+    private Handler handler = new Handler();
+    private int widgetIndex = 0;
 
 
     private class TogglerServiceConnection implements ServiceConnection {
@@ -102,7 +110,6 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
         Log.v(Constants.TAG, "AppSelectActivity::onCreate. Entry...");
 
-        setResult(RESULT_OK);
         progress = new ShyProgressDialog(this, MIN_SHOW_PROGRESS_MS);
 
         progress.setTitle("");
@@ -110,6 +117,10 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
         progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progress.setIndeterminate(true);
         progress.show();
+
+
+        Intent startingIntent = getIntent();
+        widgetIndex = startingIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, NO_WIDGET);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Broadcasters.APPS_ENUMERATED);
@@ -122,6 +133,21 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
         connect2Services();
 
         Log.v(Constants.TAG, "AppSelectActivity::onCreate. Exit.");
+    }
+
+
+    @Override
+    protected void onResume() {
+        Log.v(Constants.TAG, "AppSelectActivity::onResume. Entry...");
+
+        super.onResume();
+
+        if (NO_WIDGET == widgetIndex) {
+            Toast.makeText(this, R.string.zero_widget, Toast.LENGTH_LONG).show();
+            finish();
+        }
+
+        Log.v(Constants.TAG, "AppSelectActivity::onResume. Exit.");
     }
 
 
@@ -156,11 +182,30 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     public void onClickAppLookup(AppStore appStore, AppStore.AppState appState) {
         Log.v(Constants.TAG, "AppSelectActivity::onClickAppLookup. Entry...");
 
+        final String packageName = appStore.packageName;
+
         activityThread.post(new Runnable() {
             @Override
             public void run() {
+                Settings.setWidget(widgetIndex, packageName);
 
+                Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...", widgetIndex, packageName));
 
+                setResult(RESULT_OK);
+                finish();
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(AppSelectActivity.this, AppStartWidget.class);
+                        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                        int[] ids = {widgetIndex};
+                        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+                        sendBroadcast(intent);
+
+                        Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
+                    }
+                });
             }
         });
 
