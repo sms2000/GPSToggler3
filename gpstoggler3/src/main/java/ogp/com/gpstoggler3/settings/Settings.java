@@ -34,6 +34,7 @@ public class Settings {
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
     private static final int DEF_ROOT_TIMEOUT_DELAY = 1000;
     private static final int DEF_ON_POLLING_DELAY = 10000;
+    private static final int DEF_OFF_POLLING_DELAY = 10000;
 
     private static final String APPS_SEPARATOR = "_##_";
     private static final String FIELD_SEPARATOR = "_#_";
@@ -242,7 +243,7 @@ public class Settings {
 
 
     public static int getOffPollingDelay() {
-        return 0;
+        return DEF_OFF_POLLING_DELAY;
     }
 
 

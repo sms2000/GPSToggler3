@@ -705,7 +705,18 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
     private void appStartClickProcessing(int widgetIndex) {
-        Log.v(Constants.TAG, "TogglerService::appStartClickProcessing. Entry...");
+        Log.v(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Entry for widget [%s]...", widgetIndex));
+
+        String packageName = Settings.getPackageForWidget(widgetIndex);
+        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+        if (null != intent) {
+            setGpsState(true);
+            startActivity(intent);
+
+            Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Enabled the GPS and started the launch activity for the package [%s].", packageName));
+        } else {
+            Log.w(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Failed to obtain the lasunch activity for the package [%s].", packageName));
+        }
 
         Log.v(Constants.TAG, "TogglerService::appStartClickProcessing. Exit.");
     }

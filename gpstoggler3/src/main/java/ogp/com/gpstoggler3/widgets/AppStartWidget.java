@@ -6,7 +6,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -47,12 +49,12 @@ public class AppStartWidget extends BaseWidget {
 
     @Override
     public void onDeleted (Context context, int[] appWidgetIds) {
-        Settings.dropWidgets(appWidgetIds);
+  /*    Settings.dropWidgets(appWidgetIds); */
 
         super.onDeleted(context, appWidgetIds);
     }
 
-
+/*
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.v(Constants.TAG, "AppStartWidget::onReceive. Entry...");
@@ -82,7 +84,7 @@ public class AppStartWidget extends BaseWidget {
 
         Log.v(Constants.TAG, "AppStartWidget::onReceive. Exit.");
     }
-
+*/
 
     @Override
     void update(Context context) {

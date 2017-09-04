@@ -16,6 +16,7 @@ import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ListView;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import ogp.com.gpstoggler3.apps.AppSelectAdapter;
@@ -191,17 +192,17 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
                 Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...", widgetIndex, packageName));
 
-                setResult(RESULT_OK);
-                finish();
-
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Intent intent = new Intent(AppSelectActivity.this, AppStartWidget.class);
-                        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                        int[] ids = {widgetIndex};
-                        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-                        sendBroadcast(intent);
+                        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(AppSelectActivity.this);
+                        RemoteViews views = new RemoteViews(AppSelectActivity.this.getPackageName(), R.layout.layout_app_icon);
+                        appWidgetManager.updateAppWidget(widgetIndex, views);
+
+                        Intent resultValue = new Intent();
+                        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+                        setResult(RESULT_OK, resultValue);
+                        finish();
 
                         Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
                     }
@@ -210,7 +211,6 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
         });
 
         Log.v(Constants.TAG, "AppSelectActivity::onClickAppLookup. Exit.");
-
     }
 
 
