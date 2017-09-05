@@ -3,6 +3,7 @@ package ogp.com.gpstoggler3.services;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -15,6 +16,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
+import ogp.com.gpstoggler3.AppSelectActivity;
 import ogp.com.gpstoggler3.apps.ApplicationsWatchdog;
 import ogp.com.gpstoggler3.ITogglerService;
 import ogp.com.gpstoggler3.MainActivity;
@@ -708,14 +710,22 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Log.v(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Entry for widget [%s]...", widgetIndex));
 
         String packageName = Settings.getPackageForWidget(widgetIndex);
-        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
-        if (null != intent) {
-            setGpsState(true);
-            startActivity(intent);
+        if (null == packageName) {
+            Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Widget [%d] is not initialized yet. Configure...", widgetIndex));
 
-            Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Enabled the GPS and started the launch activity for the package [%s].", packageName));
+            Intent intent = new Intent(this, AppSelectActivity.class);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+            startActivity(intent);
         } else {
-            Log.w(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Failed to obtain the lasunch activity for the package [%s].", packageName));
+            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (null != intent) {
+                setGpsState(true);
+                startActivity(intent);
+
+                Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Enabled the GPS and started the launch activity for the package [%s].", packageName));
+            } else {
+                Log.w(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Failed to obtain the lasunch activity for the package [%s].", packageName));
+            }
         }
 
         Log.v(Constants.TAG, "TogglerService::appStartClickProcessing. Exit.");

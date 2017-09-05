@@ -50,11 +50,11 @@
     <string name="toggle_failed">Error. Failed to toggle the GPS state.</string>
     <string name="gps_app_on">Automation enabled GPS for [%d] app(s)</string>
     <string name="gps_app_off">Automation disabled GPS</string>
-    <string name="widget_icon">GPS Toggler 3 small widget</string>
+    <string name="widget_icon">GPST3 small</string>
     <string name="widget_icon_description">GPS Toggler 3 small widget</string>
-    <string name="widget_full">GPS Toggler 3 full widget</string>
+    <string name="widget_full">GPST3 full widget</string>
     <string name="app_icon">GPS Toggler 3 starting widget</string>
-    <string name="app_icon_description">GPS Toggler 3 starting widget</string>
+    <string name="app_icon_description">GPST3 app widget</string>
     <string name="internal_error_1">Internal error [1].</string>
     <string name="Name">Name</string>
     <string name="Package">Package</string>

@@ -74,6 +74,7 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
         switch (action) {
             case AppWidgetManager.ACTION_APPWIDGET_UPDATE:
+            case AppWidgetManager.ACTION_APPWIDGET_OPTIONS_CHANGED:
                 bindIfNot(context);
                 break;
 
@@ -84,12 +85,10 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
                 bindIfNot(context);
                 break;
-
-
-            default:
-                super.onReceive(context, intent);
-                break;
         }
+
+
+        super.onReceive(context, intent);
 
         Log.v(Constants.TAG, "BaseWidget::onReceive. Exit.");
     }

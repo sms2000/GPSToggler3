@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteException;
@@ -29,12 +28,10 @@ import ogp.com.gpstoggler3.services.TogglerService;
 import ogp.com.gpstoggler3.servlets.ShyProgressDialog;
 import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.Settings;
-import ogp.com.gpstoggler3.widgets.AppStartWidget;
 
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
     private static final long MIN_SHOW_PROGRESS_MS = 1500;
-    private static final int NO_WIDGET = 0;
     private ShyProgressDialog progress;
 
     private static AppSelectAdapter adapter = null;
@@ -44,7 +41,6 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     private WorkerThread activityThread = new WorkerThread();
     private ITogglerService togglerBinder = null;
     private AppSelectActivity.TogglerServiceConnection serviceConnection = new AppSelectActivity.TogglerServiceConnection();
-    private Handler handler = new Handler();
     private int widgetIndex = 0;
 
 
@@ -121,11 +117,15 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
 
         Intent startingIntent = getIntent();
-        widgetIndex = startingIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, NO_WIDGET);
+        widgetIndex = startingIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Broadcasters.APPS_ENUMERATED);
         registerReceiver(serviceReceiver, filter);
+
+        Intent resultValue = new Intent();
+        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+        setResult(RESULT_CANCELED, resultValue);
 
         initializeScreen();
 
@@ -143,7 +143,7 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
         super.onResume();
 
-        if (NO_WIDGET == widgetIndex) {
+        if (AppWidgetManager.INVALID_APPWIDGET_ID == widgetIndex) {
             Toast.makeText(this, R.string.zero_widget, Toast.LENGTH_LONG).show();
             finish();
         }
@@ -183,32 +183,21 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     public void onClickAppLookup(AppStore appStore, AppStore.AppState appState) {
         Log.v(Constants.TAG, "AppSelectActivity::onClickAppLookup. Entry...");
 
-        final String packageName = appStore.packageName;
+        Settings.setWidget(widgetIndex, appStore.packageName);
 
-        activityThread.post(new Runnable() {
-            @Override
-            public void run() {
-                Settings.setWidget(widgetIndex, packageName);
+        Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...",
+                                            widgetIndex, appStore.packageName));
 
-                Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...", widgetIndex, packageName));
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(AppSelectActivity.this);
+        RemoteViews views = new RemoteViews(AppSelectActivity.this.getPackageName(), R.layout.layout_app_icon);
+        appWidgetManager.updateAppWidget(widgetIndex, views);
 
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(AppSelectActivity.this);
-                        RemoteViews views = new RemoteViews(AppSelectActivity.this.getPackageName(), R.layout.layout_app_icon);
-                        appWidgetManager.updateAppWidget(widgetIndex, views);
+        Intent resultValue = new Intent();
+        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+        setResult(RESULT_OK, resultValue);
+        finish();
 
-                        Intent resultValue = new Intent();
-                        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
-                        setResult(RESULT_OK, resultValue);
-                        finish();
-
-                        Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
-                    }
-                });
-            }
-        });
+        Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
 
         Log.v(Constants.TAG, "AppSelectActivity::onClickAppLookup. Exit.");
     }
