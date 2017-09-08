@@ -186,6 +186,11 @@
         <item>3600000</item>
     </string-array>
 
+    <string name="pref_title_monitor_app_started">Monitor the lifespan of Widget activated applications</string>
+    <string name="pref_description_monitor_app_started">Automatically switches off GPS when the last Widget activated application finished.</string>
+    <string name="pref_title_monitor_off_gps_off">Keep GPS off when the display is off</string>
+    <string name="pref_description_monitor_off_gps_off">Automatically switches off GPS when the display turned off regardless of the situation in background.</string>
+
     <string name="pref_header_cloud">In-cloud data store</string>
     <string name="button_store">Store in Google Drive</string>
     <string name="button_store_summary">Stores the Preferences in Google Drive</string>

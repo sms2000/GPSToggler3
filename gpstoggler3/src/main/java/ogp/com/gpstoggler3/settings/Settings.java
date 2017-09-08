@@ -25,11 +25,13 @@ public class Settings {
 
     // From ActivitySettings
     private static final String USE_MONITOR_APP = "use_monitor_app";
-    private static final String BACK_KEY_DELAY = "back_key_delay";
-    private static final String ROOT_TIMEOUT_DELAY = "root_timeout_delay";
-    private static final String DOUBLE_CLICK_DELAY = "widget_double_click";
-    private static final String ON_POLLING_DELAY = "on_polling_delay";
-    private static final String OFF_POLLING_DELAY = "off_polling_delay";
+    public static final String BACK_DELAY = "back_delay";
+    public static final String ROOT_TIMEOUT_DELAY = "root_timeout_delay";
+    public static final String DOUBLE_CLICK_DELAY = "widget_double_click";
+    public static final String ON_POLLING_DELAY = "on_polling_delay";
+    public static final String OFF_POLLING_DELAY = "off_polling_delay";
+    private static final String MONITOR_APP_STARTED = "monitor_app_started";
+    private static final String MONITOR_OFF_GPS_OFF = "monitor_off_gps_off";
 
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
     private static final int DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY = 250;
@@ -200,6 +202,16 @@ public class Settings {
     }
 
 
+    public static boolean doMonitorAppLifespan() {
+        return settings.getBoolean(MONITOR_APP_STARTED, false);
+    }
+
+
+    public static boolean keepGpsOffWhenMonitorOff() {
+        return settings.getBoolean(MONITOR_OFF_GPS_OFF, false);
+    }
+
+
     public static void preserveAccountName(String pref_key, String accName) {
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(pref_key, accName);
@@ -218,7 +230,7 @@ public class Settings {
 
     public static int getLongBackKeyPressDelay() {
         try {
-            return settings.getInt(BACK_KEY_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
+            return settings.getInt(BACK_DELAY, DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY);
         } catch (Exception ignored) {
             return DEF_PREVENT_LONG_BACK_KEY_PRESS_DELAY;
         }

@@ -148,10 +148,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("widget_double_click"));
-            bindPreferenceSummaryToValue(findPreference("root_timeout_delay"));
-            bindPreferenceSummaryToValue(findPreference("on_polling_delay"));
-            bindPreferenceSummaryToValue(findPreference("off_polling_delay"));
+            bindPreferenceSummaryToValue(findPreference(Settings.DOUBLE_CLICK_DELAY));
+            bindPreferenceSummaryToValue(findPreference(Settings.ROOT_TIMEOUT_DELAY));
+            bindPreferenceSummaryToValue(findPreference(Settings.ON_POLLING_DELAY));
+            bindPreferenceSummaryToValue(findPreference(Settings.OFF_POLLING_DELAY));
         }
 
         @Override
@@ -174,7 +174,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
             addPreferencesFromResource(R.xml.pref_lifespan);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("back_delay"));
+            bindPreferenceSummaryToValue(findPreference(Settings.BACK_DELAY));
         }
 
         @Override
@@ -209,26 +209,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
             settingsActivity.connectGoogleDrive();
         }
 
-/*
-        @Override
-        public void onResume() {
-            Log.v(TAG, "SettingsActivity::CloudPreferenceFragment::onResume. Entry...");
-
-            super.onResume();
-
-            Log.v(TAG, "SettingsActivity::CloudPreferenceFragment::onResume. Exit.");
-        }
-
-
-        @Override
-        public void onPause() {
-            Log.v(TAG, "SettingsActivity::CloudPreferenceFragment::onPause. Entry...");
-
-            super.onPause();
-
-            Log.v(TAG, "SettingsActivity::CloudPreferenceFragment::onPause. Exit.");
-        }
-*/
 
         @Override
         public void onDestroy() {
