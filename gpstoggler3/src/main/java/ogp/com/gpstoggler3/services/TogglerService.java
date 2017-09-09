@@ -164,7 +164,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Screen Off action.");
 
-                screenOnOff(true);
+                screenOnOff(false);
             } else if (action.equals(Broadcasters.GPS_PIC_CLICK)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Widget icon click...");
 
