@@ -32,6 +32,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.3.753
+-------
+
+1. Hold watchdog thread to prevent GPS off when an application just started.
+
+
 1.3.744
 -------
 

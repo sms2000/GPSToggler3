@@ -22,6 +22,7 @@ import ogp.com.gpstoggler3.ITogglerService;
 import ogp.com.gpstoggler3.MainActivity;
 import ogp.com.gpstoggler3.R;
 import ogp.com.gpstoggler3.actuators.GPSActuatorFactory;
+import ogp.com.gpstoggler3.decisioncenter.DecisionCenter;
 import ogp.com.gpstoggler3.global.GPSToggler3Application;
 import ogp.com.gpstoggler3.interfaces.GPSActuatorInterface;
 import ogp.com.gpstoggler3.apps.AppDatabaseProcessor;
@@ -44,6 +45,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int BIND_TO_MONITOR_TIMEOUT = 100;
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
+    private static final long HOLD_PERIOD_MS = 2000;
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -58,6 +60,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private long lastGpsStatusChangeTimestamp;
     private LocationProviderReceiver locationProviderReceiver = new LocationProviderReceiver(this);
     private WorkerThread serverThread = null;
+    private DecisionCenter decisionCenter = new DecisionCenter(this);
+    private Boolean screenOn = null;
 
 
     private class MonitorServiceConnection implements ServiceConnection {
@@ -156,11 +160,11 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Screen On action.");
 
-                watchdogThread.screenOnOff(true);
+                screenOnOff(true);
             } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Screen Off action.");
 
-                watchdogThread.screenOnOff(false);
+                screenOnOff(true);
             } else if (action.equals(Broadcasters.GPS_PIC_CLICK)) {
                 Log.i(Constants.TAG, "TogglerService::activityManagement::onReceive. Widget icon click...");
 
@@ -414,6 +418,12 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         setGpsState(!stateNow);
 
         Log.v(Constants.TAG, "TogglerService::toggleGpsState. Exit.");
+    }
+
+
+    @Override
+    public Boolean isScreenOn() {
+        return screenOn;
     }
 
 
@@ -719,6 +729,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         } else {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (null != intent) {
+                watchdogThread.holdTill(System.currentTimeMillis() + HOLD_PERIOD_MS);
                 setGpsState(true);
                 startActivity(intent);
 
@@ -789,5 +800,23 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             Log.e(Constants.TAG, "TogglerService::checkAppDatabaseProcessor. Severe error. 'appDatabaseProcessor' lost.");
             return false;
         }
+    }
+
+
+    private void screenOnOff(boolean screenOn) {
+        Log.v(Constants.TAG,String.format ("TogglerService::screenOnOff. Entry for [%s]...", screenOn ? "on" : "off"));
+
+        this.screenOn = screenOn;
+        watchdogThread.screenOnOff(screenOn);
+
+        if (onGps().gpsOn && decisionCenter.possibleSetGps(false)) {
+            // disable
+            setGpsState(false);
+        } else if (!onGps().gpsOn && decisionCenter.possibleSetGps(true)) {
+            // enable
+            setGpsState(true);
+        }
+
+        Log.v(Constants.TAG, "TogglerService::screenOnOff. Exit.");
     }
 }
