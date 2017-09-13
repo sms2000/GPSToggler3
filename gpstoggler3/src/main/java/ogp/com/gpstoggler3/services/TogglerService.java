@@ -1,6 +1,9 @@
 package ogp.com.gpstoggler3.services;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -11,6 +14,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -46,6 +51,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
     private static final long HOLD_PERIOD_MS = 2000;
+    private static final String CHANNEL_ID_PERSISTENSE = "channel_1_persistense";
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -526,6 +532,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     }
 
 
+    @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     private void setItForeground() {
         Log.v(Constants.TAG, "TogglerService::setItForeground. Entry...");
 
@@ -533,13 +540,30 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                 Intent.FLAG_ACTIVITY_SINGLE_TOP |
                 Intent.FLAG_ACTIVITY_NEW_TASK), 0);
 
+        int iconId = getIconIdByStatus();
+
+
+
         Notification.Builder noteBuilder = new Notification.Builder(this)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getDescriptionByStatus())
-                .setSmallIcon(getIconIdByStatus())
+                .setSmallIcon(iconId)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), iconId))
+                .setLocalOnly(true)
                 .setContentIntent(pi);
 
-        startForeground(R.string.app_name, noteBuilder.build());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager motificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID_PERSISTENSE, getString(R.string.channel_1_pesistense_name), NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription(getString(R.string.channel_1_pesistense_description));
+            motificationManager.createNotificationChannel(channel);
+            noteBuilder.setChannelId(channel.getId());
+        }
+
+        Notification notification = noteBuilder.build();
+        notification.defaults = 0;
+        notification.sound = null;
+        startForeground(R.string.app_name, notification);
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
         Log.v(Constants.TAG, "TogglerService::setItForeground. Exit.");
@@ -724,6 +748,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Widget [%d] is not initialized yet. Configure...", widgetIndex));
 
             Intent intent = new Intent(this, AppSelectActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
             startActivity(intent);
         } else {
@@ -804,7 +829,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
     private void screenOnOff(boolean screenOn) {
-        Log.v(Constants.TAG,String.format ("TogglerService::screenOnOff. Entry for [%s]...", screenOn ? "on" : "off"));
+        Log.v(Constants.TAG, String.format("TogglerService::screenOnOff. Entry for [%s]...", screenOn ? "on" : "off"));
 
         this.screenOn = screenOn;
         watchdogThread.screenOnOff(screenOn);

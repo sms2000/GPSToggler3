@@ -8,14 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ListView;
-import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import ogp.com.gpstoggler3.apps.AppSelectAdapter;
@@ -32,6 +33,7 @@ import ogp.com.gpstoggler3.settings.Settings;
 
 public class AppSelectActivity extends AppCompatActivity implements AppAdapterInterface {
     private static final long MIN_SHOW_PROGRESS_MS = 1500;
+    private static final long DELAY_FINISH = 200;
     private ShyProgressDialog progress;
 
     private static AppSelectAdapter adapter = null;
@@ -42,6 +44,7 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     private ITogglerService togglerBinder = null;
     private AppSelectActivity.TogglerServiceConnection serviceConnection = new AppSelectActivity.TogglerServiceConnection();
     private int widgetIndex = 0;
+    private Handler handler = new Handler();
 
 
     private class TogglerServiceConnection implements ServiceConnection {
@@ -188,18 +191,32 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
         Log.i(Constants.TAG, String.format("AppSelectActivity::onClickAppLookup. Widget [%d] set for the package [%s]. Finish the Activity...",
                                             widgetIndex, appStore.packageName));
 
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(AppSelectActivity.this);
-        RemoteViews views = new RemoteViews(AppSelectActivity.this.getPackageName(), R.layout.layout_app_icon);
-        appWidgetManager.updateAppWidget(widgetIndex, views);
-
-        Intent resultValue = new Intent();
-        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
-        setResult(RESULT_OK, resultValue);
-        finish();
+        setResult(RESULT_OK);
 
         Log.i(Constants.TAG, "AppSelectActivity::onClickAppLookup. Finished.");
 
+        finishActivityForWidget();
+
         Log.v(Constants.TAG, "AppSelectActivity::onClickAppLookup. Exit.");
+    }
+
+
+    private void finishActivityForWidget() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT);
+                }
+
+                sendBroadcast(intent);
+
+                finish();
+            }
+        }, DELAY_FINISH);
     }
 
 
@@ -255,5 +272,4 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
 
         Log.v(Constants.TAG, "AppSelectActivity::enumerateInstalledApps. Exit.");
     }
-
 }

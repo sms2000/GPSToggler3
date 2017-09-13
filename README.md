@@ -32,6 +32,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.3.758
+-------
+
+1. Android 8 tested on a custom 32bit ROM which isn't supported officially. Pending proper hardware for tests.
+
+
 1.3.753
 -------
 
