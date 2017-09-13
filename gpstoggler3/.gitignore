@@ -1,5 +1,8 @@
 /build
 /libs
 /obj
-/src/main/assets
+/src/main/assets/a*
+/src/main/assets/m*
+/src/main/assets/x*
+
 

@@ -51,7 +51,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
     private static final long HOLD_PERIOD_MS = 2000;
-    private static final String CHANNEL_ID_PERSISTENSE = "channel_1_persistense";
+
+    public static final String ANDROID_CHANNEL_ID = "com.ogp.com.gpstoggler3.notification.ANDROID";
+    public static final String ANDROID_CHANNEL_NAME = "ANDROID CHANNEL";
+    private static final String EMPTY_SOUND_URI = "uri://assets/empty.mp3";
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -547,22 +550,29 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
         Notification.Builder noteBuilder = new Notification.Builder(this)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getDescriptionByStatus())
-                .setSmallIcon(iconId)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), iconId))
-                .setLocalOnly(true)
+                .setSmallIcon(getIconIdByStatus())
                 .setContentIntent(pi);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager motificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID_PERSISTENSE, getString(R.string.channel_1_pesistense_name), NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription(getString(R.string.channel_1_pesistense_description));
-            motificationManager.createNotificationChannel(channel);
-            noteBuilder.setChannelId(channel.getId());
+            NotificationChannel androidChannel = new NotificationChannel(ANDROID_CHANNEL_ID, ANDROID_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            androidChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            Uri uri = Uri.parse(EMPTY_SOUND_URI);
+
+            AudioAttributes.Builder attributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
+
+            androidChannel.setSound(uri, attributes.build());
+
+            NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(androidChannel);
+
+            noteBuilder.setChannelId(androidChannel.getId());
         }
 
-        Notification notification = noteBuilder.build();
-        notification.defaults = 0;
-        notification.sound = null;
+        Notification notification = noteBuilder.getNotification();
+
         startForeground(R.string.app_name, notification);
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
@@ -748,7 +758,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
             Log.i(Constants.TAG, String.format("TogglerService::appStartClickProcessing. Widget [%d] is not initialized yet. Configure...", widgetIndex));
 
             Intent intent = new Intent(this, AppSelectActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
             startActivity(intent);
         } else {
@@ -829,7 +838,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
     private void screenOnOff(boolean screenOn) {
-        Log.v(Constants.TAG, String.format("TogglerService::screenOnOff. Entry for [%s]...", screenOn ? "on" : "off"));
+        Log.v(Constants.TAG,String.format ("TogglerService::screenOnOff. Entry for [%s]...", screenOn ? "on" : "off"));
 
         this.screenOn = screenOn;
         watchdogThread.screenOnOff(screenOn);
