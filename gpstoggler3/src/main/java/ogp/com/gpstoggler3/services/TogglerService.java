@@ -1,6 +1,8 @@
 package ogp.com.gpstoggler3.services;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -11,6 +13,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -44,6 +49,10 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int BIND_TO_MONITOR_TIMEOUT = 100;
     private static final int RESURRECT_FLOOD_ATTEMPTS = 10;
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
+
+    public static final String ANDROID_CHANNEL_ID = "com.ogp.com.gpstoggler3.notification.ANDROID";
+    public static final String ANDROID_CHANNEL_NAME = "ANDROID CHANNEL";
+    private static final String EMPTY_SOUND_URI = "uri://assets/empty.mp3";
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -529,7 +538,27 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                 .setSmallIcon(getIconIdByStatus())
                 .setContentIntent(pi);
 
-        startForeground(R.string.app_name, noteBuilder.build());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel androidChannel = new NotificationChannel(ANDROID_CHANNEL_ID, ANDROID_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            androidChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            Uri uri = Uri.parse(EMPTY_SOUND_URI);
+
+            AudioAttributes.Builder attributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
+
+            androidChannel.setSound(uri, attributes.build());
+
+            NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(androidChannel);
+
+            noteBuilder.setChannelId(androidChannel.getId());
+        }
+
+        Notification notification = noteBuilder.getNotification();
+
+        startForeground(R.string.app_name, notification);
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
         Log.v(Constants.TAG, "TogglerService::setItForeground. Exit.");
