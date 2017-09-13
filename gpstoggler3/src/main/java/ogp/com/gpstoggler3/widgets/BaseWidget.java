@@ -75,13 +75,11 @@ public abstract class BaseWidget extends AppWidgetProvider {
         switch (action) {
             case AppWidgetManager.ACTION_APPWIDGET_UPDATE:
             case AppWidgetManager.ACTION_APPWIDGET_OPTIONS_CHANGED:
-                bindIfNot(context);
-                break;
-
-
-            case Broadcasters.GPS_STATE_CHANGED:
-                boolean auto = intent.getBooleanExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, false);
-                Log.v(Constants.TAG, String.format("BaseWidget::onReceive. GPS status changed (2nd stage). Widgets aware. Auto: [%s].", auto ? "ON" : "OFF"));
+                try {
+                    boolean auto = intent.getBooleanExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, false);
+                    Log.v(Constants.TAG, String.format("BaseWidget::onReceive. GPS status changed (2nd stage). Widgets aware. Auto: [%s].", auto ? "ON" : "OFF"));
+                } catch (Exception ignored) {
+                }
 
                 bindIfNot(context);
                 break;

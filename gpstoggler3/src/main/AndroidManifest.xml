@@ -104,7 +104,6 @@
             android:label="@string/widget_icon">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
             </intent-filter>
 
             <meta-data
@@ -116,7 +115,6 @@
             android:label="@string/widget_full">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
             </intent-filter>
 
             <meta-data
@@ -129,7 +127,6 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.appwidget.action.APPWIDGET_DELETED" />
-                <action android:name="ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED" />
                 <action android:name="ogp.com.gpstoggler3.broadcasters.APP_SELECTED" />
             </intent-filter>
 

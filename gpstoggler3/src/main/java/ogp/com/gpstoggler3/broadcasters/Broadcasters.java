@@ -2,7 +2,7 @@ package ogp.com.gpstoggler3.broadcasters;
 
 
 public class Broadcasters {
-    public static final String GPS_STATE_CHANGED = "ogp.com.gpstoggler3.broadcasters.GPS_STATE_CHANGED";
+    public static final String GPS_STATE_CHANGED = "ogp.com.toggler3.broadcasters.GPS_STATE_CHANGED";
     public static final String GPS_STATE_CHANGED_AUTO = "GpsStateChangedAuto";
 
     public static final String AUTO_STATE_CHANGED = "ogp.com.gpstoggler3.broadcasters.AUTO_STATE_CHANGED";

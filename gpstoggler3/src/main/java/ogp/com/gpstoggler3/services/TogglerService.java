@@ -15,7 +15,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -545,23 +546,22 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         int iconId = getIconIdByStatus();
 
-
-
         Notification.Builder noteBuilder = new Notification.Builder(this)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getDescriptionByStatus())
-                .setSmallIcon(getIconIdByStatus())
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), iconId))
+                .setSmallIcon(iconId)
                 .setContentIntent(pi);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel androidChannel = new NotificationChannel(ANDROID_CHANNEL_ID, ANDROID_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
             androidChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
 
-            Uri uri = Uri.parse(EMPTY_SOUND_URI);
-
             AudioAttributes.Builder attributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
+
+            Uri uri = Uri.parse(EMPTY_SOUND_URI);
 
             androidChannel.setSound(uri, attributes.build());
 
@@ -592,11 +592,20 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
 
     private void broadcastGpsStateChanged() {
-        Intent intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
+        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, Settings.loadAutomationState());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT);
+            intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT | Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        }
+
+        sendBroadcast(intent);
+
+        intent = new Intent(Broadcasters.GPS_STATE_CHANGED);
+        intent.putExtra(Broadcasters.GPS_STATE_CHANGED_AUTO, Settings.loadAutomationState());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.setFlags(Intent.FLAG_RECEIVER_NO_ABORT | Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         }
 
         sendBroadcast(intent);
