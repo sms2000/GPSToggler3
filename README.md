@@ -32,6 +32,18 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.3.753
+-------
+
+1. Hold watchdog thread to prevent GPS off when an application just started.
+
+
+1.3.744
+-------
+
+1. 'Waze' madness bypass. You can create a dedicated widget for any GPS application to start it with GPS enabled.
+   Best be used in 'Automatic' mode.
+
 1.2.727
 -------
 

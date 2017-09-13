@@ -40,6 +40,7 @@ public class ApplicationsWatchdog extends Thread {
     private Handler handler = new Handler();
     private SortComparator comparator = new SortComparator();
     private RootCaller.RootExecutor rootExecutor;
+    private long holdTimeMs = 0;
 
 
     private class SortComparator implements Comparator<AppStore> {
@@ -151,24 +152,25 @@ public class ApplicationsWatchdog extends Thread {
         Log.v(Constants.TAG, "ApplicationsWatchdog::run. Started.");
 
         while (active) {
-            if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
-                long timeDelta = System.currentTimeMillis();
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    verifyGPSSoftwareRunning21();
-                } else {
-                    verifyGPSSoftwareRunning();
-                }
+            if (!shouldHold()) {
+                if (automationOn && null != togglerServiceInterface.listActivatedApps()) {
+                    long timeDelta = System.currentTimeMillis();
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        verifyGPSSoftwareRunning21();
+                    } else {
+                        verifyGPSSoftwareRunning();
+                    }
 
-                timeDelta = System.currentTimeMillis() - timeDelta;
-                if (MIN_RUNTIME_MS <= timeDelta) {
-                    Log.i(Constants.TAG, String.format("ApplicationsWatchdog::run. Enumerating running applications took %d msec.", timeDelta));
+                    timeDelta = System.currentTimeMillis() - timeDelta;
+                    if (MIN_RUNTIME_MS <= timeDelta) {
+                        Log.i(Constants.TAG, String.format("ApplicationsWatchdog::run. Enumerating running applications took %d msec.", timeDelta));
+                    } else {
+                        Log.i(Constants.TAG, "ApplicationsWatchdog::run. Enumerating running applications took less than 1 msec.");
+                    }
                 } else {
-                    Log.i(Constants.TAG, "ApplicationsWatchdog::run. Enumerating running applications took less than 1 msec.");
+                    Log.v(Constants.TAG, "ApplicationsWatchdog::run. Idle...");
                 }
-            } else {
-                Log.v(Constants.TAG, "ApplicationsWatchdog::run. Idle...");
             }
-
 
             try {
                 if (null == screenOn || screenOn) {
@@ -186,6 +188,13 @@ public class ApplicationsWatchdog extends Thread {
         }
 
         Log.v(Constants.TAG, "ApplicationsWatchdog::run. Finished.");
+    }
+
+
+    public synchronized void holdTill(long holdTimeMs) {
+        this.holdTimeMs = holdTimeMs;
+
+        interrupt();
     }
 
 
@@ -213,7 +222,12 @@ public class ApplicationsWatchdog extends Thread {
     }
 
 
-    synchronized private void verifyGPSSoftwareRunning() {
+    private synchronized boolean shouldHold() {
+        return System.currentTimeMillis() < holdTimeMs;
+    }
+
+
+    private synchronized void verifyGPSSoftwareRunning() {
         ListWatched activatedApps = new ListWatched();
         ListWatched watchedApps = togglerServiceInterface.listWatchedApps();
 

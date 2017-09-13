@@ -35,4 +35,17 @@
         android:positiveButtonText="@null"
         android:title="@string/pref_title_off_polling_delay" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="monitor_off_gps_off"
+        android:summary="@string/pref_description_monitor_off_gps_off"
+        android:title="@string/pref_title_monitor_off_gps_off" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="monitor_app_started"
+        android:summary="@string/pref_description_monitor_app_started"
+        android:title="@string/pref_title_monitor_app_started" />
+
+
 </PreferenceScreen>

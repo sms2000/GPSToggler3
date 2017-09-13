@@ -2,6 +2,7 @@ package ogp.com.gpstoggler3.interfaces;
 
 import ogp.com.gpstoggler3.apps.ListAppStore;
 import ogp.com.gpstoggler3.apps.ListWatched;
+import ogp.com.gpstoggler3.receivers.BootReceiver;
 import ogp.com.gpstoggler3.status.GPSStatus;
 
 
@@ -18,4 +19,6 @@ public interface TogglerServiceInterface {
     void storeAutomationState(boolean watcher);
     GPSStatus onGps();
     void toggleGpsState();
+
+    Boolean isScreenOn();
 }

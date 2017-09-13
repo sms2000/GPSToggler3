@@ -19,6 +19,10 @@
 #define CMDLINE                     "cmdline"
 #define CGROUP                      "cgroup"
 #define STAT                        "stat"
+#define CPUSET                      "cpuset"
+
+#define LOOK_CPUSTAT_FOREGROUND     "foreground"
+#define LOOK_CPUSTAT_TOP_APP        "top-app"
 #define LOOK_BG_NON_INTERACTIVE     "cpu:/bg_non_interactive"
 #define FOREGROUND                  'F'
 #define BACKGROUND                  'B'
@@ -47,6 +51,7 @@ bool CReadProcDirectory::execute (std::string &output) {
     char appCmd[MAXFILEDATA +  1];
     char appStat[MAXFILEDATA +  1];
     bool success = false;
+    bool useCPUSet = true;
     bool useCGroup = true;
     int counted = 0;
 
@@ -75,11 +80,24 @@ bool CReadProcDirectory::execute (std::string &output) {
 
             bool bForeground = true;
 
+            if (useCPUSet) {
+                sprintf (appData, "%s/%s/%s", PROC_DIR, pDirEntry->d_name, CPUSET);
+                if (readFile (appData, appStat, MAXFILEDATA)) {     // Find application 'cpuset'.
+                    if (NULL == strstr (appStat, LOOK_CPUSTAT_FOREGROUND) && NULL == strstr (appStat, LOOK_CPUSTAT_TOP_APP)) {
+                        bForeground = false;
+                        LOGV("CReadProcDirectory::execute. [%s] is background [1].", pDirEntry->d_name);
+                    }
+                } else {
+                    useCPUSet = false;
+                }
+            }
+
             if (useCGroup) {
                 sprintf (appData, "%s/%s/%s", PROC_DIR, pDirEntry->d_name, CGROUP);
                 if (readFile (appData, appStat, MAXFILEDATA)) {     // Find application 'cgroup'.
                     if (NULL != strstr (appStat, LOOK_BG_NON_INTERACTIVE)) {
                         bForeground = false;
+                        LOGV("CReadProcDirectory::execute. [%s] is background [2].", pDirEntry->d_name);
                     }
                 } else {
                     useCGroup = false;
@@ -96,10 +114,15 @@ bool CReadProcDirectory::execute (std::string &output) {
 
                     if (FOREGROUND_VALUE != split[FOREGROUND_INDEX][0]) {
                         bForeground = false;
+                        LOGV("CReadProcDirectory::execute. [%s] is background [3].", pDirEntry->d_name);
                     }
                 } else {
                     continue;
                 }
+            }
+
+            if (bForeground) {
+                LOGV("CReadProcDirectory::execute. [%s] is foreground [0].", pDirEntry->d_name);
             }
 
             sprintf (appData, "%c%s\n", bForeground ? FOREGROUND : BACKGROUND, appCmd);
