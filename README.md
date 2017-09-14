@@ -4,7 +4,7 @@ THIS CODE IS 'UNRESTRICTED PUBLIC DOMAIN UNDER GPLL' LICENCED except 3rd party c
 Let me know if you consider your rights violated.
 
 * GPLL is the 'General Pet Lovers Licence' - the non-restricting license promoting the self control for humans.
-If you a pet lover, pet adopter, veterinary personel or in any other way helping cats, dogs and other pets to survice you are free to use this code.
+If you a pet lover, pet adopter, veterinary personel or in any other way helping cats, dogs and other pets to survive you are free to use this code.
 If you are a per hater or harmed any pet in any way you are also free to use this code yet you have to bear shame on you forever.
 
 
