@@ -32,6 +32,12 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.3.760
+-------
+
+1. Android 8 prevented to play notification sounds when the service's icon appears. 
+ 
+
 1.3.758
 -------
 
