@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import ogp.com.gpstoggler3.AppSelectActivity;
@@ -53,9 +54,8 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final int RESURRECT_FLOOD_TIMEOUT = 200;
     private static final long HOLD_PERIOD_MS = 2000;
 
-    public static final String ANDROID_CHANNEL_ID = "com.ogp.com.gpstoggler3.notification.ANDROID";
-    public static final String ANDROID_CHANNEL_NAME = "ANDROID CHANNEL";
-    private static final String EMPTY_SOUND_URI = "uri://assets/empty.mp3";
+    public static final String CHANNEL_ID = "com.ogp.com.gpstoggler3.notification.ANDROID";
+    public static final String CHANNEL_NAME = "ANDROID CHANNEL";
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -72,6 +72,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private WorkerThread serverThread = null;
     private DecisionCenter decisionCenter = new DecisionCenter(this);
     private Boolean screenOn = null;
+    private Uri signalUri;
 
 
     private class MonitorServiceConnection implements ServiceConnection {
@@ -246,6 +247,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         Settings.allocate(this);
 
+        signalUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.empty);
         serverThread = new WorkerThread();
         appDatabaseProcessor = new AppDatabaseProcessor(this);
         appEnumerator = new AppEnumerator(this);
@@ -546,34 +548,41 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
         int iconId = getIconIdByStatus();
 
-        Notification.Builder noteBuilder = new Notification.Builder(this)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getDescriptionByStatus())
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), iconId))
-                .setSmallIcon(iconId)
-                .setContentIntent(pi);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel androidChannel = new NotificationChannel(ANDROID_CHANNEL_ID, ANDROID_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
-            androidChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setAutoCancel(true)
+                    .setSmallIcon(iconId)
+                    .setContentTitle(getString(R.string.channel_1_pesistense_name))
+                    .setSound(signalUri)
+                    .setContentIntent(pi);
 
-            AudioAttributes.Builder attributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .build();
 
-            Uri uri = Uri.parse(EMPTY_SOUND_URI);
+            channel.setDescription(getString(R.string.channel_1_pesistense_description));
+            channel.setSound(signalUri, audioAttributes);
+            notificationManager.createNotificationChannel(channel);
 
-            androidChannel.setSound(uri, attributes.build());
+            builder.setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE);
+            Notification notification = builder.build();
 
-            NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.createNotificationChannel(androidChannel);
+            startForeground(R.string.app_name, notification);
+        } else {
+            Notification.Builder noteBuilder = new Notification.Builder(this)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText(getDescriptionByStatus())
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), iconId))
+                    .setSmallIcon(iconId)
+                    .setContentIntent(pi);
 
-            noteBuilder.setChannelId(androidChannel.getId());
+            Notification notification = noteBuilder.getNotification();
+
+            startForeground(R.string.app_name, notification);
         }
-
-        Notification notification = noteBuilder.getNotification();
-
-        startForeground(R.string.app_name, notification);
 
         Log.i(Constants.TAG, "TogglerService::setItForeground. Invoked.");
         Log.v(Constants.TAG, "TogglerService::setItForeground. Exit.");
