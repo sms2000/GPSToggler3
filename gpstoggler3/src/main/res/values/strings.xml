@@ -203,6 +203,6 @@
     <string name="package_name" />
     <string name="position" />
     <string name="zero_widget">The recently created widget is problematic. Recreate again.</string>
-    <string name="channel_1_pesistense_name">GPS Toggler 3 persistent notification</string>
+    <string name="channel_1_pesistense_name">Permanent service</string>
     <string name="channel_1_pesistense_description">GPS Toggler 3 uses a notification icon to prevent the service destruction by the system.</string>
 </resources>

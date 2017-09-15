@@ -55,7 +55,6 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
     private static final long HOLD_PERIOD_MS = 2000;
 
     public static final String CHANNEL_ID = "com.ogp.com.gpstoggler3.notification.ANDROID";
-    public static final String CHANNEL_NAME = "ANDROID CHANNEL";
 
     private ListAppStore appList = new ListAppStore(this);
     private long lastNewAppList = 0;
@@ -557,7 +556,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
                     .setContentIntent(pi);
 
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.channel_1_pesistense_name), NotificationManager.IMPORTANCE_DEFAULT);
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
