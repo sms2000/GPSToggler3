@@ -32,6 +32,10 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.3.773
+-------
+1. Fixed crash when starting an application through a widget.
+
 1.3.771
 -------
 1. Android 8 notificatino fixed with sound disabled.

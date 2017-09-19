@@ -776,6 +776,7 @@ public class TogglerService extends Service implements TogglerServiceInterface, 
 
             Intent intent = new Intent(this, AppSelectActivity.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetIndex);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } else {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
