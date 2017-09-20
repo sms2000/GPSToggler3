@@ -91,9 +91,9 @@ bool CReadProcDirectoryDebug::execute (std::string &output) {
                         bForeground = false;
 
                         if (bDebugProc) {
-                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [1].", pDirEntry->d_name);
+                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [1].", appCmd);
                         } else {
-                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [1].", pDirEntry->d_name);
+                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [1].", appCmd);
                         }
                     }
                 } else {
@@ -108,9 +108,9 @@ bool CReadProcDirectoryDebug::execute (std::string &output) {
                         bForeground = false;
 
                         if (bDebugProc) {
-                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [2].", pDirEntry->d_name);
+                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [2].", appCmd);
                         } else {
-                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [2].", pDirEntry->d_name);
+                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [2].", appCmd);
                         }
                     }
                 } else {
@@ -130,9 +130,9 @@ bool CReadProcDirectoryDebug::execute (std::string &output) {
                         bForeground = false;
 
                         if (bDebugProc) {
-                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [3].", pDirEntry->d_name);
+                            LOGI("CReadProcDirectoryDebug::execute. [%s] is background [3].", appCmd);
                         } else {
-                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [3].", pDirEntry->d_name);
+                            LOGV("CReadProcDirectoryDebug::execute. [%s] is background [3].", appCmd);
                         }
                     }
                 } else {
@@ -142,9 +142,9 @@ bool CReadProcDirectoryDebug::execute (std::string &output) {
 
             if (bForeground) {
                 if (bDebugProc) {
-                    LOGI("CReadProcDirectoryDebug::execute. [%s] is foreground [0].", pDirEntry->d_name);
+                    LOGI("CReadProcDirectoryDebug::execute. [%s] is foreground [0].", appCmd);
                 } else {
-                    LOGV("CReadProcDirectoryDebug::execute. [%s] is foreground [0].", pDirEntry->d_name);
+                    LOGV("CReadProcDirectoryDebug::execute. [%s] is foreground [0].", appCmd);
                 }
             }
 

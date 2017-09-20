@@ -18,6 +18,8 @@ import ogp.com.gpstoggler3.results.RPCResult;
 
 
 public class ExecuteWithTimeout extends WorkerThread {
+    private static final int ATTEMPTS = 3;
+
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public static abstract class ExecuteParams {
@@ -61,24 +63,27 @@ public class ExecuteWithTimeout extends WorkerThread {
         };
 
         RPCResult result = null;
-        Future<RPCResult> future = executorService.submit(rpcTask);
-
         Exception exception = null;
 
-        try {
-            Log.i(Constants.TAG, "ExecuteWithTimeout::execute. Waiting for 'get' with timeout...");
+        for (int i = 0; i < ATTEMPTS; i++) {
+            Future<RPCResult> future = executorService.submit(rpcTask);
 
-            result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
+            try {
+                Log.i(Constants.TAG, "ExecuteWithTimeout::execute. Waiting for 'get' with timeout...");
+                result = future.get(rpcTimeout, TimeUnit.MILLISECONDS);
+                Log.d(Constants.TAG, "ExecuteWithTimeout::execute. Success.");
+            } catch (TimeoutException e) {
+                exception = new TimeoutException("Timeout reached");
+                Log.w(Constants.TAG, "ExecuteWithTimeout::execute. TimeoutException accounted!");
+            } catch (InterruptedException e) {
+                Log.d(Constants.TAG, "ExecuteWithTimeout::execute. InterruptedException accounted and safely ignored.");
+                continue;
+            } catch (ExecutionException e) {
+                exception = e;
+                Log.e(Constants.TAG, "ExecuteWithTimeout::execute. ExecutionException accounted!", e);
+            }
 
-            Log.d(Constants.TAG, "ExecuteWithTimeout::execute. Success.");
-        } catch (TimeoutException e) {
-            exception = new TimeoutException("Timeout reached");
-            Log.w(Constants.TAG, "ExecuteWithTimeout::execute. TimeoutException accounted!");
-        } catch (InterruptedException e) {
-            Log.d(Constants.TAG, "ExecuteWithTimeout::execute. InterruptedException accounted and safely ignored.");
-        } catch (ExecutionException e) {
-            exception = e;
-            Log.e(Constants.TAG, "ExecuteWithTimeout::execute. ExecutionException accounted!", e);
+            break;
         }
 
         if (null != exception) {

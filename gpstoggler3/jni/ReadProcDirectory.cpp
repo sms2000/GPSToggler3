@@ -85,7 +85,7 @@ bool CReadProcDirectory::execute (std::string &output) {
                 if (readFile (appData, appStat, MAXFILEDATA)) {     // Find application 'cpuset'.
                     if (NULL == strstr (appStat, LOOK_CPUSTAT_FOREGROUND) && NULL == strstr (appStat, LOOK_CPUSTAT_TOP_APP)) {
                         bForeground = false;
-                        LOGV("CReadProcDirectory::execute. [%s] is background [1].", pDirEntry->d_name);
+                        LOGV("CReadProcDirectory::execute. [%s] is background [1].", appCmd);
                     }
                 } else {
                     useCPUSet = false;
@@ -97,7 +97,7 @@ bool CReadProcDirectory::execute (std::string &output) {
                 if (readFile (appData, appStat, MAXFILEDATA)) {     // Find application 'cgroup'.
                     if (NULL != strstr (appStat, LOOK_BG_NON_INTERACTIVE)) {
                         bForeground = false;
-                        LOGV("CReadProcDirectory::execute. [%s] is background [2].", pDirEntry->d_name);
+                        LOGV("CReadProcDirectory::execute. [%s] is background [2].", appCmd);
                     }
                 } else {
                     useCGroup = false;
@@ -114,7 +114,7 @@ bool CReadProcDirectory::execute (std::string &output) {
 
                     if (FOREGROUND_VALUE != split[FOREGROUND_INDEX][0]) {
                         bForeground = false;
-                        LOGV("CReadProcDirectory::execute. [%s] is background [3].", pDirEntry->d_name);
+                        LOGV("CReadProcDirectory::execute. [%s] is background [3].", appCmd);
                     }
                 } else {
                     continue;
@@ -122,7 +122,7 @@ bool CReadProcDirectory::execute (std::string &output) {
             }
 
             if (bForeground) {
-                LOGV("CReadProcDirectory::execute. [%s] is foreground [0].", pDirEntry->d_name);
+                LOGV("CReadProcDirectory::execute. [%s] is foreground [0].", appCmd);
             }
 
             sprintf (appData, "%c%s\n", bForeground ? FOREGROUND : BACKGROUND, appCmd);

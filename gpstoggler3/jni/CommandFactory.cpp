@@ -9,7 +9,7 @@ CCommand* CCommandFactory::create(const char* command) {
     }
 
     if (0 == strcmp (command, CReadProcDirectoryDebug::COMMAND)) {
-        return new CReadProcDirectory();
+        return new CReadProcDirectoryDebug();
     }
 
     return NULL;
