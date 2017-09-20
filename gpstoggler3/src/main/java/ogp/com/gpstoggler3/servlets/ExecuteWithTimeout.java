@@ -92,6 +92,8 @@ public class ExecuteWithTimeout extends WorkerThread {
 
             result = new RPCResult(exception);
             executedError(exception);
+        } else if (null == result) {
+            result = new RPCResult("");
         }
 
         Log.v(Constants.TAG, "ExecuteWithTimeout::execute. Exit.");

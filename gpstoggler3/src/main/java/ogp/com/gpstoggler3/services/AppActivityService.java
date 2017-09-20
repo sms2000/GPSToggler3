@@ -23,11 +23,8 @@ public class AppActivityService extends AccessibilityService {
 
         AccessibilityServiceInfo serviceInfo = new AccessibilityServiceInfo();
         serviceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
-        serviceInfo.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            serviceInfo.flags = AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS;
-        }
+        serviceInfo.eventTypes = AccessibilityEvent.TYPE_WINDOWS_CHANGED | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+        serviceInfo.flags = AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS;
 
         setServiceInfo(serviceInfo);
         Log.i(Constants.TAG, "AppActivityService::onServiceConnected. 'setServiceInfo' called.");
@@ -39,7 +36,8 @@ public class AppActivityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(Constants.TAG, "AppActivityService::onAccessibilityEvent. Entry...");
 
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED ||
+                event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             if (null != event.getPackageName() && null != event.getClassName()) {
                 ComponentName componentName = new ComponentName(event.getPackageName().toString(), event.getClassName().toString());
 
