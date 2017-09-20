@@ -75,8 +75,7 @@ public class ExecuteWithTimeout extends WorkerThread {
             exception = new TimeoutException("Timeout reached");
             Log.w(Constants.TAG, "ExecuteWithTimeout::execute. TimeoutException accounted!");
         } catch (InterruptedException e) {
-            exception = new InterruptedException("Interrupted...");
-            Log.e(Constants.TAG, "ExecuteWithTimeout::execute. InterruptedException accounted!");
+            Log.d(Constants.TAG, "ExecuteWithTimeout::execute. InterruptedException accounted and safely ignored.");
         } catch (ExecutionException e) {
             exception = e;
             Log.e(Constants.TAG, "ExecuteWithTimeout::execute. ExecutionException accounted!", e);

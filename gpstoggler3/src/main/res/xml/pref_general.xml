@@ -47,5 +47,10 @@
         android:summary="@string/pref_description_monitor_app_started"
         android:title="@string/pref_title_monitor_app_started" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="waze_debug"
+        android:summary="@string/pref_description_waze_debug"
+        android:title="@string/pref_title_monitor_waze_debug" />
 
 </PreferenceScreen>

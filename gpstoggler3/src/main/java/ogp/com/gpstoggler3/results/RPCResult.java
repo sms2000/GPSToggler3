@@ -1,30 +1,19 @@
 package ogp.com.gpstoggler3.results;
 
 import java.util.List;
+import java.util.Locale;
+
 
 public class RPCResult {
     private Object result;
     private Exception error;
+
 
     public RPCResult(Exception e) {
         this.error = e;
         this.result = null;
     }
 
-
-    /*
-    public RPCResult(String string) {
-        String[] split = string.split("\n");
-
-        List<String> result = new ArrayList<>();
-        for (String line : split) {
-            result.add(line);
-        }
-
-        this.result = result;
-        error = null;
-    }
-    */
 
     public RPCResult(Object result) {
         this.result = result;
@@ -70,5 +59,11 @@ public class RPCResult {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+
+    @Override
+    public String toString() {
+        return null == error ? String.format(Locale.ENGLISH,  "(OK) %s", result.toString()) : String.format(Locale.ENGLISH, "(EXC) %s", error.getLocalizedMessage());
     }
 }

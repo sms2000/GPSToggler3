@@ -30,6 +30,8 @@ public class Settings {
     public static final String DOUBLE_CLICK_DELAY = "widget_double_click";
     public static final String ON_POLLING_DELAY = "on_polling_delay";
     public static final String OFF_POLLING_DELAY = "off_polling_delay";
+    private static final String WAZE_DEBUG = "waze_debug";
+
     private static final String MONITOR_APP_STARTED = "monitor_app_started";
     private static final String MONITOR_OFF_GPS_OFF = "monitor_off_gps_off";
 
@@ -260,6 +262,15 @@ public class Settings {
             return settings.getInt(OFF_POLLING_DELAY, DEF_OFF_POLLING_DELAY);
         } catch (Exception ignored) {
             return DEF_OFF_POLLING_DELAY;
+        }
+    }
+
+
+    public static boolean getWazeDebug() {
+        try {
+            return settings.getBoolean(WAZE_DEBUG, false);
+        } catch (Exception ignored) {
+            return false;
         }
     }
 

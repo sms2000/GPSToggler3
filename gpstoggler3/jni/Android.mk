@@ -7,7 +7,7 @@ TARGET_SONAME_EXTENSION	        := ~~so~~
 
 LOCAL_MODULE    		        := commander
 LOCAL_MODULE_FILENAME           := commander
-LOCAL_SRC_FILES 		        := main.cpp Command.cpp ReadProcDirectory.cpp CommandFactory.cpp
+LOCAL_SRC_FILES 		        := main.cpp Command.cpp ReadProcDirectory.cpp ReadProcDirectoryDebug.cpp CommandFactory.cpp
 LOCAL_LDLIBS    		        := -llog
 LOCAL_FORCE_STATIC_EXECUTABLE 	:= true
 

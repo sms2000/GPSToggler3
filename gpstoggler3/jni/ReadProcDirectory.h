@@ -12,7 +12,7 @@ public:
 
     virtual bool execute (std::string &output);
 
-private:
+protected:
     bool readFile (const char *pcszFilePath, char *pszData, int nMaxData);
 };
 

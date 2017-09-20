@@ -28,6 +28,7 @@ public class ApplicationsWatchdog extends Thread {
 
     private static final ListWatched lastActivatedApps = new ListWatched();
     private static final String EXECUTOR_COMMAND = "read_proc";
+    private static final String EXECUTOR_COMMAND_DEBUG = "read_proc_debug";
 
     private boolean initialPost = false;
     private Context context;
@@ -311,7 +312,9 @@ public class ApplicationsWatchdog extends Thread {
             }
         }
 
-        RPCResult output = rootExecutor.executeCommander(EXECUTOR_COMMAND, Settings.getRootTimeoutDelay());
+        RPCResult output = rootExecutor.executeCommander(Settings.getWazeDebug() ? EXECUTOR_COMMAND_DEBUG : EXECUTOR_COMMAND,
+                Settings.getRootTimeoutDelay());
+
         if (!output.isError()) {
             list = parseExecutorOutput(output);
 
@@ -383,7 +386,7 @@ public class ApplicationsWatchdog extends Thread {
         if (result.isList()) {
             for (Object appO : result.getList()) {
                 if (appO instanceof String) {
-                    String appS = (String)appO;
+                    String appS = (String) appO;
                     if (appS.length() < 2) {
                         continue;
                     }
