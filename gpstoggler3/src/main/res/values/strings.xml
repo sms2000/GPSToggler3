@@ -207,4 +207,10 @@
     <string name="zero_widget">The recently created widget is problematic. Recreate again.</string>
     <string name="channel_1_pesistense_name">Permanent service</string>
     <string name="channel_1_pesistense_description">GPS Toggler 3 uses a notification icon to prevent the service destruction by the system.</string>
+    <string name="failed_to_write_1" >Failed to store data online [1].</string>
+    <string name="failed_to_write_2" >Failed to store data online [2].</string>
+    <string name="failed_to_write_3" >Failed to store data online [3].</string>
+    <string name="failed_to_write_4" >Failed to store data online [4].</string>
+    <string name="failed_to_write_5" >Failed to store data online [5].</string>
+    <string name="succeeded_to_write" >Data written online.</string>
 </resources>

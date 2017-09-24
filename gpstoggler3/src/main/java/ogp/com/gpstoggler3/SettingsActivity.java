@@ -24,16 +24,32 @@ import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.MetadataChangeSet;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 
 import ogp.com.gpstoggler3.global.Constants;
+import ogp.com.gpstoggler3.servlets.WorkerThread;
 import ogp.com.gpstoggler3.settings.AppCompatPreferenceActivity;
 import ogp.com.gpstoggler3.settings.Settings;
 
@@ -393,24 +409,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
         Log.v(TAG, "SettingsActivity::connectGoogleDrive. Exit.");
     }
 
-/*
-    private void connectGoogleDrive(boolean reconnect) {
-        Log.v(TAG, "SettingsActivity::connectGoogleDrive. Entry...");
-
-        if (null != googleApiClient) {
-            if (reconnect) {
-                if (connected) {
-                    setConnected(false);
-                    googleApiClient.clearDefaultAccountAndReconnect();
-                }
-            } else {
-                googleApiClient.connect();
-            }
-        }
-
-        Log.v(TAG, "SettingsActivity::connectGoogleDrive. Exit.");
-    }
-*/
 
     private void setConnected(boolean connected) {
         this.connected = connected;
@@ -484,10 +482,101 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
 
         setInProcess(true);
 
-        handler.postDelayed(new Finished(), 1000);
+        new WorkerThread().post(new Runnable() {
+            @Override
+            public void run() {
+                final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle("GpsToogler3Folder").build();
+                ResultCallback<DriveFolder.DriveFolderResult> folderCreatedCallback = new ResultCallback<DriveFolder.DriveFolderResult>() {
+                            @Override
+                            public void onResult(DriveFolder.DriveFolderResult result) {
+                                Status status = result.getStatus();
+                                if (!status.isSuccess()) {
+                                    finished();
+                                    Toast.makeText(SettingsActivity.this, R.string.failed_to_write_1, Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                createOnlineFile(result.getDriveFolder());
+                            }
+                        };
+
+                Drive.DriveApi.getRootFolder(googleApiClient).createFolder(googleApiClient, changeSet).setResultCallback(folderCreatedCallback);
+            }
+        });
+
 
         Log.v(TAG, "SettingsActivity::storeData. Exit.");
         return true;
+    }
+
+
+    private void createOnlineFile(DriveFolder driveFolder) {
+        MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle("New file").setMimeType("text/plain").build();
+
+        driveFolder.createFile(googleApiClient, changeSet, null).setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
+            @Override
+            public void onResult(@NonNull DriveFolder.DriveFileResult driveFileResult) {
+                Status status = driveFileResult.getStatus();
+                if (!status.isSuccess()) {
+                    finished();
+                    Toast.makeText(SettingsActivity.this, R.string.failed_to_write_2, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                openOnlineFile(driveFileResult.getDriveFile());
+            }
+        });
+    }
+
+
+    private void openOnlineFile(DriveFile driveFile) {
+        driveFile.open(googleApiClient, DriveFile.MODE_WRITE_ONLY, null).setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
+            @Override
+            public void onResult(@NonNull DriveApi.DriveContentsResult driveContentsResult) {
+                Status status = driveContentsResult.getStatus();
+                if (!status.isSuccess() && null != driveContentsResult.getDriveContents()) {
+                    finished();
+                    Toast.makeText(SettingsActivity.this, R.string.failed_to_write_3, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                storeOnlineData(driveContentsResult.getDriveContents());
+            }
+        });
+    }
+
+
+    private void storeOnlineData(DriveContents driveContents) {
+        OutputStream stream = driveContents.getOutputStream();
+        Writer writer = new OutputStreamWriter(stream);
+
+        try {
+            writer.write(Settings.prepareDataForStore());
+        } catch (IOException e) {
+            finished();
+            Toast.makeText(SettingsActivity.this, R.string.failed_to_write_4, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        driveContents.commit(googleApiClient, null).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(@NonNull Status driveContentsResult) {
+                Status status = driveContentsResult.getStatus();
+                if (!status.isSuccess()) {
+                    finished();
+                    Toast.makeText(SettingsActivity.this, R.string.failed_to_write_5, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                finished();
+                Toast.makeText(SettingsActivity.this, R.string.succeeded_to_write, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void finished() {
+        handler.post(new Finished());
     }
 
 
@@ -495,7 +584,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
         Log.v(TAG, "SettingsActivity::loadData. Entry...");
 
         setInProcess(true);
-        handler.postDelayed(new Finished(), 1000);
+
+        new WorkerThread().post(new Runnable() {
+            @Override
+            public void run() {
+                handler.postDelayed(new Finished(), 1000);
+            }
+        });
 
         Log.v(TAG, "SettingsActivity::loadData. Exit.");
         return true;

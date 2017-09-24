@@ -25,6 +25,8 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -268,11 +270,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                 if (TogglerService.startServiceAndBind(MainActivity.this, serviceConnection)) {
                     Log.i(Constants.TAG, "MainActivity::connect2Services::run. Binding in process.");
 
-
-
-                    /*
                     decideOnMonitor();
-                    */
                 } else {
                     Log.e(Constants.TAG, "MainActivity::connect2Services::run. Failed to bind.");
                     progress.dismiss();
@@ -285,7 +283,6 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     }
 
 
-    /*
     private void decideOnMonitor() {
         if (Settings.isMonitorAppUsed()) {
             Log.v(Constants.TAG, "MainActivity::decideOnMonitor. Monitor installation declined. Not asking anymore.");
@@ -305,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
                         dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
                                 Log.d(Constants.TAG, "MainActivity::decideOnMonitor::run::run. Pressed <Yes>.");
                             }
                         });
@@ -320,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
 
                         dialog.show();
                     } else {
-                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_WRITE_EXTERNAL_STORAGE);
                     }
                 } else {
                     loadMonitor();
@@ -330,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
             }
         });
     }
-    */
+
 
     private void loadMonitor() {
         final RunMonitor runMonitor = new RunMonitor(this);

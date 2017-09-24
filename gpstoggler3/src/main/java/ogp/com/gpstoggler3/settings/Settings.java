@@ -32,7 +32,6 @@ public class Settings {
     public static final String OFF_POLLING_DELAY = "off_polling_delay";
     private static final String WAZE_DEBUG = "waze_debug";
 
-    private static final String MONITOR_APP_STARTED = "monitor_app_started";
     private static final String MONITOR_OFF_GPS_OFF = "monitor_off_gps_off";
 
     private static final int DEF_DOUBLE_CLICK_DELAY = 250;
@@ -204,11 +203,6 @@ public class Settings {
     }
 
 
-    public static boolean doMonitorAppLifespan() {
-        return settings.getBoolean(MONITOR_APP_STARTED, false);
-    }
-
-
     public static boolean keepGpsOffWhenMonitorOff() {
         return settings.getBoolean(MONITOR_OFF_GPS_OFF, false);
     }
@@ -356,5 +350,11 @@ public class Settings {
         }
 
         editor.apply();
+    }
+
+
+    public static String prepareDataForStore() {
+        // TODO
+        return "";
     }
 }
