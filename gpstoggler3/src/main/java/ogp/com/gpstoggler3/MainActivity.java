@@ -612,6 +612,14 @@ public class MainActivity extends AppCompatActivity implements AppAdapterInterfa
     }
 
 
+    @Override
+    public void onClickBTLookup(AppStore appStore, AppStore.BTState btState) {
+        Log.v(Constants.TAG, "MainActivity::onClickBTLookup. Entry...");
+
+        Log.v(Constants.TAG, "MainActivity::onClickBTLookup. Exit.");
+    }
+
+
     public void onClickMode(View modeButton) {
         Log.v(Constants.TAG, "MainActivity::onClickMode. Entry...");
 

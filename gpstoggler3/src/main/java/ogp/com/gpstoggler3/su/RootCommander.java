@@ -43,10 +43,11 @@ public class RootCommander {
             abi = Build.CPU_ABI;
         }
 
-        boolean copyIt = true;
         String folder = "";
         if (abi.contains("armeabi-v7a")) {
             folder = "armeabi-v7a";
+        } else if (abi.contains("arm64")) {
+            folder = "arm64-v8a";
         } else if (abi.contains("armeabi")) {
             folder = "armeabi";
         } else if (abi.contains("x86_64")) {
@@ -57,12 +58,10 @@ public class RootCommander {
             folder = "mips64";
         } else if (abi.contains("mips")) {
             folder = "mips";
-        } else {
-            copyIt = false;
         }
 
 
-        if (copyIt) {
+        if (!folder.isEmpty()) {
             AssetManager assetManager = context.getAssets();
             try {
                 InputStream in = assetManager.open(folder + "/" + COMMANDER);

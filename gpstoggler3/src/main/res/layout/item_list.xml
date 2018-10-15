@@ -15,7 +15,7 @@
 
 	<LinearLayout  	android:layout_width="0dp"
 		       		android:layout_height="wrap_content"
-					android:layout_weight="54"
+					android:layout_weight="50"
 					android:orientation="vertical"
 					android:layout_marginStart="@dimen/activity_horizontal_margin">
 
@@ -35,14 +35,21 @@
 
 	<ogp.com.gpstoggler3.controls.TriStateSwitch
 				android:layout_width="0dp"
-                android:layout_weight="26"
+                android:layout_weight="24"
 				android:layout_height="match_parent"
+				android:paddingEnd="@dimen/activity_horizontal_small_margin"
 				android:id="@+id/appLookup" />
+
+	<ogp.com.gpstoggler3.controls.BTStateSwitch
+		android:layout_width="0dp"
+		android:layout_weight="8"
+		android:layout_height="match_parent"
+		android:id="@+id/btEnable" />
 
 	<ImageView	android:src="@mipmap/ic_launcher"
 				android:layout_width="0dp"
 				android:layout_height="match_parent"
-				android:layout_weight="10"
+				android:layout_weight="8"
 				android:layout_marginStart="@dimen/activity_horizontal_small_margin"
 				android:scaleType="fitCenter"
 				android:layout_gravity="end"

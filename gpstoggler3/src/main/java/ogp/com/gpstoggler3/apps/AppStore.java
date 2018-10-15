@@ -8,12 +8,14 @@ import ogp.com.gpstoggler3.settings.Settings;
 
 public class AppStore {
     public enum AppState {DISABLED, FOREGROUND, BACKGROUND, STARTABLE}
+    public enum BTState {LEAVE_AS_IS, ENABLE_WHEN_RUN}
 
 
     public String friendlyName;
     public String packageName;
     private boolean active;
     private AppState appState;
+    private BTState btState;
     private Drawable appIcon;
     private int inWidgets;
 
@@ -24,6 +26,7 @@ public class AppStore {
         this.packageName = appPackage;
         this.active = false;
         this.appState = AppState.DISABLED;
+        this.btState = BTState.LEAVE_AS_IS;
         this.inWidgets = Settings.countWidgets(this.packageName);
     }
 
@@ -37,6 +40,15 @@ public class AppStore {
         return appState;
     }
 
+
+    public BTState getBTState() {
+        return btState;
+    }
+
+
+    public void setBTState(BTState state) {
+        btState = state;
+    }
 
     void setActive(boolean active) {
         this.active = active;

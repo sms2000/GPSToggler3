@@ -14,6 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import ogp.com.gpstoggler3.R;
+import ogp.com.gpstoggler3.controls.BTStateSwitch;
 import ogp.com.gpstoggler3.controls.TriStateSwitch;
 import ogp.com.gpstoggler3.global.Constants;
 import ogp.com.gpstoggler3.interfaces.AppAdapterInterface;
@@ -46,6 +47,7 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         final TextView appPackage = convertView.findViewById(R.id.appPackage);
         final ImageView stateIcon = convertView.findViewById(R.id.appImage);
         final TriStateSwitch appLookup = convertView.findViewById(R.id.appLookup);
+        final BTStateSwitch btState = convertView.findViewById(R.id.btEnable);
         final ImageView appIcon = convertView.findViewById(R.id.appIcon);
 
         appLookup.setFlashListener(new TriStateSwitch.TriStateListener() {
@@ -55,9 +57,17 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
             }
         });
 
+        btState.setFlashListener(new BTStateSwitch.BTStateListener() {
+            @Override
+            public void onStateChanged(AppStore.BTState appState) {
+                onClickAppLookup(appStore, btState.getBTState());
+            }
+        });
+
         assert appStore != null;
         appName.setText(appStore.friendlyName);
         appPackage.setText(appStore.packageName);
+        btState.setState(appStore.getBTState());
         setStateImageDrawable(stateIcon, appStore);
         appLookup.setState(appStore.getAppState());
         setAppImageDrawable(appIcon, appStore);
@@ -126,6 +136,14 @@ public class AppAdapter extends ArrayAdapter<AppStore> {
         notifyDataSetChanged();
 
         appAdapterInterface.onClickAppLookup(appStore, state);
+    }
+
+
+    private void onClickAppLookup(AppStore appStore, AppStore.BTState state) {
+        appStore.setBTState(state);
+        notifyDataSetChanged();
+
+        appAdapterInterface.onClickBTLookup(appStore, state);
     }
 
 

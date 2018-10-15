@@ -2,6 +2,7 @@
 #define GPSTOGGLER3_COMMAND_H
 
 #include <string>
+#include <string.h>
 
 class CCommand {
 public:

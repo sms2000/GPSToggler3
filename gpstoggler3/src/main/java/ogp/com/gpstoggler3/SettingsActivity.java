@@ -30,8 +30,6 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
@@ -39,7 +37,6 @@ import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.MetadataChangeSet;
 
 import java.io.IOException;
@@ -488,7 +485,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
                 final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle("GpsToogler3Folder").build();
                 ResultCallback<DriveFolder.DriveFolderResult> folderCreatedCallback = new ResultCallback<DriveFolder.DriveFolderResult>() {
                             @Override
-                            public void onResult(DriveFolder.DriveFolderResult result) {
+                            public void onResult(@NonNull DriveFolder.DriveFolderResult result) {
                                 Status status = result.getStatus();
                                 if (!status.isSuccess()) {
                                     finished();
@@ -547,11 +544,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Goo
 
 
     private void storeOnlineData(DriveContents driveContents) {
+        String preserved = Settings.prepareDataForStore();
+        if (null == preserved) {
+            finished();
+            Toast.makeText(SettingsActivity.this, R.string.failed_json_1, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         OutputStream stream = driveContents.getOutputStream();
         Writer writer = new OutputStreamWriter(stream);
 
         try {
-            writer.write(Settings.prepareDataForStore());
+            writer.write(preserved);
         } catch (IOException e) {
             finished();
             Toast.makeText(SettingsActivity.this, R.string.failed_to_write_4, Toast.LENGTH_SHORT).show();

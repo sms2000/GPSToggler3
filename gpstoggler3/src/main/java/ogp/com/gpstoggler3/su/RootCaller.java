@@ -6,10 +6,8 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +118,7 @@ public class RootCaller {
             if (!result.isError()) {
                 Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Proper result returned.");
             } else {
-                Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Ecxception returned. Timeout?");
+                Log.d(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exception returned. Timeout?");
             }
 
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeCommander. Exit.");
@@ -129,7 +127,7 @@ public class RootCaller {
 
 
         @Override
-        public RPCResult executeWithResult(final ExecuteParams params) throws InvocationTargetException {
+        public RPCResult executeWithResult(final ExecuteParams params) {
             Log.v(Constants.TAG, "RootCaller::RootExecutor::executeWithResult. Entry...");
 
             RPCResult result;
@@ -172,6 +170,11 @@ public class RootCaller {
 
                 if (initNow) {
                     initialize();
+                } else {
+                    while (reader.ready()) {
+                        reader.readLine();
+                        Log.v(Constants.TAG, "Dropping leftovers...");
+                    }
                 }
 
                 writer.write(command, 0, command.length());
@@ -217,7 +220,7 @@ public class RootCaller {
             if (null != string && !string.isEmpty()) {
                 success = RootStatus.ROOT_GRANTED;
             }
-        } catch (Exception ignored) {
+        } catch (Exception ignore) {
         }
 
         if (RootStatus.NO_ROOT == success) {

@@ -12,6 +12,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.Objects;
+
 
 public class MonitorService extends Service {
     final static String TAG = "GPSToggler3Monitor";
@@ -44,7 +46,7 @@ public class MonitorService extends Service {
                 case Intent.ACTION_PACKAGE_REMOVED:
                     if (intent.getBooleanExtra(Intent.EXTRA_DATA_REMOVED, false)) {
                         try {
-                            String removedPackage = intent.getData().getSchemeSpecificPart();
+                            String removedPackage = Objects.requireNonNull(intent.getData()).getSchemeSpecificPart();
                             if (removedPackage.endsWith(PACKAGE_MASK)) {
                                 Log.i(MonitorService.TAG, "RegEventReceiver::onReceive. Parent package removed. Uninstall self.");
 

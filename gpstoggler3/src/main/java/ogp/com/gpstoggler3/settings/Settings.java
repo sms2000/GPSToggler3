@@ -9,6 +9,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Locale;
 
 import ogp.com.gpstoggler3.apps.AppStore;
@@ -354,7 +357,56 @@ public class Settings {
 
 
     public static String prepareDataForStore() {
-        // TODO
-        return "";
+        JSONObject json = new JSONObject();
+
+        try {
+            json.put(ON_POLLING_DELAY, getOnPollingDelay());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(WAZE_DEBUG, getWazeDebug());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(USE_MONITOR_APP, isMonitorAppUsed());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(OFF_POLLING_DELAY, getOffPollingDelay());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(BACK_DELAY, getLongBackKeyPressDelay());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(ROOT_TIMEOUT_DELAY, getRootTimeoutDelay());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(DOUBLE_CLICK_DELAY, getDoubleClickDelay());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            json.put(MONITOR_OFF_GPS_OFF, keepGpsOffWhenMonitorOff());
+        } catch (JSONException ignored) {
+        }
+
+        try {
+            String jsonS = json.toString(4);
+            Log.d(Constants.TAG, String.format("Settings::prepareDataForStore. JSON created: [%s].", jsonS));
+            return jsonS;
+        } catch (JSONException e) {
+            Log.i(Constants.TAG, "Settings::prepareDataForStore. JSON failed.");
+        }
+
+        return null;
     }
 }

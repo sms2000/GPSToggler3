@@ -201,6 +201,12 @@ public class AppSelectActivity extends AppCompatActivity implements AppAdapterIn
     }
 
 
+    @Override
+    public void onClickBTLookup(AppStore appStore, AppStore.BTState btState) {
+    }
+
+
+
     private void finishActivityForWidget() {
         handler.postDelayed(new Runnable() {
             @Override

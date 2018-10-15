@@ -32,6 +32,11 @@ ANTIVIRUS REPORTS MALICIOUS SOFTWARE
 Versions:
 =========
 
+1.4.801
+-------
+1. Adopted Api 28 (Android 9). May still have issues.
+
+
 1.3.773
 -------
 1. Fixed crash when starting an application through a widget.
